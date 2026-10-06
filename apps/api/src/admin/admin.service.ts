@@ -1,0 +1,397 @@
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import * as argon2 from 'argon2';
+import { PrismaService } from '../common/prisma.service';
+import { Actor } from '../common/security';
+import {
+  AdminUserQueryDto,
+  BadgeDto,
+  ClassDto,
+  CourseDto,
+  CreateUserDto,
+  LessonDto,
+  LevelDto,
+  MembershipDto,
+  QuestionDto,
+  SubjectDto,
+  TopicDto,
+  UpdateBadgeDto,
+  UpdateClassDto,
+  UpdateCourseDto,
+  UpdateLessonDto,
+  UpdateLevelDto,
+  UpdateQuestionDto,
+  UpdateSubjectDto,
+  UpdateTopicDto,
+  UpdateUserDto,
+} from './admin.dto';
+
+const safeUser = {
+  id: true,
+  name: true,
+  email: true,
+  role: true,
+  active: true,
+  createdAt: true,
+  student: { select: { grade: true } },
+} as const;
+@Injectable()
+export class AdminService {
+  constructor(private readonly db: PrismaService) {}
+  async analytics() {
+    const [users, students, teachers, lessons, published, attempts, xp, subjects, recent] =
+      await Promise.all([
+        this.db.user.count(),
+        this.db.user.count({ where: { role: 'STUDENT' } }),
+        this.db.user.count({ where: { role: 'TEACHER' } }),
+        this.db.lesson.count(),
+        this.db.lesson.count({ where: { status: 'PUBLISHED' } }),
+        this.db.attempt.aggregate({
+          where: { status: 'COMPLETED' },
+          _count: true,
+          _avg: { score: true },
+        }),
+        this.db.xpTransaction.aggregate({ _sum: { amount: true } }),
+        this.db.subject.count(),
+        this.db.attempt.findMany({
+          where: { status: 'COMPLETED' },
+          orderBy: { completedAt: 'desc' },
+          take: 10,
+          select: {
+            id: true,
+            score: true,
+            earnedXp: true,
+            completedAt: true,
+            user: { select: { name: true } },
+            lesson: { select: { title: true } },
+          },
+        }),
+      ]);
+    return {
+      users,
+      students,
+      teachers,
+      lessons,
+      published,
+      draft: lessons - published,
+      completedAttempts: attempts._count,
+      averageScore: Math.round(attempts._avg.score || 0),
+      totalXp: xp._sum.amount || 0,
+      subjects,
+      recent,
+    };
+  }
+  async users(query: AdminUserQueryDto) {
+    const where: Prisma.UserWhereInput = {
+      ...(query.role ? { role: query.role } : {}),
+      ...(query.grade ? { student: { grade: query.grade } } : {}),
+      ...(query.search
+        ? {
+            OR: [
+              { name: { contains: query.search, mode: 'insensitive' } },
+              { email: { contains: query.search, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+    };
+    const [items, total] = await Promise.all([
+      this.db.user.findMany({
+        where,
+        skip: (query.page - 1) * query.limit,
+        take: query.limit,
+        select: safeUser,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.db.user.count({ where }),
+    ]);
+    return { items, total, page: query.page, limit: query.limit };
+  }
+  async createUser(dto: CreateUserDto) {
+    if (dto.role === 'STUDENT' && !dto.grade)
+      throw new BadRequestException('O‘quvchi sinfini tanlang.');
+    return this.db.user.create({
+      data: {
+        email: dto.email,
+        name: dto.name,
+        role: dto.role,
+        passwordHash: await argon2.hash(dto.password, { type: argon2.argon2id }),
+        ...(dto.role === 'STUDENT'
+          ? { student: { create: { grade: dto.grade! } } }
+          : dto.role === 'TEACHER'
+            ? { teacher: { create: {} } }
+            : {}),
+      },
+      select: safeUser,
+    });
+  }
+  async updateUser(id: string, dto: UpdateUserDto, actor: Actor) {
+    if (id === actor.id && dto.active === false)
+      throw new BadRequestException('O‘z hisobingizni o‘chira olmaysiz.');
+    const user = await this.db.user.findUniqueOrThrow({ where: { id } });
+    if (dto.grade && user.role !== 'STUDENT')
+      throw new BadRequestException('Sinf faqat o‘quvchiga tegishli.');
+    const { grade, ...data } = dto;
+    return this.db.$transaction(async (tx) => {
+      if (user.role === 'ADMIN' && dto.active === false) {
+        // Serialize administrator deactivation so concurrent changes cannot remove the last one.
+        await tx.$queryRaw`SELECT pg_advisory_xact_lock(831641)::text`;
+        if ((await tx.user.count({ where: { role: 'ADMIN', active: true } })) <= 1)
+          throw new BadRequestException('Oxirgi adminni o‘chira olmaysiz.');
+      }
+      if (grade)
+        await tx.classStudent.deleteMany({
+          where: { studentId: id, class: { grade: { not: grade } } },
+        });
+      return tx.user.update({
+        where: { id },
+        data: { ...data, ...(grade ? { student: { update: { grade } } } : {}) },
+        select: safeUser,
+      });
+    });
+  }
+  async content() {
+    return this.db.subject.findMany({
+      orderBy: { position: 'asc' },
+      include: {
+        courses: {
+          orderBy: [{ grade: 'asc' }, { position: 'asc' }],
+          include: {
+            topics: {
+              orderBy: { position: 'asc' },
+              include: {
+                lessons: {
+                  orderBy: { position: 'asc' },
+                  include: {
+                    questions: {
+                      orderBy: { position: 'asc' },
+                      include: { options: { orderBy: { position: 'asc' } } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+  createSubject(dto: SubjectDto) {
+    return this.db.subject.create({ data: dto });
+  }
+  updateSubject(id: string, dto: UpdateSubjectDto) {
+    return this.db.subject.update({ where: { id }, data: dto });
+  }
+  deleteSubject(id: string) {
+    return this.db.subject.delete({ where: { id } });
+  }
+  createCourse(dto: CourseDto) {
+    return this.db.course.create({ data: dto });
+  }
+  updateCourse(id: string, dto: UpdateCourseDto) {
+    return this.db.course.update({ where: { id }, data: dto });
+  }
+  deleteCourse(id: string) {
+    return this.db.course.delete({ where: { id } });
+  }
+  createTopic(dto: TopicDto) {
+    return this.db.topic.create({ data: dto });
+  }
+  updateTopic(id: string, dto: UpdateTopicDto) {
+    return this.db.topic.update({ where: { id }, data: dto });
+  }
+  deleteTopic(id: string) {
+    return this.db.topic.delete({ where: { id } });
+  }
+  createLesson(dto: LessonDto) {
+    if (dto.status === 'PUBLISHED')
+      throw new BadRequestException('Avval darsni qoralama sifatida yarating va savol qo‘shing.');
+    return this.db.lesson.create({ data: dto });
+  }
+  async updateLesson(id: string, dto: UpdateLessonDto) {
+    if (
+      dto.status === 'PUBLISHED' &&
+      !(await this.db.question.count({ where: { lessonId: id, status: 'PUBLISHED' } }))
+    )
+      throw new BadRequestException(
+        'Darsni chop etish uchun kamida bitta chop etilgan savol kerak.',
+      );
+    return this.db.lesson.update({ where: { id }, data: dto });
+  }
+  deleteLesson(id: string) {
+    return this.db.lesson.delete({ where: { id } });
+  }
+  private validateQuestion(dto: { type: string; answer: string; options: { value: string }[] }) {
+    if (
+      dto.type === 'MULTIPLE_CHOICE' &&
+      (dto.options.length < 2 ||
+        !dto.options.some((o) => o.value === dto.answer) ||
+        new Set(dto.options.map((o) => o.value)).size !== dto.options.length)
+    )
+      throw new BadRequestException(
+        'Kamida 2 ta noyob variant va ulardan to‘g‘ri javobni kiriting.',
+      );
+    if (dto.type !== 'MULTIPLE_CHOICE' && dto.options.length)
+      throw new BadRequestException('Variantlar faqat variantli savol uchun.');
+    if (dto.type === 'TRUE_FALSE' && !['true', 'false'].includes(dto.answer))
+      throw new BadRequestException('Javob true yoki false bo‘lishi kerak.');
+    if (
+      dto.type === 'NUMERICAL' &&
+      (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(dto.answer) || !Number.isFinite(Number(dto.answer)))
+    )
+      throw new BadRequestException('Sonli javobni kiriting.');
+    if (dto.type === 'TEXT' && dto.answer.split('|').some((a) => !a.trim()))
+      throw new BadRequestException('Matnli javob variantlari bo‘sh bo‘lmasin.');
+  }
+  createQuestion(dto: QuestionDto) {
+    this.validateQuestion({ ...dto, options: dto.options || [] });
+    const { options = [], ...data } = dto;
+    return this.db.question.create({
+      data: { ...data, options: { create: options.map((o, i) => ({ ...o, position: i })) } },
+    });
+  }
+  async updateQuestion(id: string, dto: UpdateQuestionDto) {
+    if (
+      await this.db.attempt.count({
+        where: {
+          status: 'IN_PROGRESS',
+          createdAt: { gte: new Date(Date.now() - 86400000) },
+          questionIds: { has: id },
+        },
+      })
+    )
+      throw new BadRequestException(
+        'Savol hozir faol mashqda ishlatilmoqda. Mashq yakunlangach tahrirlang.',
+      );
+    const question = await this.db.question.findUniqueOrThrow({
+      where: { id },
+      include: { options: true },
+    });
+    this.validateQuestion({ ...question, ...dto, options: dto.options || question.options });
+    const { options, ...data } = dto;
+    return this.db.question.update({
+      where: { id },
+      data: {
+        ...data,
+        ...(options
+          ? { options: { deleteMany: {}, create: options.map((o, i) => ({ ...o, position: i })) } }
+          : {}),
+      },
+    });
+  }
+  async deleteQuestion(id: string) {
+    if (await this.db.attempt.count({ where: { questionIds: { has: id } } }))
+      throw new BadRequestException('Savol urinishlarda ishlatilgan. Uni arxivlang.');
+    return this.db.question.delete({ where: { id } });
+  }
+  classes() {
+    return this.db.class.findMany({
+      include: {
+        teacher: { select: { id: true, name: true } },
+        students: { include: { student: { select: safeUser } } },
+      },
+      orderBy: { name: 'asc' },
+    });
+  }
+  async createClass(dto: ClassDto) {
+    if (
+      !(await this.db.user.findFirst({
+        where: { id: dto.teacherId, role: 'TEACHER', active: true },
+      }))
+    )
+      throw new BadRequestException('Faol o‘qituvchini tanlang.');
+    return this.db.class.create({ data: dto });
+  }
+  async updateClass(id: string, dto: UpdateClassDto) {
+    if (
+      dto.teacherId &&
+      !(await this.db.user.findFirst({
+        where: { id: dto.teacherId, role: 'TEACHER', active: true },
+      }))
+    )
+      throw new BadRequestException('Faol o‘qituvchini tanlang.');
+    if (
+      dto.grade &&
+      (await this.db.classStudent.count({
+        where: { classId: id, student: { student: { grade: { not: dto.grade } } } },
+      }))
+    )
+      throw new BadRequestException('Sinfdagi o‘quvchilar bosqichi mos emas.');
+    return this.db.class.update({ where: { id }, data: dto });
+  }
+  deleteClass(id: string) {
+    return this.db.class.delete({ where: { id } });
+  }
+  async membership(id: string, dto: MembershipDto) {
+    const group = await this.db.class.findUniqueOrThrow({ where: { id } });
+    const students = await this.db.user.count({
+      where: {
+        id: { in: dto.studentIds },
+        role: 'STUDENT',
+        active: true,
+        student: { grade: group.grade },
+      },
+    });
+    if (students !== dto.studentIds.length)
+      throw new BadRequestException('Sinfga mos faol o‘quvchilarni tanlang.');
+    return this.db.$transaction(async (tx) => {
+      await tx.classStudent.deleteMany({ where: { classId: id } });
+      await tx.classStudent.createMany({
+        data: dto.studentIds.map((studentId) => ({ classId: id, studentId })),
+      });
+      return { success: true };
+    });
+  }
+  async gamification() {
+    const [rules, levels, badges] = await Promise.all([
+      this.db.xpRule.findMany(),
+      this.db.level.findMany({ orderBy: { threshold: 'asc' } }),
+      this.db.badge.findMany({ orderBy: { createdAt: 'asc' } }),
+    ]);
+    return { rules, levels, badges };
+  }
+  rule(key: string, amount: number) {
+    return this.db.xpRule.update({ where: { key }, data: { amount } });
+  }
+  private async validateLevel(number: number, threshold: number, id?: string) {
+    if (number === 1 && threshold !== 0)
+      throw new BadRequestException('Birinchi daraja 0 XP dan boshlanadi.');
+    const others = await this.db.level.findMany({ where: id ? { id: { not: id } } : {} });
+    if (
+      others.some((l) =>
+        l.number < number
+          ? l.threshold >= threshold
+          : l.number > number && l.threshold <= threshold,
+      )
+    )
+      throw new BadRequestException('Daraja chegaralari o‘sib borishi kerak.');
+  }
+  async createLevel(dto: LevelDto) {
+    await this.validateLevel(dto.number, dto.threshold);
+    return this.db.level.create({ data: dto });
+  }
+  async updateLevel(id: string, dto: UpdateLevelDto) {
+    const level = await this.db.level.findUniqueOrThrow({ where: { id } });
+    if (
+      level.number === 1 &&
+      ((dto.number !== undefined && dto.number !== 1) ||
+        (dto.threshold !== undefined && dto.threshold !== 0))
+    )
+      throw new BadRequestException('Birinchi daraja raqami va 0 XP chegarasi saqlanishi kerak.');
+    await this.validateLevel(dto.number ?? level.number, dto.threshold ?? level.threshold, id);
+    return this.db.level.update({ where: { id }, data: dto });
+  }
+  async deleteLevel(id: string) {
+    if ((await this.db.level.findUniqueOrThrow({ where: { id } })).number === 1)
+      throw new BadRequestException('Birinchi daraja zarur.');
+    return this.db.level.delete({ where: { id } });
+  }
+  createBadge(dto: BadgeDto) {
+    return this.db.badge.create({ data: dto });
+  }
+  updateBadge(id: string, dto: UpdateBadgeDto) {
+    return this.db.badge.update({ where: { id }, data: dto });
+  }
+  deleteBadge(id: string) {
+    return this.db.badge.delete({ where: { id } });
+  }
+}

@@ -1,0 +1,47 @@
+# OYLA implementation review
+
+Reviewed on 6 October 2026. The local application uses real PostgreSQL 18 and Redis 7.4.7; no learning metrics are invented.
+
+## Corrected findings
+
+| Severity | Finding                                                                                                 | Resolution                                                                                                                                                                                                   |
+| -------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| High     | Requests could mass-assign roles, scores, or XP without strict contracts.                               | Concrete class-validator DTOs, nested validation, unknown-field rejection, explicit grade and numeric checks, server-only scoring/rewards.                                                                   |
+| High     | Parallel completions or repeated lesson/daily requests could duplicate rewards.                         | Per-student row locks, transactional completion, unique XP source keys, stored idempotent results, unique badge ownership and daily attempt keys; live concurrency tests.                                    |
+| High     | Refresh token replay and logout could leave usable sessions.                                            | Hashed rotating refresh tokens, HttpOnly cookies, verified issuer/audience/algorithm/session claims, database session checks, immediate logout revocation; live rotation/replay tests.                       |
+| High     | Vulnerable package versions were present in the initial dependency resolution.                          | Updated NestJS/OpenAPI packages and selected compatible Prisma versions; final npm audit reports zero vulnerabilities.                                                                                       |
+| Medium   | PATCH DTO initializers overwrote existing status, order, or question options.                           | Database creation defaults and optional update properties; regression tests.                                                                                                                                 |
+| Medium   | Unpublished parents or incorrect grades could expose child content.                                     | Shared visibility predicates across content, attempts, and student progress; hidden answer keys and teacher ownership checks.                                                                                |
+| Medium   | Old attempts could indefinitely block content edits or claim a daily reward on a later date.            | 24-hour lesson attempt expiry and Tashkent daily boundaries; snapshots and first-answer grading.                                                                                                             |
+| Medium   | Email case changes could make an account impossible to log into.                                        | Update DTOs normalize emails consistently with login; regression and live API checks.                                                                                                                        |
+| Medium   | Removing the first level or concurrently deactivating administrators could violate platform invariants. | First-level protection, self-deactivation prevention, transactional administrator deactivation with an advisory lock. Grade changes remove incompatible class memberships while preserving learning history. |
+| Medium   | Mastery and next-lesson ordering could differ between the result and dashboard.                         | The same visible-lesson set and deterministic subject/topic ordering; per-lesson completion IDs for browsing.                                                                                                |
+| Medium   | Browser locale support produced incorrect Uzbek date labels.                                            | Explicit Uzbek date formatting with Tashkent time, independent of browser ICU data.                                                                                                                          |
+| Medium   | Large admin rendering logic reduced maintainability.                                                    | Separate overview, users, content, classes, and gamification components; shared editors/configuration and formatted source.                                                                                  |
+
+## Verification
+
+- Lint and strict TypeScript checks pass for both workspaces.
+- 16 backend unit tests cover all question graders, score/mastery calculations, date/week/streak boundaries, JWT verification, validation, nested errors, safe optional fields, normalization, and PATCH behavior.
+- Nine live E2E groups cover registration/login, RBAC, CSRF origin checks, UUID/body validation, publishing, hidden keys, teacher/class ownership, assignments, all four question types, parallel completion, repeat reward prevention, mastery, badges, seven-day streak bonus, daily rewards, refresh replay, and logout.
+- Both production builds pass; frontend pages are split into lazy-loaded chunks.
+- Browser verification exercised the student lesson through explanation, example, multiple-choice, true/false, numerical, text, challenge, retry, and result. A deliberately wrong first answer produced 83%, 200 XP, mastery 83%, a one-day streak, and the first-lesson badge through the server.
+- Desktop (1366×900) and mobile (390×844) dashboard layouts were inspected. Responsive navigation, reading width, form labels, focus states, accessible Radix dialogs, and reduced-motion styles are included.
+- Teacher UI created a real `Foizlar bo‘yicha mustaqil mashq` assignment for 6-A. Admin UI loaded the hierarchy and saved an existing subject through validated DTOs.
+- Docker Compose configuration validates. Native PostgreSQL/Redis, health checks, migrations, and idempotent seed execution were verified.
+
+## Limits and pilot preparation
+
+Docker Desktop's Linux engine was unavailable on this host, so Docker image builds and container startup were not executed. Dockerfiles, Nginx configuration, and Compose are supplied; the application is currently running with native local infrastructure. Production needs HTTPS, private API connectivity, configured secrets, backups, and staff provisioning as documented in README.
+
+The original shared starter curriculum has now been extended with a separate 54-lesson/324-question grade-specific catalog. The new material is an original MVP learning sequence and does not claim to cover a full current national annual syllabus. Referenced/edited old content is preserved. Educators can review and extend it through the admin editor. AI tutor, parent/sponsor dashboards, rewards, duels, and friendship relationships remain outside the MVP. Public staff signup, email delivery, and external paid services are not used.
+
+## Profile curriculum and frontend automation update
+
+- Added authenticated GET/PATCH profile endpoints and a responsive `/profile` page for all three roles. Names can be saved; email/grade/role are protected. Account headers update after saves. Profile stats and classes are queried from the server.
+- Added distinct mathematics, English, and informatics sequences for grades 5–7, with objectives, explanations, worked examples, practice/challenge questions, and safe versioned seeding. The local upgrade archived 20 unused unmodified starters and preserved 7 referenced or edited starters.
+- Added 22 passing backend unit tests in total, including content integrity, independently calculated answer keys, profile mass-assignment rejection, and preservation rules.
+- Added 9 passing Vitest/Testing Library tests for profile loading, validation, saving/header updates, role variants, error recovery, anonymous protection, and concurrent token refresh.
+- Added real Chromium tests for registration/login, profile persistence/logout, mobile layout including long names, teacher/admin profiles, grade-specific visibility, and lesson → answer → result → XP → profile flows, including a wrong-first-answer retry and signed numerical answers on mobile.
+- GitHub Actions CI provisions PostgreSQL/Redis and runs lint, strict type checks, backend/frontend unit tests, production builds, browser tests, API integration, and dependency audit. The pipeline is saved as a workflow file but cannot run on GitHub until a remote repository is configured and pushed.
+- Browser tests run on isolated app ports and Redis database 1. They clean up only their own student fixtures and revoke their staff test sessions.
