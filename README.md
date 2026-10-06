@@ -6,7 +6,7 @@ All roles have a dedicated `/profile` page with account details and name editing
 
 ## Stack and layout
 
-- `apps/api`: NestJS 12, TypeScript strict mode, **class-validator + class-transformer DTOs**, PostgreSQL, Prisma, Redis, Argon2id, JWT, rotating HttpOnly refresh cookies, OpenAPI.
+- `apps/api`: NestJS 12, TypeScript strict mode, **class-validator + class-transformer DTOs**, PostgreSQL, Prisma ORM 7.10 with `@prisma/adapter-pg`, Redis, Argon2id, JWT, rotating HttpOnly refresh cookies, OpenAPI.
 - `apps/web`: React, Vite, TypeScript, Tailwind, Radix primitives styled with shadcn conventions, React Router, TanStack Query, React Hook Form, Zod, Lucide, Recharts. Inter is hosted locally.
 - `docs/ARCHITECTURE.md`: specification analysis, database relationships, route/API map, design system, business formulas, and implementation plan.
 - `docs/REVIEW.md`: verification results, corrected issues, and deployment limits.
@@ -37,6 +37,8 @@ npm run db:migrate
 npm run db:seed
 npm run dev
 ```
+
+Prisma CLI settings live in the root `prisma.config.ts`; it points to the API schema and reads `DATABASE_URL`. The API uses Prisma's generated client with the PostgreSQL driver adapter, so run `npm run db:generate` after a clean install or schema change.
 
 Open **http://localhost:5173**. Use the localhost hostname consistently because CORS, origin checks, and cookies use the configured `WEB_ORIGIN`.
 

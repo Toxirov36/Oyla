@@ -17,7 +17,7 @@
     "test:web": "npm run test -w @oyla/web",
     "test:browser": "playwright test",
     "test:browser:report": "playwright show-report",
-    "test:e2e": "node --env-file=apps/api/.env scripts/e2e.mjs",
+    "test:e2e": "node --import=tsx scripts/e2e.mjs",
     "db:generate": "npm run db:generate -w @oyla/api",
     "db:migrate": "npm run db:migrate -w @oyla/api",
     "db:seed": "npm run db:seed -w @oyla/api",

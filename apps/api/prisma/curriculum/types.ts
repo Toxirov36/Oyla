@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import type { Difficulty, QuestionType } from '@prisma/client';
+import type { Difficulty, QuestionType } from '../../generated/prisma/client';
 
 export type Grade = 5 | 6 | 7;
 export type SeedQuestion = {

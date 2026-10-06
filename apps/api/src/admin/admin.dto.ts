@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { BadgeCriterion, ContentStatus, Difficulty, QuestionType, Role } from '@prisma/client';
+import { BadgeCriterion, ContentStatus, Difficulty, QuestionType, Role } from '../../generated/prisma/client';
 import { Type, Transform } from 'class-transformer';
 import {
   ArrayMaxSize,

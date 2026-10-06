@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException, Logger } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../common/prisma.service';
 import { Actor } from '../common/security';
 import { questionSelect, visibleLesson, visibleQuestion } from '../content/content.service';

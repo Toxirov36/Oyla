@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { TokenService } from './token.service';
-import { Role } from '@prisma/client';
+import { Role } from '../../generated/prisma/client';
 import type { Request } from 'express';
 import { PrismaService } from './prisma.service';
 import { RedisService } from './redis.service';

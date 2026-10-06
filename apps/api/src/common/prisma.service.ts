@@ -1,10 +1,16 @@
 import { Global, Injectable, Module, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Prisma, PrismaClient } from '../../generated/prisma/client';
 import { RedisService } from './redis.service';
 import { TokenService } from './token.service';
+import { config } from './config';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+  constructor() {
+    super({ adapter: new PrismaPg({ connectionString: config.DATABASE_URL }) });
+  }
+
   async onModuleInit() {
     await this.$connect();
   }

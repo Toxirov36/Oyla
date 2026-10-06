@@ -1,4 +1,4 @@
-import { QuestionType } from '@prisma/client';
+import { QuestionType } from '../../generated/prisma/client';
 
 type CheckableQuestion = {
   type: QuestionType;

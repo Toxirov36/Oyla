@@ -1,5 +1,7 @@
 node_modules/
 dist/
+apps/api/generated/
+apps/api/src/generated/
 .env
 .env.*
 !.env.example

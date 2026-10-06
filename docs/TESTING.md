@@ -29,6 +29,8 @@ Failures save screenshots and traces in ignored `test-results/` and a report in 
 
 `.github/workflows/ci.yml` runs on push and pull request. It provisions PostgreSQL 18 and Redis 7, installs Node 24 and dependencies, generates Prisma, applies migrations, seeds the grade-specific catalog, and runs lint, strict type checks (including test/tooling TypeScript), backend/frontend unit tests, production builds, Chromium browser tests, API integration tests, and a dependency audit. Failure diagnostics are retained for seven days.
 
+Prisma ORM 7.10 uses the root `prisma.config.ts`, a generated client under `apps/api/generated/`, and the PostgreSQL driver adapter. CI runs `npm run db:generate` before type checking and building. The current Prisma CLI dependency tree reports four upstream high-severity advisories; the audit step keeps that signal visible until an upstream Prisma release resolves them.
+
 Action revisions are pinned to verified commit SHAs. The workflow has read-only repository permissions and cancels superseded runs. Database/JWT/demo credentials in this workflow are disposable CI fixtures. With no configured Git remote, the workflow cannot be dispatched here; all corresponding project checks can run locally before a push.
 
-References: [Playwright web servers](https://playwright.dev/docs/test-webserver), [Playwright CI](https://playwright.dev/docs/ci-intro), [Vitest](https://vitest.dev/guide/), [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/).
+References: [Playwright web servers](https://playwright.dev/docs/test-webserver), [Playwright CI](https://playwright.dev/docs/ci-intro), [Vitest](https://vitest.dev/guide/), [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/), [Prisma ORM 7 upgrade](https://www.prisma.io/docs/guides/upgrade-prisma-orm/v7).

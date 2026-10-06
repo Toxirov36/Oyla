@@ -1,12 +1,13 @@
 import { config as loadEnv } from 'dotenv';
-import { PrismaClient, BadgeCriterion } from '@prisma/client';
+import { BadgeCriterion } from '../generated/prisma/client';
+import { createPrismaClient } from './client';
 import * as argon2 from 'argon2';
 import { createHash } from 'node:crypto';
 import { syncCurriculum } from './curriculum/sync';
 import { lessonId } from './curriculum/types';
 
 loadEnv({ override: true, quiet: true });
-const db = new PrismaClient();
+const db = createPrismaClient();
 const id = (key: string) => {
   const hash = createHash('sha256').update(`oyla:${key}`).digest('hex');
   return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-4${hash.slice(13, 16)}-a${hash.slice(17, 20)}-${hash.slice(20, 32)}`;

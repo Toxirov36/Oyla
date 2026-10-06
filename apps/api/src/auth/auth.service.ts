@@ -1,6 +1,6 @@
 import { ConflictException, Injectable, UnauthorizedException, OnModuleInit } from '@nestjs/common';
 import { TokenService } from '../common/token.service';
-import { Prisma, User } from '@prisma/client';
+import { Prisma, User } from '../../generated/prisma/client';
 import { createHash, randomBytes } from 'node:crypto';
 import * as argon2 from 'argon2';
 import { PrismaService } from '../common/prisma.service';

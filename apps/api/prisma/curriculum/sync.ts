@@ -1,4 +1,4 @@
-import type { Prisma, PrismaClient } from '@prisma/client';
+import type { Prisma, PrismaClient } from '../../generated/prisma/client';
 import { curriculum } from './index';
 import { legacyCurriculum } from './legacy';
 import { lessonId, seedId, type Grade, type SeedLesson } from './types';

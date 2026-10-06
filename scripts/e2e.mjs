@@ -1,11 +1,9 @@
 import assert from 'node:assert/strict';
 import { randomBytes, randomUUID } from 'node:crypto';
-import { createRequire } from 'node:module';
 import { config } from 'dotenv';
+import { createPrismaClient } from '../apps/api/prisma/client.ts';
 config({ path: 'apps/api/.env', override: true, quiet: true });
-const require = createRequire(new URL('../apps/api/package.json', import.meta.url));
-const { PrismaClient } = require('@prisma/client');
-const db = new PrismaClient();
+const db = createPrismaClient();
 const base = process.env.E2E_API || 'http://127.0.0.1:3001/api/v1';
 if (
   process.env.NODE_ENV === 'production' ||
