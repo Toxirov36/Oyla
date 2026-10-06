@@ -31,6 +31,7 @@ const safeUser = {
   name: true,
   email: true,
   role: true,
+  teacherAccess: true,
   active: true,
   createdAt: true,
   student: { select: { grade: true } },
@@ -43,7 +44,7 @@ export class AdminService {
       await Promise.all([
         this.db.user.count(),
         this.db.user.count({ where: { role: 'STUDENT' } }),
-        this.db.user.count({ where: { role: 'TEACHER' } }),
+        this.db.user.count({ where: { OR: [{ role: 'TEACHER' }, { teacherAccess: true }] } }),
         this.db.lesson.count(),
         this.db.lesson.count({ where: { status: 'PUBLISHED' } }),
         this.db.attempt.aggregate({
@@ -114,6 +115,7 @@ export class AdminService {
         email: dto.email,
         name: dto.name,
         role: dto.role,
+        teacherAccess: dto.role === 'TEACHER',
         passwordHash: await argon2.hash(dto.password, { type: argon2.argon2id }),
         ...(dto.role === 'STUDENT'
           ? { student: { create: { grade: dto.grade! } } }
@@ -130,6 +132,8 @@ export class AdminService {
     const user = await this.db.user.findUniqueOrThrow({ where: { id } });
     if (dto.grade && user.role !== 'STUDENT')
       throw new BadRequestException('Sinf faqat o‘quvchiga tegishli.');
+    if (dto.teacherAccess && user.role === 'STUDENT')
+      throw new BadRequestException('O‘quvchiga o‘qituvchi paneli berib bo‘lmaydi.');
     const { grade, ...data } = dto;
     return this.db.$transaction(async (tx) => {
       if (user.role === 'ADMIN' && dto.active === false) {
@@ -295,7 +299,11 @@ export class AdminService {
   async createClass(dto: ClassDto) {
     if (
       !(await this.db.user.findFirst({
-        where: { id: dto.teacherId, role: 'TEACHER', active: true },
+        where: {
+          id: dto.teacherId,
+          active: true,
+          OR: [{ role: 'TEACHER' }, { teacherAccess: true }],
+        },
       }))
     )
       throw new BadRequestException('Faol o‘qituvchini tanlang.');
@@ -305,7 +313,11 @@ export class AdminService {
     if (
       dto.teacherId &&
       !(await this.db.user.findFirst({
-        where: { id: dto.teacherId, role: 'TEACHER', active: true },
+        where: {
+          id: dto.teacherId,
+          active: true,
+          OR: [{ role: 'TEACHER' }, { teacherAccess: true }],
+        },
       }))
     )
       throw new BadRequestException('Faol o‘qituvchini tanlang.');

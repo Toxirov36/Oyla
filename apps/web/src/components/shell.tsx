@@ -44,6 +44,7 @@ const adminNav = [
   { to: '/admin/gamification', label: 'Gamifikatsiya', icon: Settings2 },
   { to: '/profile', label: 'Mening profilim', icon: UserRound },
 ];
+const adminTeacherNav = [...adminNav.slice(0, -1), ...teacherNav.slice(0, 2), adminNav.at(-1)!];
 export function Logo() {
   return (
     <span className="logo">
@@ -58,13 +59,21 @@ export function AppShell() {
   const { user, signOut } = useAuth();
   const [menu, setMenu] = useState(false);
   const nav =
-    user!.role === 'STUDENT' ? studentNav : user!.role === 'TEACHER' ? teacherNav : adminNav;
+    user!.role === 'STUDENT'
+      ? studentNav
+      : user!.role === 'TEACHER'
+        ? teacherNav
+        : user!.teacherAccess
+          ? adminTeacherNav
+          : adminNav;
   const roleLabel =
     user!.role === 'STUDENT'
       ? `${user!.student?.grade}-sinf o‘quvchisi`
       : user!.role === 'TEACHER'
         ? 'O‘qituvchi'
-        : 'Administrator';
+        : user!.teacherAccess
+          ? 'Administrator · O‘qituvchi'
+          : 'Administrator';
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main">

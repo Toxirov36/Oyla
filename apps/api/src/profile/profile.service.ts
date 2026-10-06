@@ -17,6 +17,7 @@ export class ProfileService {
         name: true,
         email: true,
         role: true,
+        teacherAccess: true,
         createdAt: true,
         student: { select: { grade: true } },
       },
@@ -67,7 +68,7 @@ export class ProfileService {
         teacher: null,
       };
     }
-    if (user.role === 'TEACHER') {
+    if (user.role === 'TEACHER' || user.teacherAccess) {
       const [classes, students, assignments] = await Promise.all([
         this.db.class.findMany({
           where: { teacherId: user.id },

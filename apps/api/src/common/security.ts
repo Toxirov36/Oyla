@@ -21,6 +21,7 @@ export interface Actor {
   name: string;
   email: string;
   role: Role;
+  teacherAccess: boolean;
   grade: number | null;
   sessionId: string;
 }
@@ -78,6 +79,7 @@ export class SecurityGuard implements CanActivate {
       name: session.user.name,
       email: session.user.email,
       role: session.user.role,
+      teacherAccess: session.user.teacherAccess,
       grade: session.user.student?.grade || null,
       sessionId: session.id,
     };
@@ -85,7 +87,9 @@ export class SecurityGuard implements CanActivate {
       ctx.getHandler(),
       ctx.getClass(),
     ]);
-    if (roles && !roles.includes(request.user.role))
+    const teacherRouteAllowed =
+      roles?.includes('TEACHER') && request.user.role === 'ADMIN' && request.user.teacherAccess;
+    if (roles && !roles.includes(request.user.role) && !teacherRouteAllowed)
       throw new ForbiddenException('Bu sahifaga kirish huquqingiz yo‘q.');
     return true;
   }

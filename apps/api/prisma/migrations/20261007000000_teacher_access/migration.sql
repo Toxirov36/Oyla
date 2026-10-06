@@ -1,0 +1,1 @@
+ALTER TABLE "User" ADD COLUMN "teacherAccess" BOOLEAN NOT NULL DEFAULT false;

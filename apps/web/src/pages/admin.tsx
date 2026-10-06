@@ -87,7 +87,7 @@ export default function AdminPage({
   });
   const staff = useQuery({
     queryKey: ['admin', 'staff'],
-    queryFn: () => api<{ items: User[] }>('/admin/users?limit=100&role=TEACHER'),
+    queryFn: () => api<{ items: User[] }>('/admin/users?limit=100'),
     enabled: mode === 'classes',
   });
   const content = useQuery({
@@ -361,6 +361,9 @@ export default function AdminPage({
               } as EditorField,
               { key: 'role', label: 'Rol', kind: 'select', options: roles } as EditorField,
             ]),
+        ...(user && user.role !== 'STUDENT'
+          ? [{ key: 'teacherAccess', label: 'O‘qituvchi paneli', kind: 'checkbox' } as EditorField]
+          : []),
         ...(!user || user.role === 'STUDENT'
           ? [
               {
@@ -394,7 +397,7 @@ export default function AdminPage({
           kind: 'select',
           schema: z.uuid(),
           options: (staff.data?.items || [])
-            .filter((u) => u.role === 'TEACHER' && u.active)
+            .filter((u) => (u.role === 'TEACHER' || u.teacherAccess) && u.active)
             .map((u) => ({ value: u.id, label: u.name })),
         },
       ],

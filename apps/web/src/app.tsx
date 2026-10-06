@@ -16,7 +16,8 @@ function Protected({ role }: { role?: Role }) {
   const { user, loading } = useAuth();
   if (loading) return <Loading />;
   if (!user) return <Navigate to="/login" replace />;
-  if (role && user.role !== role) return <Navigate to={homeFor(user)} replace />;
+  const teacherAccess = role === 'TEACHER' && user.teacherAccess === true;
+  if (role && user.role !== role && !teacherAccess) return <Navigate to={homeFor(user)} replace />;
   return <Outlet />;
 }
 function Home() {

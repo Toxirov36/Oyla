@@ -55,7 +55,10 @@ export function AdminUsers({
                   <small>{user.email}</small>
                 </td>
                 <td>
-                  <span className="pill">{roles.find((r) => r.value === user.role)?.label}</span>
+                  <span className="pill">
+                    {roles.find((r) => r.value === user.role)?.label}
+                    {user.teacherAccess ? ' · O‘qituvchi paneli' : ''}
+                  </span>
                 </td>
                 <td>{user.student ? `${user.student.grade}-sinf` : '—'}</td>
                 <td>

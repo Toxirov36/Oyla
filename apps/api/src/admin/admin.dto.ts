@@ -125,6 +125,7 @@ export class UpdateUserDto {
   @MaxLength(254)
   email?: string;
   @ApiPropertyOptional() @Optional() @IsBoolean() active?: boolean;
+  @ApiPropertyOptional() @Optional() @IsBoolean() teacherAccess?: boolean;
   @ApiPropertyOptional() @Optional() @IsInt() @Min(5) @Max(7) grade?: number;
 }
 export class ClassDto {

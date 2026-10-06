@@ -6,6 +6,7 @@ export interface User {
   name: string;
   email: string;
   role: Role;
+  teacherAccess?: boolean;
   student: { grade: number } | null;
   active?: boolean;
   createdAt?: string;

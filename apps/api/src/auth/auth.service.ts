@@ -103,6 +103,7 @@ export class AuthService implements OnModuleInit {
         name: true,
         email: true,
         role: true,
+        teacherAccess: true,
         student: { select: { grade: true } },
       },
     });
