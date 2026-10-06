@@ -62,7 +62,14 @@ jobs:
             sleep 1
           done
           npm run test:e2e
-      - run: npm audit --audit-level=high
+      - name: Dependency audit
+        shell: bash
+        run: |
+          mkdir -p .local
+          if npm audit --audit-level=high --json > .local/npm-audit.json; then
+            exit 0
+          fi
+          node scripts/audit.mjs .local/npm-audit.json
       - name: Browser failure diagnostics
         if: ${{ failure() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -71,4 +78,5 @@ jobs:
           path: |
             playwright-report/
             test-results/
+            .local/npm-audit.json
           retention-days: 7
