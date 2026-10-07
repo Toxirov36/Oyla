@@ -7,7 +7,7 @@ import {
   type RefObject,
 } from 'react';
 import { Combobox as Primitive } from '@base-ui/react/combobox';
-import { Check, ChevronsUpDown, X } from 'lucide-react';
+import { Check, ChevronDown, X } from 'lucide-react';
 import { ComboboxPortalContext } from './combobox-context';
 import './combobox.css';
 
@@ -44,7 +44,7 @@ export const ComboboxInput = forwardRef<HTMLInputElement, InputProps>(function C
         </Primitive.Clear>
       )}
       <Primitive.Trigger className="combobox-button" aria-label="Variantlarni ochish" tabIndex={-1}>
-        <ChevronsUpDown size={16} />
+        <ChevronDown size={16} className="combobox-chevron" aria-hidden="true" />
       </Primitive.Trigger>
     </div>
   );
