@@ -100,7 +100,8 @@ test('admin edits existing roles, issues a one-time reset link and the user ente
     await page
       .getByRole('button', { name: `${learner.user.name} tahrirlash`, exact: true })
       .click();
-    await page.getByLabel('Rol', { exact: true }).selectOption('TEACHER');
+    await page.getByRole('combobox', { name: 'Rol', exact: true }).fill('qituvchi');
+    await page.getByRole('option', { name: 'O‘qituvchi', exact: true }).click();
     await page.getByRole('button', { name: 'Saqlash', exact: true }).click();
     await expect(page.getByRole('dialog')).not.toBeVisible();
     expect((await db.user.findUniqueOrThrow({ where: { id: learner.user.id } })).role).toBe(
@@ -109,7 +110,8 @@ test('admin edits existing roles, issues a one-time reset link and the user ente
     await page
       .getByRole('button', { name: `${learner.user.name} tahrirlash`, exact: true })
       .click();
-    await page.getByLabel('Rol', { exact: true }).selectOption('ADMIN');
+    await page.getByRole('combobox', { name: 'Rol', exact: true }).fill('Admin');
+    await page.getByRole('option', { name: 'Admin', exact: true }).click();
     await page.getByRole('checkbox', { name: 'O‘qituvchi paneli ham ochilsin' }).check();
     await page.getByRole('button', { name: 'Saqlash', exact: true }).click();
     await expect(page.getByRole('dialog')).not.toBeVisible();

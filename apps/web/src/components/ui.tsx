@@ -1,6 +1,7 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { useRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { AlertCircle, ArrowRight, LoaderCircle, X } from 'lucide-react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
+import { ComboboxPortalContext } from './ui/combobox-context';
 import { errorText } from '../lib/api';
 import { formatDate } from '../lib/locale';
 
@@ -132,23 +133,35 @@ export function Modal({
   children: ReactNode;
   wide?: boolean;
 }) {
+  const portalContainer = useRef<HTMLDivElement>(null);
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="modal-overlay" />
-        <DialogPrimitive.Content className={`modal-content ${wide ? 'wide' : ''}`}>
-          <div className="modal-header">
-            <div>
-              <DialogPrimitive.Title>{title}</DialogPrimitive.Title>
-              <DialogPrimitive.Description>{description}</DialogPrimitive.Description>
+        <DialogPrimitive.Content
+          ref={portalContainer}
+          className={`modal-content ${wide ? 'wide' : ''}`}
+          onEscapeKeyDown={(event) => {
+            if (portalContainer.current?.querySelector('[data-slot="combobox-content"][data-open]'))
+              event.preventDefault();
+          }}
+        >
+          <ComboboxPortalContext.Provider value={portalContainer}>
+            <div className="modal-scroll">
+              <div className="modal-header">
+                <div>
+                  <DialogPrimitive.Title>{title}</DialogPrimitive.Title>
+                  <DialogPrimitive.Description>{description}</DialogPrimitive.Description>
+                </div>
+                <DialogPrimitive.Close asChild>
+                  <Button variant="ghost" aria-label="Yopish">
+                    <X size={20} />
+                  </Button>
+                </DialogPrimitive.Close>
+              </div>
+              {children}
             </div>
-            <DialogPrimitive.Close asChild>
-              <Button variant="ghost" aria-label="Yopish">
-                <X size={20} />
-              </Button>
-            </DialogPrimitive.Close>
-          </div>
-          {children}
+          </ComboboxPortalContext.Provider>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>

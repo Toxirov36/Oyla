@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
@@ -15,6 +15,7 @@ import {
   Users,
 } from 'lucide-react';
 import { api, errorText } from '../lib/api';
+import { ComboboxField } from '../components/combobox-field';
 import type { Assignment, Classroom, Subject } from '../lib/types';
 import {
   Button,
@@ -44,12 +45,14 @@ function AssignmentForm({ classes, close }: { classes: Classroom[]; close: () =>
   });
   const {
     register,
+    control,
+    setValue,
     handleSubmit,
     watch,
     formState: { errors, isSubmitting },
   } = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
-    defaultValues: { classId: classes[0]?.id || '' },
+    defaultValues: { classId: classes[0]?.id || '', lessonId: '', title: '', deadline: '' },
   });
   const selectedClass = classes.find((c) => c.id === watch('classId'));
   const lessons =
@@ -81,13 +84,30 @@ function AssignmentForm({ classes, close }: { classes: Classroom[]; close: () =>
     >
       <label>
         Sinf
-        <select {...register('classId')}>
-          {classes.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name} · {c.grade}-sinf
-            </option>
-          ))}
-        </select>
+        <Controller
+          name="classId"
+          control={control}
+          render={({ field, fieldState }) => (
+            <ComboboxField
+              options={classes.map((c) => ({ value: c.id, label: `${c.name} · ${c.grade}-sinf` }))}
+              value={field.value}
+              onChange={(value) => {
+                if (value !== field.value) setValue('lessonId', '', { shouldDirty: true });
+                field.onChange(value);
+              }}
+              onBlur={field.onBlur}
+              inputRef={field.ref}
+              name={field.name}
+              label="Sinf"
+              invalid={fieldState.invalid}
+            />
+          )}
+        />
+        {errors.classId && (
+          <small className="field-error" role="alert">
+            {errors.classId.message}
+          </small>
+        )}
       </label>
       <label>
         Topshiriq nomi
@@ -96,14 +116,24 @@ function AssignmentForm({ classes, close }: { classes: Classroom[]; close: () =>
       </label>
       <label>
         Dars
-        <select {...register('lessonId')}>
-          <option value="">Darsni tanlang</option>
-          {lessons.map((l) => (
-            <option key={l.id} value={l.id}>
-              {l.label}
-            </option>
-          ))}
-        </select>
+        <Controller
+          name="lessonId"
+          control={control}
+          render={({ field, fieldState }) => (
+            <ComboboxField
+              options={lessons.map((lesson) => ({ value: lesson.id, label: lesson.label }))}
+              value={field.value}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              inputRef={field.ref}
+              name={field.name}
+              label="Dars"
+              placeholder="Darsni tanlang yoki qidiring…"
+              disabled={content.isPending || !selectedClass}
+              invalid={fieldState.invalid}
+            />
+          )}
+        />
         {errors.lessonId && <small className="field-error">{errors.lessonId.message}</small>}
       </label>
       {content.error && <ErrorState error={content.error} />}

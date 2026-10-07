@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import { api, ApiError, errorText } from '../lib/api';
 import { Button } from './ui';
+import { ComboboxField } from './combobox-field';
 
 export interface EditorField {
   key: string;
@@ -30,7 +31,9 @@ export function EntityEditor({ spec, close }: { spec: EditorSpec; close: () => v
   const defaults = Object.fromEntries(
     spec.fields.map((field) => [
       field.key,
-      spec.values?.[field.key] ??
+      (field.kind === 'select' && spec.values?.[field.key] !== undefined
+        ? String(spec.values[field.key])
+        : spec.values?.[field.key]) ??
         (field.kind === 'checkbox'
           ? true
           : field.kind === 'number'
@@ -44,6 +47,7 @@ export function EntityEditor({ spec, close }: { spec: EditorSpec; close: () => v
   );
   const {
     register,
+    control,
     handleSubmit,
     setError: fieldError,
     formState: { errors, isSubmitting },
@@ -96,13 +100,22 @@ export function EntityEditor({ spec, close }: { spec: EditorSpec; close: () => v
         <label key={field.key} className={field.kind === 'checkbox' ? 'checkbox-field' : ''}>
           {field.label}
           {field.kind === 'select' ? (
-            <select {...register(field.key)} aria-invalid={!!errors[field.key]}>
-              {field.options?.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <Controller
+              name={field.key}
+              control={control}
+              render={({ field: input, fieldState }) => (
+                <ComboboxField
+                  options={field.options || []}
+                  value={String(input.value ?? '')}
+                  onChange={input.onChange}
+                  onBlur={input.onBlur}
+                  inputRef={input.ref}
+                  name={input.name}
+                  label={field.label}
+                  invalid={fieldState.invalid}
+                />
+              )}
+            />
           ) : field.kind === 'textarea' ? (
             <textarea
               rows={field.key === 'explanation' ? 7 : 4}

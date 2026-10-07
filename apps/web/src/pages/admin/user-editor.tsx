@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
@@ -8,6 +8,7 @@ import { api, errorText } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
 import { Button } from '../../components/ui';
 import { grades, roles } from './config';
+import { ComboboxField } from '../../components/combobox-field';
 
 export function UserEditor({ user, close }: { user?: User; close: () => void }) {
   const { user: actor } = useAuth();
@@ -33,6 +34,7 @@ export function UserEditor({ user, close }: { user?: User; close: () => void }) 
     });
   const {
     register,
+    control,
     watch,
     handleSubmit,
     formState: { errors, isSubmitting },
@@ -106,13 +108,23 @@ export function UserEditor({ user, close }: { user?: User; close: () => void }) 
           <input type="hidden" {...register('role')} />
         </>
       ) : (
-        <select id="admin-user-role" {...register('role')}>
-          {roles.map((item) => (
-            <option key={item.value} value={item.value}>
-              {item.label}
-            </option>
-          ))}
-        </select>
+        <Controller
+          name="role"
+          control={control}
+          render={({ field, fieldState }) => (
+            <ComboboxField
+              id="admin-user-role"
+              options={roles}
+              value={field.value}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              inputRef={field.ref}
+              name={field.name}
+              label="Rol"
+              invalid={fieldState.invalid}
+            />
+          )}
+        />
       )}
       {user && (
         <p className="field-help">
@@ -123,13 +135,22 @@ export function UserEditor({ user, close }: { user?: User; close: () => void }) 
       {role === 'STUDENT' && (
         <label>
           O‘quvchi sinfi
-          <select {...register('grade')}>
-            {grades.map((item) => (
-              <option key={item.value} value={item.value}>
-                {item.label}
-              </option>
-            ))}
-          </select>
+          <Controller
+            name="grade"
+            control={control}
+            render={({ field, fieldState }) => (
+              <ComboboxField
+                options={grades}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                inputRef={field.ref}
+                name={field.name}
+                label="O‘quvchi sinfi"
+                invalid={fieldState.invalid}
+              />
+            )}
+          />
         </label>
       )}
       {role === 'ADMIN' && (

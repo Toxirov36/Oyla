@@ -94,6 +94,8 @@ Profile API: `GET /api/v1/users/me/profile`, `PATCH /api/v1/users/me/profile` wi
 
 ## Account roles, passwords, and notifications
 
+Modal selection fields use the [shadcn Combobox composition](https://ui.shadcn.com/docs/components/base/combobox) through `@/components/ui/combobox`. The reusable `ComboboxField` maps searchable display labels to the original form values. Admin content/class/gamification editors, user role/grade forms, and teacher assignment class/lesson forms use React Hook Form Controllers. Popup options stay inside the dialog's focus boundary; scrolling, keyboard selection, empty results, and ESC are supported. Changing an assignment's class clears its previous lesson. API payloads retain UUIDs, enums, and numeric grades.
+
 In `/admin/users`, an administrator can edit an existing user's role and enable teacher access for an administrator. Moving a student to staff ends class membership while preserving profiles, attempts, XP, and progress. Becoming a student requires a grade; a teacher's classes must be reassigned before teacher access can be removed. Self-demotion and removal of the last active administrator are rejected. Authority, email, or grade changes revoke existing sessions and outstanding reset links.
 
 All signed-in users can change their password in `/profile` by entering their current password and confirming a new password of 10–128 characters. Password changes revoke every session, consume outstanding recovery tokens, and require login again.

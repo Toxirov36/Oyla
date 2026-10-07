@@ -2152,16 +2152,21 @@ summary {
   background: var(--card);
   border-radius: 17px;
   border: 1px solid var(--border);
-  padding: 27px;
   width: calc(100% - 32px);
   max-width: 510px;
   max-height: 90vh;
-  overflow: auto;
+  overflow: visible;
   z-index: 101;
   box-shadow: 0 24px 90px color-mix(in srgb, var(--navy) 18%, transparent);
 }
 .modal-content.wide {
   max-width: 690px;
+}
+.modal-scroll {
+  padding: 27px;
+  max-height: calc(90vh - 2px);
+  overflow-y: auto;
+  border-radius: inherit;
 }
 .modal-header {
   display: flex;

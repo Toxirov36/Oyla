@@ -60,3 +60,9 @@ The original shared starter curriculum has now been extended with a separate 54-
 - Shared notification presentation and query/mutation hooks power the panel and full page. Mutations update owned, user-scoped caches optimistically and roll back on API failures. The full page adds search, type filters, and Tashkent date groups. Theme tokens accept `.dark`/`data-theme="dark"`; no global theme control is introduced.
 - Added stored notification types, backfilled existing event types, and enabled read/unread transitions plus owned deletion. Producers now label assignment, badge, account, and security events explicitly. Integration checks cover type filtering, idempotent unread marking, deletion, and rejection of another user's mutations.
 - Verification includes 26 backend tests, 11 frontend tests, 13 API integration groups, and 19 browser tests. Captured and inspected desktop, mobile, and dark panel layouts; tested retry/loading states, optimistic rollback, navigation, keyboard closure, and 44px mobile targets.
+
+## Modal combobox update — 7 October 2026
+
+- All native select fields in modals now use a shared searchable Combobox with the provided shadcn composition API. Labels remain separate from submitted UUID/enum values, and grade serializers continue to send numbers.
+- Added dialog-scoped popup portals and a separate inner scroll region to retain focus trapping, accessible options, and popup visibility. ESC closes the open combobox before closing the dialog. Existing self-role restrictions remain enforced.
+- Teacher assignment forms clear the selected lesson when the class changes and offer only the selected class's grade. Browser tests verify role changes, search/empty results, keyboard selection, nested ESC, alternate teacher UUID submission, mobile sizing, and grade-matched assignment persistence. The browser suite contains 21 tests.
