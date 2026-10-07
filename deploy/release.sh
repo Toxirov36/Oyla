@@ -47,8 +47,17 @@ for service in api web; do
   actual=$(docker inspect --format '{{.Config.Image}}' "oyla-$service-1")
   [[ "$actual" == "$IMAGE_PREFIX-$service:$revision" ]] || exit 1
 done
-if [[ -s "$base/deployed-sha" ]]; then cp "$base/deployed-sha" "$base/previous-sha"; fi
+if [[ -s "$base/deployed-sha" && "$(cat "$base/deployed-sha")" != "$revision" ]]; then
+  cp "$base/deployed-sha" "$base/previous-sha"
+fi
 ln -sfn "$source_dir" "$base/current"
 printf '%s\n' "$revision" > "$base/deployed-sha"
 rm -f "$base/incoming/$revision.tar.gz" "$base/incoming/$revision.sh"
+previous=$(cat "$base/previous-sha" 2>/dev/null || true)
+while read -r reference; do
+  case "$reference" in "$IMAGE_PREFIX-api:"*|"$IMAGE_PREFIX-web:"*) ;; *) continue ;; esac
+  [[ "$reference" == *":$revision" ]] && continue
+  [[ -n "$previous" && "$reference" == *":$previous" ]] && continue
+  docker image rm "$reference" || echo 'Retained an image still used by a container.'
+done < <(docker image ls --format '{{.Repository}}:{{.Tag}}')
 echo "Deployed $revision. Database backup and previous release retained."

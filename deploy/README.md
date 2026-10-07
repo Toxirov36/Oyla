@@ -6,6 +6,8 @@ While that DNS update is pending, OYLA serves the existing HTTPS address `https:
 
 GitHub Actions verifies the application, builds and checks the API/web Docker images, and publishes immutable commit tags to GHCR. The runtime API installs only production API dependencies. `deploy/release.sh` validates the archive, serializes releases, backs up the database before migrations, starts healthy containers and records the active commit. Source archives contain no secrets. A previous release and database dump are retained; schema rollback is deliberately manual.
 
+On the small VM, verified releases retain only the current and previous OYLA image tags. Older OYLA tags are removed without forcing removal of any image used by a container. Registry images and database backups remain available.
+
 Required repository secrets: DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY, DEPLOY_KNOWN_HOSTS. The production environment uses only `main`. `OYLA_DEPLOY_ENABLED=true` enables deployment after first-time database provisioning. Images can build while this flag is false. Avoid enabling deployment before the database import and `.database-ready` marker have been verified.
 
 On the server, `/home/dilshodbektohirov40/oyla/.env` contains independently generated PostgreSQL/Redis/JWT secrets and the HTTPS WEB_ORIGIN. This file is private and never enters Git. Local learning data is imported with development sessions and password-reset tokens excluded. Known deterministic demo accounts are disabled; real account hashes, roles, teacher access, content and learning history are preserved. Database count checks and the actual administrator authority are verified after import.
