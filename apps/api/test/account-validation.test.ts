@@ -9,7 +9,11 @@ import {
   PasswordResetRequestDto,
 } from '../src/auth/password.dto';
 import { UpdateUserDto } from '../src/admin/admin.dto';
-import { NotificationQueryDto, ReadNotificationDto } from '../src/notifications/notifications.dto';
+import {
+  NotificationQueryDto,
+  ReadNotificationDto,
+  ReadAllNotificationsDto,
+} from '../src/notifications/notifications.dto';
 const pipe = createValidationPipe();
 test('password operations reject weak passwords and account/token mass assignment', async () => {
   for (const body of [
@@ -58,11 +62,19 @@ test('only declared roles and explicit notification query booleans are accepted'
     BadRequestException,
   );
   await assert.rejects(
-    pipe.transform({ read: false }, { type: 'body', metatype: ReadNotificationDto }),
+    pipe.transform({ read: false }, { type: 'body', metatype: ReadAllNotificationsDto }),
     BadRequestException,
   );
   await assert.rejects(
     pipe.transform({ userId: 'other-user' }, { type: 'body', metatype: ReadNotificationDto }),
+    BadRequestException,
+  );
+  assert.equal(
+    (await pipe.transform({ read: false }, { type: 'body', metatype: ReadNotificationDto })).read,
+    false,
+  );
+  await assert.rejects(
+    pipe.transform({ type: 'INTERVIEW' }, { type: 'query', metatype: NotificationQueryDto }),
     BadRequestException,
   );
 });

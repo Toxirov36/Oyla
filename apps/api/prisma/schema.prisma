@@ -41,6 +41,14 @@ enum BadgeCriterion {
   CODING
   ANSWERS
 }
+enum NotificationType {
+  ASSIGNMENT
+  BADGE
+  ACCOUNT
+  SECURITY
+  SYSTEM
+  WARNING
+}
 model User {
   id String @id @default(uuid()) @db.Uuid
   email String @unique
@@ -341,6 +349,7 @@ model AssignmentSubmission {
 model Notification {
   id String @id @default(uuid()) @db.Uuid
   userId String @db.Uuid
+  type NotificationType @default(SYSTEM)
   title String
   body String
   link String?

@@ -9,6 +9,7 @@ export class NotificationsService {
   async list(actor: Actor, query: NotificationQueryDto) {
     const where = {
       userId: actor.id,
+      ...(query.type ? { type: query.type } : {}),
       ...(query.unreadOnly ? { readAt: null } : {}),
       ...(query.search
         ? {
@@ -25,7 +26,15 @@ export class NotificationsService {
         orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
         skip: (query.page - 1) * query.limit,
         take: query.limit,
-        select: { id: true, title: true, body: true, link: true, readAt: true, createdAt: true },
+        select: {
+          id: true,
+          type: true,
+          title: true,
+          body: true,
+          link: true,
+          readAt: true,
+          createdAt: true,
+        },
       }),
       this.db.notification.count({ where }),
       this.db.notification.count({ where: { userId: actor.id, readAt: null } }),
@@ -37,7 +46,7 @@ export class NotificationsService {
       unreadCount: await this.db.notification.count({ where: { userId: actor.id, readAt: null } }),
     };
   }
-  async read(actor: Actor, id: string) {
+  async read(actor: Actor, id: string, read = true) {
     return this.db.$transaction(async (tx) => {
       if (
         !(await tx.notification.findFirst({
@@ -47,11 +56,16 @@ export class NotificationsService {
       )
         throw new NotFoundException('Bildirishnoma topilmadi.');
       await tx.notification.updateMany({
-        where: { id, userId: actor.id, readAt: null },
-        data: { readAt: new Date() },
+        where: { id, userId: actor.id, readAt: read ? null : { not: null } },
+        data: { readAt: read ? new Date() : null },
       });
       return { success: true };
     });
+  }
+  async remove(actor: Actor, id: string) {
+    const result = await this.db.notification.deleteMany({ where: { id, userId: actor.id } });
+    if (!result.count) throw new NotFoundException('Bildirishnoma topilmadi.');
+    return { success: true };
   }
   async readAll(actor: Actor) {
     const now = new Date();

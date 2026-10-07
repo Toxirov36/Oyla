@@ -46,6 +46,7 @@ export class PasswordService {
         data: {
           userId: actor.id,
           title: 'Parolingiz o‘zgartirildi',
+          type: 'SECURITY',
           body: 'Hisobingiz paroli yangilandi. Barcha qurilmalarda qayta kirish talab etiladi.',
           link: '/profile',
         },
@@ -82,6 +83,7 @@ export class PasswordService {
           data: admins.map((admin) => ({
             userId: admin.id,
             title: 'Parolni tiklash so‘rovi',
+            type: 'SECURITY',
             body: `${user.name} (${dto.email}) parolini tiklashni so‘radi. Havola berishdan oldin uning kimligini tekshiring.`,
             link: `/admin/users?search=${encodeURIComponent(dto.email)}`,
           })),
@@ -139,6 +141,7 @@ export class PasswordService {
         data: {
           userId: token.userId,
           title: 'Parolingiz tiklandi',
+          type: 'SECURITY',
           body: 'Hisobingiz paroli yangilandi. Yangi parol bilan tizimga kiring.',
           link: '/profile',
         },

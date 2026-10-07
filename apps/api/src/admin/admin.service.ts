@@ -198,6 +198,7 @@ export class AdminService {
           data: {
             userId: id,
             title: 'Hisobingiz roli yangilandi',
+            type: 'ACCOUNT',
             body: `Yangi rol: ${{ STUDENT: 'O‘quvchi', TEACHER: 'O‘qituvchi', ADMIN: 'Administrator' }[role]}. Yangi huquqlar bilan tizimga qayta kiring.`,
             link: '/profile',
           },

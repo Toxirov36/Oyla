@@ -1,160 +1,183 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Bell, CheckCheck, Check, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
-import { api, errorText } from '../lib/api';
-import type { NotificationList } from '../lib/types';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { CheckCheck, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import {
-  Button,
-  Card,
-  EmptyState,
-  ErrorState,
-  Loading,
-  PageHeader,
-  dateLabel,
-} from '../components/ui';
+  useNotificationActions,
+  useNotificationCount,
+  useNotifications,
+} from '../hooks/use-notifications';
+import {
+  notificationDateGroup,
+  notificationTypes,
+  safeNotificationLink,
+} from '../lib/notifications';
+import type { Notification, NotificationType } from '../lib/types';
+import { errorText } from '../lib/api';
+import { PageHeader } from '../components/ui';
+import {
+  NotificationEmptyState,
+  NotificationErrorState,
+  NotificationFilters,
+  NotificationItem,
+  NotificationSkeleton,
+} from '../components/notifications/primitives';
 
 export default function NotificationsPage() {
-  const cache = useQueryClient();
   const [page, setPage] = useState(1);
   const [unreadOnly, setUnreadOnly] = useState(false);
-  const [busy, setBusy] = useState<string | null>(null);
-  const [error, setError] = useState('');
-  const query = useQuery({
-    queryKey: ['notifications', 'list', page, unreadOnly],
-    queryFn: () =>
-      api<NotificationList>(`/notifications?page=${page}&limit=20&unreadOnly=${unreadOnly}`),
-    refetchInterval: 30000,
+  const [type, setType] = useState<NotificationType | ''>('');
+  const [search, setSearch] = useState('');
+  const [term, setTerm] = useState('');
+  useEffect(() => {
+    const timer = setTimeout(() => setTerm(search), 250);
+    return () => clearTimeout(timer);
+  }, [search]);
+  const query = useNotifications({
+    page,
+    limit: 20,
+    unreadOnly,
+    type: type || undefined,
+    search: term,
   });
-  const mark = async (id?: string) => {
-    setError('');
-    setBusy(id || 'all');
+  const count = useNotificationCount();
+  const actions = useNotificationActions();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (query.data && page > Math.max(1, Math.ceil(query.data.total / 20)))
+      setPage(Math.max(1, Math.ceil(query.data.total / 20)));
+  }, [query.data, page]);
+  const groups = new Map<string, Notification[]>();
+  for (const item of query.data?.items || []) {
+    const group = notificationDateGroup(item.createdAt);
+    groups.set(group, [...(groups.get(group) || []), item]);
+  }
+  const openItem = async (item: Notification) => {
     try {
-      await api(id ? `/notifications/${id}/read` : '/notifications/read-all', {
-        method: 'PATCH',
-        body: {},
-      });
-      if (!id || unreadOnly) setPage(1);
-      await cache.invalidateQueries({ queryKey: ['notifications'] });
-    } catch (e) {
-      setError(errorText(e));
-    } finally {
-      setBusy(null);
+      if (!item.readAt) await actions.setRead(item, true);
+      const link = safeNotificationLink(item.link);
+      if (link) navigate(link);
+    } catch {
+      /* Keep the list visible when the action fails. */
     }
   };
-  if (query.isPending) return <Loading />;
-  if (query.error) return <ErrorState error={query.error} retry={() => void query.refetch()} />;
-  const data = query.data;
   return (
-    <>
+    <div className="notice-page notice-surface">
       <PageHeader
         className="notification-page-header"
-        eyebrow="HISOBINGIZDAGI YANGILIKLAR"
         title="Bildirishnomalar"
-        description={`${data.unreadCount} ta o‘qilmagan bildirishnoma`}
+        description={`${count.data?.unreadCount ?? query.data?.unreadCount ?? 0} ta o‘qilmagan · Hisobingizdagi so‘nggi yangiliklar`}
         action={
-          <Button
-            variant="secondary"
-            disabled={!data.unreadCount || !!busy}
-            onClick={() => void mark()}
+          <button
+            className="notice-page-read-all"
+            disabled={!count.data?.unreadCount || actions.busy}
+            onClick={() => {
+              void actions.readAll().catch(() => {});
+            }}
           >
-            <CheckCheck size={18} />
+            <CheckCheck size={17} />
             Barchasini o‘qish
-          </Button>
+          </button>
         }
       />
-      <Card>
-        <label className="checkbox-field">
-          <input
-            type="checkbox"
-            checked={unreadOnly}
-            onChange={(e) => {
-              setUnreadOnly(e.target.checked);
-              setPage(1);
-            }}
-          />
-          Faqat o‘qilmaganlar
-        </label>
-        {error && (
-          <p className="form-error" role="alert">
-            {error}
-          </p>
-        )}
-        {data.items.length ? (
-          <ul className="notification-list">
-            {data.items.map((item) => (
-              <li key={item.id} className={`notification-item ${item.readAt ? '' : 'unread'}`}>
-                <span className="square-icon blue" aria-hidden="true">
-                  <Bell size={20} />
-                </span>
-                <div className="notification-content">
-                  <div className="notification-heading">
-                    <h2>{item.title}</h2>
-                    {!item.readAt && <span className="pill">Yangi</span>}
-                  </div>
-                  <p>{item.body}</p>
-                  <time dateTime={item.createdAt}>{dateLabel(item.createdAt)}</time>
-                  <div className="notification-actions">
-                    {item.link?.startsWith('/') &&
-                      !item.link.startsWith('//') &&
-                      !item.link.includes('\\') && (
-                        <Link
-                          to={item.link}
-                          className="btn btn-ghost"
-                          onClick={() => {
-                            if (!item.readAt) void mark(item.id);
-                          }}
-                        >
-                          Batafsil
-                          <ArrowRight size={16} />
-                        </Link>
-                      )}
-                    {!item.readAt && (
-                      <Button
-                        variant="ghost"
-                        disabled={!!busy}
-                        onClick={() => void mark(item.id)}
-                        aria-label={`${item.title}: o‘qilgan deb belgilash`}
-                      >
-                        <Check size={16} />
-                        O‘qilgan deb belgilash
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <EmptyState
-            title={
-              unreadOnly ? 'O‘qilmagan bildirishnomalar yo‘q' : 'Hozircha bildirishnomalar yo‘q'
-            }
-            description="Yangi topshiriq, nishon va hisob yangiliklari shu yerda ko‘rinadi."
-          />
-        )}
-        <nav className="pagination" aria-label="Bildirishnomalar sahifalari">
-          <Button
-            variant="secondary"
-            aria-label="Oldingi sahifa"
-            disabled={page === 1}
-            onClick={() => setPage(page - 1)}
-          >
-            <ChevronLeft size={17} />
-          </Button>
-          <span>
-            {page} / {Math.max(1, Math.ceil(data.total / 20))}
-          </span>
-          <Button
-            variant="secondary"
-            aria-label="Keyingi sahifa"
-            disabled={page * 20 >= data.total}
-            onClick={() => setPage(page + 1)}
-          >
-            <ChevronRight size={17} />
-          </Button>
+      <div className="notice-inbox">
+        <NotificationFilters
+          unreadOnly={unreadOnly}
+          onChange={(value) => {
+            setUnreadOnly(value);
+            setPage(1);
+          }}
+          toolbar={
+            <div className="notice-toolbar">
+              <label className="notice-search">
+                <Search size={16} />
+                <input
+                  aria-label="Bildirishnomalarni qidirish"
+                  placeholder="Qidirish…"
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
+                />
+              </label>
+              <select
+                aria-label="Bildirishnoma turi"
+                value={type}
+                onChange={(e) => {
+                  setType(e.target.value as NotificationType | '');
+                  setPage(1);
+                }}
+              >
+                <option value="">Barcha turlar</option>
+                {notificationTypes.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          }
+        >
+          {actions.error && (
+            <p role="alert" className="notice-action-error">
+              {errorText(actions.error)}
+            </p>
+          )}
+          {query.isPending ? (
+            <NotificationSkeleton />
+          ) : query.error ? (
+            <NotificationErrorState retry={() => void query.refetch()} />
+          ) : groups.size ? (
+            [...groups].map(([label, items]) => (
+              <section className="notice-date-group" key={label}>
+                <h2>{label}</h2>
+                <ul className="notice-list">
+                  {items.map((item) => (
+                    <NotificationItem
+                      key={item.id}
+                      item={item}
+                      busy={actions.busy}
+                      onOpen={(value) => void openItem(value)}
+                      setRead={(value, read) => {
+                        void actions.setRead(value, read).catch(() => {});
+                      }}
+                      remove={(value) => {
+                        void actions.remove(value).catch(() => {});
+                      }}
+                    />
+                  ))}
+                </ul>
+              </section>
+            ))
+          ) : (
+            <NotificationEmptyState unreadOnly={unreadOnly} />
+          )}
+        </NotificationFilters>
+        <nav className="notice-pagination" aria-label="Bildirishnomalar sahifalari">
+          <span>{query.data?.total || 0} ta bildirishnoma</span>
+          <div>
+            <button
+              className="notice-icon-button"
+              aria-label="Oldingi sahifa"
+              disabled={page === 1 || query.isPending}
+              onClick={() => setPage(page - 1)}
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <span>
+              {page} / {Math.max(1, Math.ceil((query.data?.total || 0) / 20))}
+            </span>
+            <button
+              className="notice-icon-button"
+              aria-label="Keyingi sahifa"
+              disabled={page * 20 >= (query.data?.total || 0) || query.isPending}
+              onClick={() => setPage(page + 1)}
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
         </nav>
-      </Card>
-    </>
+      </div>
+    </div>
   );
 }

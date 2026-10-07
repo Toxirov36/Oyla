@@ -50,25 +50,25 @@ test('mobile notifications support unread filtering, marking and pagination', as
   });
   await login(page, learner.user.email, learner.password);
   await expect(page).toHaveURL(/\/dashboard$/);
-  await page.getByRole('link', { name: /Bildirishnomalarni ochish: 23/ }).click();
+  await page.getByRole('button', { name: /Bildirishnomalarni ochish: 23/ }).click();
+  await page.getByRole('link', { name: 'Barcha bildirishnomalarni ko‘rish' }).click();
   await expect(page.getByRole('heading', { name: 'Bildirishnomalar', exact: true })).toBeVisible();
-  await expect(page.locator('.notification-item')).toHaveCount(20);
+  await expect(page.locator('.notice-item')).toHaveCount(20);
   await page.getByRole('button', { name: 'Keyingi sahifa', exact: true }).click();
-  await expect(page.locator('.notification-item')).toHaveCount(3);
+  await expect(page.locator('.notice-item')).toHaveCount(3);
   await page.getByRole('button', { name: 'Oldingi sahifa', exact: true }).click();
-  await page.getByRole('checkbox', { name: 'Faqat o‘qilmaganlar' }).check();
+  await page.getByRole('tab', { name: 'O‘qilmagan', exact: true }).click();
   await page
-    .getByRole('button', { name: /Browser news.*o‘qilgan deb belgilash/ })
+    .getByRole('button', { name: /Browser news.*amallar/ })
     .first()
     .click();
-  await expect(page.getByRole('link', { name: /Bildirishnomalarni ochish: 22/ })).toBeVisible();
+  await page.getByRole('menuitem', { name: 'O‘qilgan deb belgilash', exact: true }).click();
+  await expect(page.getByRole('button', { name: /Bildirishnomalarni ochish: 22/ })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );
   await page.getByRole('button', { name: 'Barchasini o‘qish' }).click();
-  await expect(
-    page.getByRole('heading', { name: 'O‘qilmagan bildirishnomalar yo‘q' }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Hammasini o‘qib bo‘ldingiz' })).toBeVisible();
   expect(await db.notification.count({ where: { userId: learner.user.id, readAt: null } })).toBe(0);
 });
 

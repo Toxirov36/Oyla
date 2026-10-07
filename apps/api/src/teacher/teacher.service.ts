@@ -93,6 +93,7 @@ export class TeacherService {
           data: students.map((s) => ({
             userId: s.studentId,
             title: 'Yangi topshiriq',
+            type: 'ASSIGNMENT',
             body: dto.title,
             link: '/assignments',
           })),

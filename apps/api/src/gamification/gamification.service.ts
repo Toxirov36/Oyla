@@ -67,6 +67,7 @@ export class GamificationService {
         data: unlocked.map((b) => ({
           userId,
           title: 'Yangi nishon!',
+          type: 'BADGE',
           body: b.title,
           link: '/badges',
         })),

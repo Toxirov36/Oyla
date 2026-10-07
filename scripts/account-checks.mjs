@@ -256,6 +256,7 @@ export async function verifyAccountFeatures({
       data: Array.from({ length: 23 }, (_, index) => ({
         userId: first.user.id,
         title: `Account check notification ${index}`,
+        type: index % 2 === 0 ? 'ASSIGNMENT' : 'BADGE',
         body: 'Owned account fixture',
         link: '/profile',
       })),
@@ -273,6 +274,12 @@ export async function verifyAccountFeatures({
     assert.equal(page.total, expectedCount);
     assert.ok(!JSON.stringify(page).includes('Private notification'));
     await student.request('/notifications?unreadOnly=yes', { expected: 400 });
+    await student.request('/notifications?type=INTERVIEW', { expected: 400 });
+    const assignments = await student.request(
+      '/notifications?type=ASSIGNMENT&search=Account%20check%20notification',
+    );
+    assert.equal(assignments.total, 12);
+    assert.ok(assignments.items.every((item) => item.type === 'ASSIGNMENT'));
     await other.request(`/notifications/${notifications[0].id}/read`, {
       method: 'PATCH',
       expected: 404,
@@ -310,9 +317,27 @@ export async function verifyAccountFeatures({
       (await db.notification.findUniqueOrThrow({ where: { id: otherNotification.id } })).readAt,
       null,
     );
-    pass(
-      'notification pagination, unread counts and idempotent marking enforce per-user ownership',
-    );
+    await student.request(`/notifications/${notifications[0].id}/read`, {
+      method: 'PATCH',
+      body: { read: false },
+    });
+    assert.equal((await student.request('/notifications/unread-count')).unreadCount, 1);
+    await student.request(`/notifications/${notifications[0].id}/read`, {
+      method: 'PATCH',
+      body: { read: false },
+    });
+    assert.equal((await student.request('/notifications/unread-count')).unreadCount, 1);
+    await other.request(`/notifications/${notifications[0].id}`, {
+      method: 'DELETE',
+      expected: 404,
+    });
+    await student.request(`/notifications/${notifications[0].id}`, { method: 'DELETE' });
+    await student.request(`/notifications/${notifications[0].id}`, {
+      method: 'DELETE',
+      expected: 404,
+    });
+    assert.equal((await student.request('/notifications/unread-count')).unreadCount, 0);
+    pass('notification filters, read/unread transitions and deletion enforce per-user ownership');
   } finally {
     await db.notification.deleteMany({ where: { link: recoveryPath } });
   }

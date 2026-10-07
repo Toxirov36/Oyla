@@ -31,8 +31,11 @@ export interface Profile {
     assignments: number;
   } | null;
 }
+export type NotificationType =
+  'ASSIGNMENT' | 'BADGE' | 'ACCOUNT' | 'SECURITY' | 'SYSTEM' | 'WARNING';
 export interface Notification {
   id: string;
+  type: NotificationType;
   title: string;
   body: string;
   link: string | null;
