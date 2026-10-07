@@ -55,7 +55,9 @@ npm run db:seed
 npm run dev
 ```
 
-The default PostgreSQL binary folder is `C:\Program Files\PostgreSQL\18\bin`; pass `-PostgresBin` for another installation. If `.env` does not exist, the script generates random database and JWT secrets. If it exists, its credentials must match the isolated cluster. Cluster data and binaries are under ignored `.local/`; never commit them. To stop this cluster, run `pg_ctl stop -D .local/postgres -m fast` using that PostgreSQL installation. Stop Redis with its `redis-cli -p 56379 shutdown` command.
+The default PostgreSQL binary folder is `C:\Program Files\PostgreSQL\18\bin`; pass `-PostgresBin` for another installation. If `.env` does not exist, the script generates random database and JWT secrets. When using the isolated cluster on port 55432, the configured credentials must match that cluster. Cluster data and binaries are under ignored `.local/`; never commit them. To stop this cluster, run `pg_ctl stop -D .local/postgres -m fast` using that PostgreSQL installation. Stop Redis with its `redis-cli -p 56379 shutdown` command.
+
+To use an existing PostgreSQL service on port 5432, configure `DATABASE_URL` in `apps/api/.env` with that service's database and application user. `local:postgres` and `local-infra.ps1` validate the configured connection instead of starting the isolated 55432 cluster. Existing data must be restored before switching the connection; changing the URL alone does not move a database.
 
 ## Development demo accounts
 

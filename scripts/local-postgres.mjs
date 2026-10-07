@@ -2,6 +2,8 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from '
 import { resolve, join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
+import { parse } from 'dotenv';
+import { Client } from 'pg';
 const root = resolve('.local');
 mkdirSync(root, { recursive: true });
 const bin = process.env.PG_BIN || 'C:/Program Files/PostgreSQL/18/bin';
@@ -9,9 +11,26 @@ const data = join(root, 'postgres');
 const envPath = resolve('apps/api/.env');
 let password;
 if (existsSync(envPath)) {
-  const url = readFileSync(envPath, 'utf8').match(/DATABASE_URL=(.+)/)?.[1];
+  const url = parse(readFileSync(envPath)).DATABASE_URL;
   if (!url) throw new Error('DATABASE_URL is required');
-  password = new URL(url).password;
+  const connection = new URL(url);
+  if (
+    !['localhost', '127.0.0.1', '[::1]'].includes(connection.hostname) ||
+    Number(connection.port || 5432) !== 55432
+  ) {
+    const client = new Client({ connectionString: url, connectionTimeoutMillis: 5000 });
+    try {
+      await client.connect();
+      await client.query('SELECT 1');
+      console.log(
+        `Configured PostgreSQL is ready on ${connection.hostname}:${connection.port || 5432}.`,
+      );
+    } finally {
+      await client.end();
+    }
+    process.exit(0);
+  }
+  password = decodeURIComponent(connection.password);
 } else {
   password = randomBytes(20).toString('hex');
   writeFileSync(

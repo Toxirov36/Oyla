@@ -2,7 +2,6 @@ param([string]$PostgresBin = 'C:\Program Files\PostgreSQL\18\bin')
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $projectRoot
-if (-not (Test-Path -LiteralPath (Join-Path $PostgresBin 'initdb.exe'))) { throw 'PostgreSQL binaries not found. Supply -PostgresBin or use Docker Compose.' }
 $env:PG_BIN = $PostgresBin
 node scripts/local-postgres.mjs
 if ($LASTEXITCODE -ne 0) { throw 'PostgreSQL startup failed.' }
@@ -28,4 +27,4 @@ $ErrorActionPreference = $previousErrorAction
 if ($ping -ne 'PONG') {
   Start-Process -FilePath $redisExe -ArgumentList '--bind','127.0.0.1','--port','56379','--save','""','--appendonly','no' -WorkingDirectory $redisRoot -WindowStyle Hidden -RedirectStandardOutput (Join-Path $projectRoot '.local\redis.log') -RedirectStandardError (Join-Path $projectRoot '.local\redis-error.log')
 }
-Write-Output 'Local infrastructure ready: PostgreSQL 55432, Redis 56379. Configuration is in apps/api/.env.'
+Write-Output 'Local infrastructure ready: configured PostgreSQL and Redis 56379. Configuration is in apps/api/.env.'
