@@ -17,9 +17,11 @@ import {
   ClipboardList,
   Zap,
   UserRound,
+  Bell,
 } from 'lucide-react';
 import { homeFor, useAuth } from '../lib/auth';
 import { Button } from './ui';
+import { NotificationBell } from './notification-bell';
 
 const studentNav = [
   { to: '/dashboard', label: 'Bosh sahifa', icon: House },
@@ -58,7 +60,7 @@ export function Logo() {
 export function AppShell() {
   const { user, signOut } = useAuth();
   const [menu, setMenu] = useState(false);
-  const nav =
+  const baseNav =
     user!.role === 'STUDENT'
       ? studentNav
       : user!.role === 'TEACHER'
@@ -66,6 +68,7 @@ export function AppShell() {
         : user!.teacherAccess
           ? adminTeacherNav
           : adminNav;
+  const nav = [...baseNav, { to: '/notifications', label: 'Bildirishnomalar', icon: Bell }];
   const roleLabel =
     user!.role === 'STUDENT'
       ? `${user!.student?.grade}-sinf o‘quvchisi`
@@ -126,14 +129,17 @@ export function AppShell() {
             <span className="live-dot" />
             <span className="desktop-only">OYLA platformasi</span>
           </div>
-          <Link to="/profile" className="profile-chip" aria-label="Profilimni ochish">
-            <span className="avatar">{user!.name.slice(0, 1)}</span>
-            <div>
-              <strong>{user!.name}</strong>
-              <small>{roleLabel}</small>
-            </div>
-            <ChevronDown size={16} />
-          </Link>
+          <div className="topbar-actions">
+            <NotificationBell />
+            <Link to="/profile" className="profile-chip" aria-label="Profilimni ochish">
+              <span className="avatar">{user!.name.slice(0, 1)}</span>
+              <div>
+                <strong>{user!.name}</strong>
+                <small>{roleLabel}</small>
+              </div>
+              <ChevronDown size={16} />
+            </Link>
+          </div>
         </div>
         <main id="main" className="page-content">
           <Outlet />

@@ -1,4 +1,4 @@
-import { Search, ChevronLeft, ChevronRight, Pencil, Trash2 } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Pencil, Trash2, KeyRound } from 'lucide-react';
 import type { User } from '../../lib/types';
 import { Button, Card, EmptyState } from '../../components/ui';
 import { roles } from './config';
@@ -10,6 +10,7 @@ export function AdminUsers({
   onPage,
   onEdit,
   onDelete,
+  onReset,
 }: {
   data: { items: User[]; total: number };
   search: string;
@@ -18,6 +19,7 @@ export function AdminUsers({
   onPage: (value: number) => void;
   onEdit: (user: User) => void;
   onDelete: (value: { endpoint: string; title: string }) => void;
+  onReset: (user: User) => void;
 }) {
   return (
     <Card className="data-table-card">
@@ -57,10 +59,12 @@ export function AdminUsers({
                 <td>
                   <span className="pill">
                     {roles.find((r) => r.value === user.role)?.label}
-                    {user.teacherAccess ? ' · O‘qituvchi paneli' : ''}
+                    {user.role === 'ADMIN' && user.teacherAccess ? ' · O‘qituvchi paneli' : ''}
                   </span>
                 </td>
-                <td>{user.student ? `${user.student.grade}-sinf` : '—'}</td>
+                <td>
+                  {user.role === 'STUDENT' && user.student ? `${user.student.grade}-sinf` : '—'}
+                </td>
                 <td>
                   <span className={`pill ${user.active ? 'status-completed' : ''}`}>
                     {user.active ? 'Faol' : 'Faolsiz'}
@@ -73,6 +77,14 @@ export function AdminUsers({
                     onClick={() => onEdit(user)}
                   >
                     <Pencil size={17} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    aria-label={`${user.name} parolini tiklash`}
+                    disabled={!user.active}
+                    onClick={() => onReset(user)}
+                  >
+                    <KeyRound size={17} />
                   </Button>
                   <Button
                     variant="ghost"

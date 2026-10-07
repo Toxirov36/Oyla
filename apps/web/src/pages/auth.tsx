@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -20,6 +20,15 @@ const authSchema = loginSchema.extend({
 type AuthFields = z.infer<typeof authSchema>;
 export default function AuthPage({ register = false }: { register?: boolean }) {
   const { user, signIn } = useAuth();
+  const location = useLocation();
+  const [notice] = useState(
+    () =>
+      (location.state as { message?: string } | null)?.message ||
+      sessionStorage.getItem('oyla-auth-notice'),
+  );
+  useEffect(() => {
+    sessionStorage.removeItem('oyla-auth-notice');
+  }, []);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const schema = authSchema.superRefine((data, context) => {
@@ -166,6 +175,16 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
               {register ? 'Kirish' : 'Ro‘yxatdan o‘tish'}
             </Link>
           </p>
+          {!register && (
+            <p className="auth-switch">
+              <Link to="/forgot-password">Parolni unutdingizmi?</Link>
+            </p>
+          )}
+          {notice && (
+            <p className="profile-success" role="status">
+              {notice}
+            </p>
+          )}
           <div className="auth-trust">
             <Check size={15} />
             Bilimingiz va natijalaringiz xavfsiz saqlanadi.

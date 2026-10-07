@@ -20,6 +20,7 @@ import { api, ApiError, errorText } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import type { Profile } from '../lib/types';
 import { tashkentDate } from '../lib/locale';
+import { ChangePasswordForm } from '../components/change-password';
 import {
   Button,
   Card,
@@ -100,7 +101,7 @@ function ProfileForm({ profile }: { profile: Profile }) {
           Email hisob identifikatori sifatida ishlatiladi. O‘zgartirish uchun administratorga
           murojaat qiling.
         </p>
-        {profile.user.student && (
+        {profile.user.role === 'STUDENT' && profile.user.student && (
           <>
             <label htmlFor="profile-grade">Sinfingiz</label>
             <input id="profile-grade" value={`${profile.user.student.grade}-sinf`} readOnly />
@@ -179,6 +180,7 @@ export default function ProfilePage() {
             </div>
           </Card>
           <ProfileForm profile={profile} />
+          <ChangePasswordForm />
           {student && (
             <div className="stats-grid profile-stats">
               <Stat

@@ -46,12 +46,17 @@ export class AuthService implements OnModuleInit {
   }
   private async issue(user: User) {
     const refreshToken = randomBytes(48).toString('base64url');
-    const session = await this.db.session.create({
-      data: {
-        userId: user.id,
-        tokenHash: digest(refreshToken),
-        expiresAt: new Date(Date.now() + 7 * 86400000),
-      },
+    const session = await this.db.withUserLock(user.id, async (tx) => {
+      const current = await tx.user.findUniqueOrThrow({ where: { id: user.id } });
+      if (!current.active || current.passwordHash !== user.passwordHash)
+        throw new UnauthorizedException('Hisob o‘zgargan. Tizimga qayta kiring.');
+      return tx.session.create({
+        data: {
+          userId: user.id,
+          tokenHash: digest(refreshToken),
+          expiresAt: new Date(Date.now() + 7 * 86400000),
+        },
+      });
     });
     return {
       refreshToken,

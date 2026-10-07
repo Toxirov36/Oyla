@@ -99,7 +99,10 @@ export class RateGuard implements CanActivate {
   constructor(private readonly redis: RedisService) {}
   async canActivate(ctx: ExecutionContext) {
     const req = ctx.switchToHttp().getRequest<Request>();
-    const sensitive = /\/auth\/(login|register|refresh)$/.test(req.path);
+    const sensitive =
+      /\/auth\/(login|register|refresh|password-reset\/(request|confirm))$|\/users\/me\/password$|\/admin\/users\/[^/]+\/password-reset$/.test(
+        req.path,
+      );
     const limit = sensitive ? config.AUTH_RATE_LIMIT : config.API_RATE_LIMIT;
     const count = await this.redis.incrementWindow(
       `rate:${sensitive ? 'auth' : 'api'}:${req.ip}`,

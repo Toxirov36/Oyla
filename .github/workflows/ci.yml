@@ -35,6 +35,8 @@ jobs:
       WEB_ORIGIN: http://localhost:5173
       NODE_ENV: test
       DEMO_PASSWORD: OylaCiTesting2026!
+      AUTH_RATE_LIMIT: '1000'
+      API_RATE_LIMIT: '3000'
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6

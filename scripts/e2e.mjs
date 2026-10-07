@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { config } from 'dotenv';
 import { createPrismaClient } from '../apps/api/prisma/client.ts';
+import { verifyAccountFeatures } from './account-checks.mjs';
 config({ path: 'apps/api/.env', override: true, quiet: true });
 const db = createPrismaClient();
 const base = process.env.E2E_API || 'http://127.0.0.1:3001/api/v1';
@@ -404,6 +405,20 @@ try {
   await student.request('/auth/logout', { method: 'POST', expected: 201 });
   await student.request('/auth/me', { expected: 401, token: previousToken });
   pass('refresh rotation, replay rejection and logout session revocation');
+  await verifyAccountFeatures({
+    db,
+    base,
+    Client,
+    admin,
+    student,
+    other,
+    first,
+    second,
+    password,
+    createdUsers,
+    createdClasses,
+    pass,
+  });
   console.log(`${checks} end-to-end groups passed against PostgreSQL and Redis.`);
 } finally {
   // Remove only fixtures created by this run, preserving seeded and user data.

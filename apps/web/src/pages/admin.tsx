@@ -3,7 +3,10 @@ import { AdminGamification } from './admin/gamification';
 import { AdminContent } from './admin/content';
 import { AdminUsers } from './admin/users';
 import { AdminOverview } from './admin/overview';
-import { grades, roles, criterions, typeOptions } from './admin/config';
+import { UserEditor } from './admin/user-editor';
+import { AdminPasswordReset } from './admin/password-reset';
+import { grades, criterions, typeOptions } from './admin/config';
+import { useSearchParams } from 'react-router-dom';
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
@@ -54,11 +57,14 @@ export default function AdminPage({
   mode?: 'overview' | 'users' | 'content' | 'gamification' | 'classes';
 }) {
   const cache = useQueryClient();
+  const [params] = useSearchParams();
+  const [userEditor, setUserEditor] = useState<{ user?: User } | null>(null);
+  const [resetUser, setResetUser] = useState<User | null>(null);
   const [editor, setEditor] = useState<EditorSpec | null>(null);
   const [deletion, setDeletion] = useState<{ endpoint: string; title: string } | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [error, setError] = useState('');
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(params.get('search')?.slice(0, 100) || '');
   const [page, setPage] = useState(1);
   const [gradeFilter, setGradeFilter] = useState('6');
   const [membership, setMembership] = useState<AdminClass | null>(null);
@@ -340,48 +346,7 @@ export default function AdminPage({
       values: entityValues(item),
     });
   };
-  const editUser = (user?: User) =>
-    setEditor({
-      title: user ? 'Foydalanuvchini tahrirlash' : 'Yangi foydalanuvchi',
-      endpoint: '/admin/users',
-      id: user?.id,
-      values: { ...entityValues(user), grade: String(user?.student?.grade || 6) },
-      fields: [
-        { key: 'name', label: 'Ism va familiya', min: 2, max: 80 },
-        { key: 'email', label: 'Email', kind: 'email', schema: z.email() },
-        ...(user
-          ? [{ key: 'active', label: 'Hisob faol', kind: 'checkbox' } as EditorField]
-          : [
-              {
-                key: 'password',
-                label: 'Boshlang‘ich parol',
-                kind: 'password',
-                min: 10,
-                max: 128,
-              } as EditorField,
-              { key: 'role', label: 'Rol', kind: 'select', options: roles } as EditorField,
-            ]),
-        ...(user && user.role !== 'STUDENT'
-          ? [{ key: 'teacherAccess', label: 'O‘qituvchi paneli', kind: 'checkbox' } as EditorField]
-          : []),
-        ...(!user || user.role === 'STUDENT'
-          ? [
-              {
-                key: 'grade',
-                label: 'O‘quvchi sinfi',
-                kind: 'select',
-                options: grades,
-              } as EditorField,
-            ]
-          : []),
-      ],
-      serialize: (values) => {
-        const body = { ...values };
-        if (body.grade !== undefined) body.grade = Number(body.grade);
-        if (body.role && body.role !== 'STUDENT') delete body.grade;
-        return body;
-      },
-    });
+  const editUser = (user?: User) => setUserEditor({ user });
   const editClass = (group?: AdminClass) =>
     setEditor({
       title: group ? 'Sinfni tahrirlash' : 'Yangi sinf',
@@ -454,6 +419,7 @@ export default function AdminPage({
           onPage={setPage}
           onEdit={editUser}
           onDelete={requestDeletion}
+          onReset={setResetUser}
         />
       )}{' '}
       {mode === 'content' && content.data && (
@@ -486,6 +452,24 @@ export default function AdminPage({
           onDelete={requestDeletion}
         />
       )}{' '}
+      <Modal
+        open={!!userEditor}
+        onOpenChange={(open) => {
+          if (!open) setUserEditor(null);
+        }}
+        title={userEditor?.user ? 'Foydalanuvchini tahrirlash' : 'Yangi foydalanuvchi'}
+      >
+        {userEditor && <UserEditor user={userEditor.user} close={() => setUserEditor(null)} />}
+      </Modal>
+      <Modal
+        open={!!resetUser}
+        onOpenChange={(open) => {
+          if (!open) setResetUser(null);
+        }}
+        title="Parolni tiklash"
+      >
+        {resetUser && <AdminPasswordReset key={resetUser.id} user={resetUser} />}
+      </Modal>
       <Modal
         open={!!editor}
         onOpenChange={(open) => {

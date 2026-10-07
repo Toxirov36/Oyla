@@ -64,7 +64,12 @@ export class GamificationService {
         skipDuplicates: true,
       });
       await tx.notification.createMany({
-        data: unlocked.map((b) => ({ userId, title: 'Yangi nishon!', body: b.title })),
+        data: unlocked.map((b) => ({
+          userId,
+          title: 'Yangi nishon!',
+          body: b.title,
+          link: '/badges',
+        })),
       });
     }
     return unlocked.map((b) => ({ id: b.id, title: b.title, description: b.description }));

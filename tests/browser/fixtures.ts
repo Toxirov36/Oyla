@@ -41,6 +41,9 @@ export const test = base.extend<{ learner: Learner; learnerGrade: Grade }>({
     try {
       await use({ user: session.user, password, token: session.accessToken });
     } finally {
+      await db.notification.deleteMany({
+        where: { link: `/admin/users?search=${encodeURIComponent(session.user.email)}` },
+      });
       await db.user.deleteMany({ where: { id: session.user.id } });
     }
   },

@@ -94,6 +94,7 @@ export class TeacherService {
             userId: s.studentId,
             title: 'Yangi topshiriq',
             body: dto.title,
+            link: '/assignments',
           })),
         });
       return assignment;

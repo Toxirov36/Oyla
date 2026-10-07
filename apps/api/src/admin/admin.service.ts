@@ -110,16 +110,19 @@ export class AdminService {
   async createUser(dto: CreateUserDto) {
     if (dto.role === 'STUDENT' && !dto.grade)
       throw new BadRequestException('O‘quvchi sinfini tanlang.');
+    if (dto.role === 'STUDENT' && dto.teacherAccess)
+      throw new BadRequestException('O‘quvchiga o‘qituvchi paneli berib bo‘lmaydi.');
+    const teacherAccess = dto.role === 'TEACHER' || (dto.role === 'ADMIN' && !!dto.teacherAccess);
     return this.db.user.create({
       data: {
         email: dto.email,
         name: dto.name,
         role: dto.role,
-        teacherAccess: dto.role === 'TEACHER',
+        teacherAccess,
         passwordHash: await argon2.hash(dto.password, { type: argon2.argon2id }),
         ...(dto.role === 'STUDENT'
           ? { student: { create: { grade: dto.grade! } } }
-          : dto.role === 'TEACHER'
+          : teacherAccess
             ? { teacher: { create: {} } }
             : {}),
       },
@@ -129,26 +132,80 @@ export class AdminService {
   async updateUser(id: string, dto: UpdateUserDto, actor: Actor) {
     if (id === actor.id && dto.active === false)
       throw new BadRequestException('O‘z hisobingizni o‘chira olmaysiz.');
-    const user = await this.db.user.findUniqueOrThrow({ where: { id } });
-    if (dto.grade && user.role !== 'STUDENT')
-      throw new BadRequestException('Sinf faqat o‘quvchiga tegishli.');
-    if (dto.teacherAccess && user.role === 'STUDENT')
-      throw new BadRequestException('O‘quvchiga o‘qituvchi paneli berib bo‘lmaydi.');
-    const { grade, ...data } = dto;
-    return this.db.$transaction(async (tx) => {
-      if (user.role === 'ADMIN' && dto.active === false) {
-        // Serialize administrator deactivation so concurrent changes cannot remove the last one.
+    return this.db.withUserLock(id, async (tx) => {
+      const user = await tx.user.findUniqueOrThrow({ where: { id }, include: { student: true } });
+      const role = dto.role ?? user.role;
+      if (id === actor.id && role !== user.role)
+        throw new BadRequestException('O‘z administrator rolingizni o‘zgartira olmaysiz.');
+      if (dto.grade !== undefined && role !== 'STUDENT')
+        throw new BadRequestException('Sinf faqat o‘quvchiga tegishli.');
+      if (dto.teacherAccess && role === 'STUDENT')
+        throw new BadRequestException('O‘quvchiga o‘qituvchi paneli berib bo‘lmaydi.');
+      const grade = dto.grade ?? user.student?.grade;
+      if (role === 'STUDENT' && !grade)
+        throw new BadRequestException('O‘quvchiga aylantirish uchun sinfni tanlang.');
+      const teacherAccess =
+        role === 'TEACHER' ||
+        (role === 'ADMIN' &&
+          (dto.teacherAccess ?? (user.role === 'TEACHER' || user.teacherAccess)));
+      if (!teacherAccess && (await tx.class.count({ where: { teacherId: id } })))
+        throw new BadRequestException(
+          'Avval bu foydalanuvchining sinflarini boshqa o‘qituvchiga biriktiring.',
+        );
+      if (user.role === 'ADMIN' && user.active && (role !== 'ADMIN' || dto.active === false)) {
+        // Deactivation and demotion share a lock to preserve the last active administrator.
         await tx.$queryRaw`SELECT pg_advisory_xact_lock(831641)::text`;
         if ((await tx.user.count({ where: { role: 'ADMIN', active: true } })) <= 1)
           throw new BadRequestException('Oxirgi adminni o‘chira olmaysiz.');
       }
-      if (grade)
+      if (user.role === 'STUDENT' && role !== 'STUDENT')
+        await tx.classStudent.deleteMany({ where: { studentId: id } });
+      else if (role === 'STUDENT' && grade)
         await tx.classStudent.deleteMany({
           where: { studentId: id, class: { grade: { not: grade } } },
         });
+      if (role === 'STUDENT')
+        await tx.studentProfile.upsert({
+          where: { userId: id },
+          create: { userId: id, grade: grade! },
+          update: { grade },
+        });
+      if (teacherAccess)
+        await tx.teacherProfile.upsert({
+          where: { userId: id },
+          create: { userId: id },
+          update: {},
+        });
+      const authorityChanged =
+        role !== user.role ||
+        teacherAccess !== user.teacherAccess ||
+        (dto.active !== undefined && dto.active !== user.active) ||
+        (dto.email !== undefined && dto.email !== user.email) ||
+        (role === 'STUDENT' && grade !== user.student?.grade);
+      if (authorityChanged) {
+        const now = new Date();
+        await tx.session.updateMany({
+          where: { userId: id, revokedAt: null },
+          data: { revokedAt: now },
+        });
+        await tx.passwordResetToken.updateMany({
+          where: { userId: id, consumedAt: null },
+          data: { consumedAt: now },
+        });
+      }
+      if (role !== user.role)
+        await tx.notification.create({
+          data: {
+            userId: id,
+            title: 'Hisobingiz roli yangilandi',
+            body: `Yangi rol: ${{ STUDENT: 'O‘quvchi', TEACHER: 'O‘qituvchi', ADMIN: 'Administrator' }[role]}. Yangi huquqlar bilan tizimga qayta kiring.`,
+            link: '/profile',
+          },
+        });
+      const { grade: _grade, ...data } = dto;
       return tx.user.update({
         where: { id },
-        data: { ...data, ...(grade ? { student: { update: { grade } } } : {}) },
+        data: { ...data, role, teacherAccess },
         select: safeUser,
       });
     });
@@ -297,55 +354,66 @@ export class AdminService {
     });
   }
   async createClass(dto: ClassDto) {
-    if (
-      !(await this.db.user.findFirst({
-        where: {
-          id: dto.teacherId,
-          active: true,
-          OR: [{ role: 'TEACHER' }, { teacherAccess: true }],
-        },
-      }))
-    )
-      throw new BadRequestException('Faol o‘qituvchini tanlang.');
-    return this.db.class.create({ data: dto });
+    return this.db.withUserLock(dto.teacherId, async (tx) => {
+      if (
+        !(await tx.user.findFirst({
+          where: {
+            id: dto.teacherId,
+            active: true,
+            OR: [{ role: 'TEACHER' }, { teacherAccess: true }],
+          },
+        }))
+      )
+        throw new BadRequestException('Faol o‘qituvchini tanlang.');
+      return tx.class.create({ data: dto });
+    });
   }
   async updateClass(id: string, dto: UpdateClassDto) {
-    if (
-      dto.teacherId &&
-      !(await this.db.user.findFirst({
-        where: {
-          id: dto.teacherId,
-          active: true,
-          OR: [{ role: 'TEACHER' }, { teacherAccess: true }],
-        },
-      }))
-    )
-      throw new BadRequestException('Faol o‘qituvchini tanlang.');
-    if (
-      dto.grade &&
-      (await this.db.classStudent.count({
-        where: { classId: id, student: { student: { grade: { not: dto.grade } } } },
-      }))
-    )
-      throw new BadRequestException('Sinfdagi o‘quvchilar bosqichi mos emas.');
-    return this.db.class.update({ where: { id }, data: dto });
+    const update = async (tx: Prisma.TransactionClient) => {
+      if (
+        dto.teacherId &&
+        !(await tx.user.findFirst({
+          where: {
+            id: dto.teacherId,
+            active: true,
+            OR: [{ role: 'TEACHER' }, { teacherAccess: true }],
+          },
+        }))
+      )
+        throw new BadRequestException('Faol o‘qituvchini tanlang.');
+      if (
+        dto.grade &&
+        (await tx.classStudent.count({
+          where: { classId: id, student: { student: { grade: { not: dto.grade } } } },
+        }))
+      )
+        throw new BadRequestException('Sinfdagi o‘quvchilar bosqichi mos emas.');
+      return tx.class.update({ where: { id }, data: dto });
+    };
+    return dto.teacherId
+      ? this.db.withUserLock(dto.teacherId, update)
+      : this.db.$transaction(update);
   }
   deleteClass(id: string) {
     return this.db.class.delete({ where: { id } });
   }
   async membership(id: string, dto: MembershipDto) {
-    const group = await this.db.class.findUniqueOrThrow({ where: { id } });
-    const students = await this.db.user.count({
-      where: {
-        id: { in: dto.studentIds },
-        role: 'STUDENT',
-        active: true,
-        student: { grade: group.grade },
-      },
-    });
-    if (students !== dto.studentIds.length)
-      throw new BadRequestException('Sinfga mos faol o‘quvchilarni tanlang.');
     return this.db.$transaction(async (tx) => {
+      if (dto.studentIds.length)
+        await tx.$queryRaw(
+          Prisma.sql`SELECT id FROM "User" WHERE id IN (${Prisma.join(dto.studentIds.map((studentId) => Prisma.sql`${studentId}::uuid`))}) ORDER BY id FOR UPDATE`,
+        );
+      const group = await tx.class.findUniqueOrThrow({ where: { id } });
+      const students = await tx.user.count({
+        where: {
+          id: { in: dto.studentIds },
+          role: 'STUDENT',
+          active: true,
+          student: { grade: group.grade },
+        },
+      });
+      if (students !== dto.studentIds.length)
+        throw new BadRequestException('Sinfga mos faol o‘quvchilarni tanlang.');
       await tx.classStudent.deleteMany({ where: { classId: id } });
       await tx.classStudent.createMany({
         data: dto.studentIds.map((studentId) => ({ classId: id, studentId })),

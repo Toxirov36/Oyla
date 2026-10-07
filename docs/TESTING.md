@@ -15,7 +15,7 @@ npm run test:browser
 
 `npm test` runs the backend Node test suite and the frontend Vitest/Testing Library suite. `npm run test:web` runs only frontend component/API-client tests. `npm run test:coverage -w @oyla/web` generates a local coverage report. `npm run test:browser:report` opens the Playwright HTML report.
 
-Browser tests exercise real HTTP requests, the NestJS guards/DTOs, PostgreSQL, and the question/reward engine. The suite includes registration validation, login, profile save/reload/logout, mobile layout, teacher/admin profiles, grade-specific content access, correct answers, educational retries, result calculation, and profile XP.
+Browser tests exercise real HTTP requests, the NestJS guards/DTOs, PostgreSQL, and the question/reward engine. The 15-test suite includes registration validation, login, profile save/reload/logout, mobile layout, teacher/admin profiles, grade-specific content access, correct answers, educational retries, result calculation, profile XP, password changes, existing-role editing, combined admin/teacher access, reset-link issuance/redemption/replay, recovery requests, and notification pagination/read state.
 
 ## Isolation
 
@@ -23,7 +23,7 @@ Playwright starts its own API on port **3101** and frontend on **5180**, leaving
 
 The test database must be local and non-production. By default the suite reads the existing development database configuration. `BROWSER_DATABASE_URL` and `BROWSER_REDIS_URL` can select a dedicated local test environment. Seed the selected database first. Every student test creates a UUID-named fixture and deletes only its own fixture afterward. Teacher/admin tests read demo accounts and revoke their test sessions. Existing users, progress, XP, assignments, and catalog rows are preserved. No production endpoint or paid service is used.
 
-Failures save screenshots and traces in ignored `test-results/` and a report in `playwright-report/`. The standard API integration suite is still available as `npm run test:e2e` with a running API on port 3001.
+Failures save screenshots and traces in ignored `test-results/` and a report in `playwright-report/`. The API integration suite is available as `npm run test:e2e` with a running API on port 3001, or an explicit local `E2E_API` base URL. Its 13 groups include role/history preservation, session invalidation, teacher/class safeguards, required current passwords, expired/replaced/parallel reset tokens, recovery-response privacy, and notification ownership/idempotency. Use a separate local test API with higher test-only `AUTH_RATE_LIMIT`/`API_RATE_LIMIT`; the security suite intentionally performs more authentication operations than the production limit allows within one minute. CI supplies those test limits. Recovery fixtures also remove only their own notifications sent to administrators.
 
 ## GitHub Actions
 
@@ -31,6 +31,6 @@ Failures save screenshots and traces in ignored `test-results/` and a report in 
 
 Prisma ORM 7.10 uses the root `prisma.config.ts`, a generated client under `apps/api/generated/`, and the PostgreSQL driver adapter. CI runs `npm run db:generate` before type checking and building. The current Prisma CLI dependency tree reports four upstream high-severity advisories; `scripts/audit.mjs` allowlists only those exact Prisma advisory IDs and fails for any other or newly introduced vulnerability.
 
-Action revisions are pinned to verified commit SHAs. The workflow has read-only repository permissions and cancels superseded runs. Database/JWT/demo credentials in this workflow are disposable CI fixtures. With no configured Git remote, the workflow cannot be dispatched here; all corresponding project checks can run locally before a push.
+Action revisions are pinned to verified commit SHAs. The workflow has read-only repository permissions and cancels superseded runs. Database/JWT/demo credentials in this workflow are disposable CI fixtures. Pushes to the configured GitHub repository trigger this workflow; all corresponding project checks can also run locally before a push.
 
 References: [Playwright web servers](https://playwright.dev/docs/test-webserver), [Playwright CI](https://playwright.dev/docs/ci-intro), [Vitest](https://vitest.dev/guide/), [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/), [Prisma ORM 7 upgrade](https://www.prisma.io/docs/guides/upgrade-prisma-orm/v7).

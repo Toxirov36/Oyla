@@ -92,6 +92,18 @@ E2E requires a running seeded local API and checks real PostgreSQL/Redis state. 
 
 Profile API: `GET /api/v1/users/me/profile`, `PATCH /api/v1/users/me/profile` with `{ "name": "Ali Valiyev" }`. The authenticated session supplies the user ID. DTO validation rejects self-assigned role, grade, email, XP, or another user ID.
 
+## Account roles, passwords, and notifications
+
+In `/admin/users`, an administrator can edit an existing user's role and enable teacher access for an administrator. Moving a student to staff ends class membership while preserving profiles, attempts, XP, and progress. Becoming a student requires a grade; a teacher's classes must be reassigned before teacher access can be removed. Self-demotion and removal of the last active administrator are rejected. Authority, email, or grade changes revoke existing sessions and outstanding reset links.
+
+All signed-in users can change their password in `/profile` by entering their current password and confirming a new password of 10–128 characters. Password changes revoke every session, consume outstanding recovery tokens, and require login again.
+
+Password recovery works locally without email delivery. `/forgot-password` notifies active administrators when a matching active account exists and always returns the same public response. Requests for the same email are limited to one per ten minutes. An administrator verifies the user's identity and uses the key button in `/admin/users` to create and copy a recovery link. The link expires in 15 minutes, replaces older links, and can be redeemed exactly once at `/reset-password`. Only its SHA-256 hash is stored; the browser removes the URL fragment after loading. Redemption revokes all existing sessions. There is no automatic email send.
+
+The top-bar bell and `/notifications` are available to all roles. Notifications support pagination, an unread filter/count, individual read marking, and marking all as read. Read marking is idempotent and scoped to the signed-in user. Assignment, badge, role, and password events provide contextual links. Unread counts refresh every 30 seconds and after changes.
+
+API additions: `POST /api/v1/users/me/password`, `POST /api/v1/auth/password-reset/request`, `POST /api/v1/auth/password-reset/confirm`, `POST /api/v1/admin/users/:id/password-reset`, `GET /api/v1/notifications`, `GET /api/v1/notifications/unread-count`, `PATCH /api/v1/notifications/:id/read`, and `PATCH /api/v1/notifications/read-all`. Password bodies use concrete class-validator DTOs; role/notification operations enforce RBAC and ownership on the server.
+
 ## Business rules
 
 The first submitted answer counts toward score; retries provide learning feedback. All questions must be answered before completion. Completion locks the student's database row so concurrent calls cannot duplicate rewards. The stored completion result makes repeat completion idempotent. A lesson's XP source key is unique per student; repeating a lesson can improve the best score but earns no repeat lesson/question XP. A daily challenge snapshots five published grade-appropriate questions and can be rewarded once per Asia/Tashkent date. Daily attempts expire at the date boundary; other attempts expire after 24 hours.

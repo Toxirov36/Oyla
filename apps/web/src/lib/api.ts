@@ -14,6 +14,11 @@ export class ApiError extends Error {
 export function setToken(value: string | null) {
   token = value;
 }
+export function clearSession(message?: string) {
+  if (message) sessionStorage.setItem('oyla-auth-notice', message);
+  token = null;
+  window.dispatchEvent(new Event('sessionexpired'));
+}
 export async function refreshSession() {
   if (!refreshing)
     refreshing = fetch('/api/v1/auth/refresh', { method: 'POST', credentials: 'include' })
@@ -45,8 +50,7 @@ export async function api<T>(
     try {
       await refreshSession();
     } catch {
-      token = null;
-      window.dispatchEvent(new Event('sessionexpired'));
+      clearSession();
       throw new ApiError('Tizimga qayta kiring.', 401);
     }
     return api(path, { ...options, retry: false });

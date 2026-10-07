@@ -31,6 +31,21 @@ export interface Profile {
     assignments: number;
   } | null;
 }
+export interface Notification {
+  id: string;
+  title: string;
+  body: string;
+  link: string | null;
+  readAt: string | null;
+  createdAt: string;
+}
+export interface NotificationList {
+  items: Notification[];
+  total: number;
+  unreadCount: number;
+  page: number;
+  limit: number;
+}
 export interface LessonSummary {
   id: string;
   title: string;

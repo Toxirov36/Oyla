@@ -1,5 +1,11 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { BadgeCriterion, ContentStatus, Difficulty, QuestionType, Role } from '../../generated/prisma/client';
+import {
+  BadgeCriterion,
+  ContentStatus,
+  Difficulty,
+  QuestionType,
+  Role,
+} from '../../generated/prisma/client';
 import { Type, Transform } from 'class-transformer';
 import {
   ArrayMaxSize,
@@ -112,9 +118,11 @@ export class UpdateQuestionDto extends PartialType(QuestionDto, { skipNullProper
 export class CreateUserDto extends LoginDto {
   @ApiProperty() @Trim() @IsString() @MinLength(2) @MaxLength(80) name!: string;
   @ApiProperty({ enum: Role }) @IsEnum(Role) role!: Role;
+  @ApiPropertyOptional() @Optional() @IsBoolean() teacherAccess?: boolean;
   @ApiPropertyOptional() @Optional() @IsInt() @Min(5) @Max(7) grade?: number;
 }
 export class UpdateUserDto {
+  @ApiPropertyOptional({ enum: Role }) @Optional() @IsEnum(Role) role?: Role;
   @ApiPropertyOptional() @Optional() @Trim() @IsString() @MinLength(2) @MaxLength(80) name?: string;
   @ApiPropertyOptional()
   @Optional()

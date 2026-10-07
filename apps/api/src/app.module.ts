@@ -10,6 +10,7 @@ import { ProgressModule } from './progress/progress.module';
 import { TeacherModule } from './teacher/teacher.module';
 import { AdminModule } from './admin/admin.module';
 import { ProfileModule } from './profile/profile.module';
+import { NotificationsModule } from './notifications/notifications.module';
 @Controller('health')
 class HealthController {
   constructor(
@@ -32,6 +33,7 @@ class HealthController {
     TeacherModule,
     AdminModule,
     ProfileModule,
+    NotificationsModule,
   ],
   controllers: [HealthController],
   providers: [

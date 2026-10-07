@@ -12,6 +12,8 @@ const StudentData = lazy(() => import('./pages/student-data'));
 const Teacher = lazy(() => import('./pages/teacher'));
 const Admin = lazy(() => import('./pages/admin'));
 const Profile = lazy(() => import('./pages/profile'));
+const Notifications = lazy(() => import('./pages/notifications'));
+const PasswordRecovery = lazy(() => import('./pages/password-recovery'));
 function Protected({ role }: { role?: Role }) {
   const { user, loading } = useAuth();
   if (loading) return <Loading />;
@@ -31,9 +33,12 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<AuthPage />} />
         <Route path="/register" element={<AuthPage register />} />
+        <Route path="/forgot-password" element={<PasswordRecovery />} />
+        <Route path="/reset-password" element={<PasswordRecovery reset />} />
         <Route element={<Protected />}>
           <Route element={<AppShell />}>
             <Route path="/profile" element={<Profile />} />
+            <Route path="/notifications" element={<Notifications />} />
             <Route element={<Protected role="STUDENT" />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/subjects" element={<Subjects />} />

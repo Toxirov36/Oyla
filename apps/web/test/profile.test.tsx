@@ -55,6 +55,7 @@ function mount(profile = fixture(), options: { anonymous?: boolean; failProfile?
         ? Response.json({ message: 'Tizimga kiring.' }, { status: 401 })
         : Response.json({ accessToken: 'unit-session', user: current.user });
     if (path === '/api/v1/auth/me') return Response.json(current.user);
+    if (path === '/api/v1/notifications/unread-count') return Response.json({ unreadCount: 0 });
     if (path === '/api/v1/users/me/profile') {
       if (failProfile)
         return Response.json({ message: 'Profilni yuklashda xatolik.' }, { status: 503 });
