@@ -20,7 +20,8 @@ test('registration validates the form and creates the selected grade profile', a
     await page.getByRole('textbox', { name: /Parolingiz/ }).fill('BrowserRegistration2026!');
     await page.getByRole('button', { name: 'Hisob yaratish', exact: true }).click();
     await expect(page).toHaveURL(/\/dashboard$/);
-    await page.getByRole('link', { name: 'Profilimni ochish', exact: true }).click();
+    await page.getByRole('button', { name: /^Profil menyusi:/ }).click();
+    await page.getByRole('menuitem', { name: 'Profilim', exact: true }).click();
     await expect(page.getByLabel('Email manzili', { exact: true })).toHaveValue(email);
     await expect(page.getByLabel('Sinfingiz', { exact: true })).toHaveValue('7-sinf');
     const user = await db.user.findUniqueOrThrow({ where: { email }, include: { student: true } });

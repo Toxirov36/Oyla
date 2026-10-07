@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,6 +21,7 @@ import { useAuth } from '../lib/auth';
 import type { Profile } from '../lib/types';
 import { tashkentDate } from '../lib/locale';
 import { ChangePasswordForm } from '../components/change-password';
+import { Avatar, AvatarBadge, AvatarFallback } from '../components/ui/avatar';
 import {
   Button,
   Card,
@@ -132,10 +133,17 @@ function ProfileForm({ profile }: { profile: Profile }) {
 }
 
 export default function ProfilePage() {
+  const location = useLocation();
   const query = useQuery({
     queryKey: ['profile'],
     queryFn: () => api<Profile>('/users/me/profile'),
   });
+  useEffect(() => {
+    if (location.hash !== '#settings' || !query.data) return;
+    const section = document.getElementById('profile-settings');
+    section?.scrollIntoView({ block: 'start' });
+    section?.focus({ preventScroll: true });
+  }, [location.hash, query.data]);
   if (query.isPending) return <Loading />;
   if (query.error) return <ErrorState error={query.error} retry={() => void query.refetch()} />;
   const profile = query.data;
@@ -162,9 +170,12 @@ export default function ProfilePage() {
       <div className="profile-layout">
         <div className="profile-main">
           <Card className="profile-identity">
-            <span className="profile-avatar" aria-hidden="true">
-              {initial}
-            </span>
+            <div className="relative inline-flex">
+              <Avatar size="2xl" className="profile-avatar" aria-hidden="true">
+                <AvatarFallback variant="gradient">{initial}</AvatarFallback>
+              </Avatar>
+              <AvatarBadge status="online" pulse aria-hidden="true" />
+            </div>
             <div>
               <span className="pill">{roles[profile.user.role]}</span>
               <h2>{profile.user.name}</h2>
@@ -179,8 +190,15 @@ export default function ProfilePage() {
               </p>
             </div>
           </Card>
-          <ProfileForm profile={profile} />
-          <ChangePasswordForm />
+          <section
+            id="profile-settings"
+            className="profile-settings-section"
+            tabIndex={-1}
+            aria-label="Profil sozlamalari"
+          >
+            <ProfileForm profile={profile} />
+            <ChangePasswordForm />
+          </section>
           {student && (
             <div className="stats-grid profile-stats">
               <Stat

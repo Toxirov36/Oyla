@@ -117,7 +117,8 @@ for (const { wrongFirst, position, label, mobile } of [
         where: { userId: learner.user.id, sourceKey: `lesson:${id}` },
       }),
     ).toBe(1);
-    await page.getByRole('link', { name: 'Profilimni ochish' }).click();
+    await page.getByRole('button', { name: /^Profil menyusi:/ }).click();
+    await page.getByRole('menuitem', { name: 'Profilim', exact: true }).click();
     await expect(page.getByText(`${earnedXp.toLocaleString()} XP`, { exact: true })).toBeVisible();
     const profile = await page.request.get('/api/v1/users/me/profile', {
       headers: { Authorization: `Bearer ${learner.token}`, Origin: origin },

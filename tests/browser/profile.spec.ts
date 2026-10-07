@@ -16,7 +16,8 @@ test('login, profile validation, save and reload persist the real user name', as
   await page.getByRole('textbox', { name: 'Parolingiz Parolni ko‘rsatish' }).fill(learner.password);
   await page.getByRole('button', { name: 'Tizimga kirish', exact: true }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
-  await page.getByRole('link', { name: 'Profilimni ochish', exact: true }).click();
+  await page.getByRole('button', { name: /^Profil menyusi:/ }).click();
+  await page.getByRole('menuitem', { name: 'Profilim', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Mening profilim' })).toBeVisible();
   const name = page.getByLabel('Ism va familiya', { exact: true });
   await name.fill('');
@@ -25,7 +26,7 @@ test('login, profile validation, save and reload persist the real user name', as
   await name.fill('Browser Updated');
   await page.getByRole('button', { name: 'O‘zgarishlarni saqlash' }).click();
   await expect(page.getByRole('status')).toContainText('Profilingiz saqlandi.');
-  await expect(page.getByRole('link', { name: 'Profilimni ochish' })).toContainText(
+  await expect(page.getByRole('button', { name: /^Profil menyusi:/ })).toContainText(
     'Browser Updated',
   );
   await expect(page.getByLabel('Email manzili', { exact: true })).toHaveAttribute('readonly');
@@ -61,7 +62,7 @@ test('mobile profile has no horizontal overflow and supports name editing', asyn
   await page.getByLabel('Ism va familiya', { exact: true }).fill(longName);
   await page.getByRole('button', { name: 'O‘zgarishlarni saqlash' }).click();
   await expect(page.getByRole('status')).toContainText('Profilingiz saqlandi.');
-  await expect(page.getByRole('link', { name: 'Profilimni ochish' })).toContainText(longName);
+  await expect(page.getByRole('button', { name: /^Profil menyusi:/ })).toContainText(longName);
   const savedDimensions = await page.evaluate(() => ({
     viewport: document.documentElement.clientWidth,
     content: document.documentElement.scrollWidth,
@@ -85,7 +86,7 @@ for (const [email, role] of [
       await expect(page.getByLabel('Ism va familiya', { exact: true })).toHaveValue(
         session.user.name,
       );
-      await expect(page.getByRole('link', { name: 'Profilimni ochish' })).toContainText(role);
+      await expect(page.getByRole('button', { name: /^Profil menyusi:/ })).toContainText(role);
       await expect(page.getByLabel('Sinfingiz', { exact: true })).toHaveCount(0);
       await expect(page.getByText('Bilim darajangiz', { exact: true })).toHaveCount(0);
       if (email.startsWith('teacher'))

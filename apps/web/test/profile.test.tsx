@@ -113,7 +113,7 @@ describe('profile page', () => {
     await user.type(input, 'Madina Unit');
     await user.click(screen.getByRole('button', { name: 'O‘zgarishlarni saqlash' }));
     expect(await screen.findByRole('status')).toHaveTextContent('Profilingiz saqlandi.');
-    expect(screen.getByRole('link', { name: 'Profilimni ochish' })).toHaveTextContent(
+    expect(screen.getByRole('button', { name: /^Profil menyusi:/ })).toHaveTextContent(
       'Madina Unit',
     );
     const request = fetcher.mock.calls.find(([, init]) => init?.method === 'PATCH');
@@ -131,7 +131,7 @@ describe('profile page', () => {
     mount(fixture('ADMIN'));
     expect(await screen.findByLabelText('Ism va familiya')).toHaveValue('Ali Unit');
     expect(screen.queryByText('Yakunlangan darslar')).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Profilimni ochish' })).toHaveTextContent(
+    expect(screen.getByRole('button', { name: /^Profil menyusi:/ })).toHaveTextContent(
       'Administrator',
     );
   });

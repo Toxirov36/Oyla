@@ -4,7 +4,6 @@ import {
   Award,
   BookOpen,
   ChartNoAxesCombined,
-  ChevronDown,
   GraduationCap,
   House,
   Layers,
@@ -21,6 +20,7 @@ import {
 import { homeFor, useAuth } from '../lib/auth';
 import { Button } from './ui';
 import { NotificationBell } from './notification-bell';
+import { HeaderUserMenu } from './header-user-menu';
 
 const studentNav = [
   { to: '/dashboard', label: 'Bosh sahifa', icon: House },
@@ -131,14 +131,13 @@ export function AppShell() {
           </div>
           <div className="topbar-actions">
             <NotificationBell />
-            <Link to="/profile" className="profile-chip" aria-label="Profilimni ochish">
-              <span className="avatar">{user!.name.slice(0, 1)}</span>
-              <div>
-                <strong>{user!.name}</strong>
-                <small>{roleLabel}</small>
-              </div>
-              <ChevronDown size={16} />
-            </Link>
+            <HeaderUserMenu
+              name={user!.name}
+              secondaryInfo={roleLabel}
+              email={user?.email}
+              role={user?.role}
+              onSignOut={signOut}
+            />
           </div>
         </div>
         <main id="main" className="page-content">
