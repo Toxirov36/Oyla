@@ -6,7 +6,7 @@ permissions:
   contents: read
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -44,6 +44,9 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci
+      - run: npm ci --prefix deploy/ops
+      - run: npm test --prefix deploy/ops
+      - run: npm audit --prefix deploy/ops --audit-level=high
       - run: npm run db:generate
       - run: npm run db:migrate
       - run: npm run db:seed
@@ -82,3 +85,77 @@ jobs:
             test-results/
             .local/npm-audit.json
           retention-days: 7
+  images:
+    needs: verify
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Build, validate and publish production images
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          registry="ghcr.io/${GITHUB_REPOSITORY,,}"
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          for service in api web; do
+            docker build --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+              --label "org.opencontainers.image.revision=$GITHUB_SHA" \
+              -f "apps/$service/Dockerfile" -t "$registry-$service:$GITHUB_SHA" .
+            if [[ "$service" == api ]]; then
+              docker run --rm --entrypoint node "$registry-$service:$GITHUB_SHA" -e \
+                "require.resolve('@nestjs/core'); require.resolve('@prisma/adapter-pg'); require('fs').accessSync('dist/src/main.js'); try { require.resolve('react'); process.exit(1); } catch(e) { if(e.code!=='MODULE_NOT_FOUND') throw e; }"
+              docker run --rm -e DATABASE_URL=postgresql://verify:verify@localhost:5432/verify --entrypoint node "$registry-$service:$GITHUB_SHA" scripts/prisma.mjs --version
+            fi
+            docker push "$registry-$service:$GITHUB_SHA"
+          done
+  deploy:
+    needs: images
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.OYLA_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    concurrency:
+      group: oyla-production
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: read
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Configure SSH and release tested commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          [[ "$DEPLOY_HOST" =~ ^[a-zA-Z0-9.-]+$ && "$DEPLOY_USER" =~ ^[a-zA-Z0-9_-]+$ ]]
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+          latest=$(curl --fail --silent -H "Authorization: Bearer $GH_TOKEN" "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/git/ref/heads/main" | jq -r '.object.sha')
+          [[ "$latest" == "$GITHUB_SHA" ]] || exit 0
+          git archive --format=tar.gz --output="$RUNNER_TEMP/release.tar.gz" "$GITHUB_SHA"
+          target="$DEPLOY_USER@$DEPLOY_HOST"
+          ssh_opts=(-o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15)
+          ssh "${ssh_opts[@]}" "$target" 'mkdir -p ~/oyla/incoming'
+          scp "${ssh_opts[@]}" "$RUNNER_TEMP/release.tar.gz" "$target:oyla/incoming/$GITHUB_SHA.tar.gz"
+          scp "${ssh_opts[@]}" deploy/release.sh "$target:oyla/incoming/$GITHUB_SHA.sh"
+          printf '%s' "$GH_TOKEN" | ssh "${ssh_opts[@]}" "$target" "bash ~/oyla/incoming/$GITHUB_SHA.sh '$GITHUB_SHA' 'ghcr.io/${GITHUB_REPOSITORY,,}' '$GITHUB_ACTOR'"
+          [[ "$(ssh -n "${ssh_opts[@]}" "$target" 'cat ~/oyla/deployed-sha')" == "$GITHUB_SHA" ]]
+      - name: Remove runner SSH credentials
+        if: always()
+        run: rm -f ~/.ssh/id_ed25519 ~/.ssh/known_hosts
