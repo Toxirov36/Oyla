@@ -110,7 +110,7 @@ jobs:
               -f "apps/$service/Dockerfile" -t "$registry-$service:$GITHUB_SHA" .
             if [[ "$service" == api ]]; then
               docker run --rm --entrypoint node "$registry-$service:$GITHUB_SHA" -e \
-                "require.resolve('@nestjs/core'); require.resolve('@prisma/adapter-pg'); require('fs').accessSync('dist/src/main.js'); try { require.resolve('react'); process.exit(1); } catch(e) { if(e.code!=='MODULE_NOT_FOUND') throw e; }"
+                "require.resolve('@nestjs/core'); require.resolve('@prisma/adapter-pg'); require('./dist/generated/prisma/client'); require('fs').accessSync('dist/src/main.js'); for (const name of ['vitest','@playwright/test']) { try { require.resolve(name); throw Error('Development dependency in runtime: '+name); } catch(e) { if(e.code!=='MODULE_NOT_FOUND') throw e; } } const argon=require('argon2'); argon.hash('image-fixture').then(h=>argon.verify(h,'image-fixture')).then(valid=>{if(!valid)process.exit(1)}).catch(()=>process.exit(1));"
               docker run --rm -e DATABASE_URL=postgresql://verify:verify@localhost:5432/verify --entrypoint node "$registry-$service:$GITHUB_SHA" scripts/prisma.mjs --version
             fi
             docker push "$registry-$service:$GITHUB_SHA"
