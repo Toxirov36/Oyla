@@ -13,6 +13,7 @@ const Teacher = lazy(() => import('./pages/teacher'));
 const Admin = lazy(() => import('./pages/admin'));
 const Profile = lazy(() => import('./pages/profile'));
 const Friends = lazy(() => import('./pages/friends'));
+const StudentClass = lazy(() => import('./pages/student-class'));
 const Notifications = lazy(() => import('./pages/notifications'));
 const PasswordRecovery = lazy(() => import('./pages/password-recovery'));
 function Protected({ role }: { role?: Role }) {
@@ -53,6 +54,7 @@ export default function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route element={<Protected role="STUDENT" />}>
+              <Route path="/my-class" element={<StudentClass />} />
               <Route path="/friends" element={<Friends />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/subjects" element={<Subjects />} />

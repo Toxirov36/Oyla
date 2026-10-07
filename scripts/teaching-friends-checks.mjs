@@ -210,6 +210,167 @@ export async function verifyTeachingAndFriends({
     'teacher calculations match dashboard, exclude hidden/old content, classify weak topics and preserve historical submissions',
   );
 
+  const peerClass = await db.class.create({
+    data: {
+      name: `Other class ${suffix}`,
+      grade: 6,
+      teacherId: teacher.id,
+      students: { create: [{ studentId: b.user.id }, { studentId: c.user.id }] },
+    },
+  });
+  const secondClass = await db.class.create({
+    data: {
+      name: `Second class ${suffix}`,
+      grade: 6,
+      teacherId: teacher.id,
+      students: { create: [{ studentId: a.user.id }, { studentId: c.user.id }] },
+    },
+  });
+  createdClasses.push(peerClass.id, secondClass.id);
+  await db.assignment.createMany({
+    data: [
+      {
+        classId: group.id,
+        lessonId: weak.id,
+        title: 'Overdue class task',
+        deadline: new Date(Date.now() - 86400000),
+      },
+      {
+        classId: group.id,
+        lessonId: excluded[0].id,
+        title: 'Wrong grade task',
+        deadline: new Date(Date.now() + 86400000),
+      },
+      {
+        classId: group.id,
+        lessonId: excluded[3].id,
+        title: 'Archived task',
+        deadline: new Date(Date.now() + 86400000),
+      },
+      {
+        classId: peerClass.id,
+        lessonId: weak.id,
+        title: 'Other class task',
+        deadline: new Date(Date.now() + 86400000),
+      },
+    ],
+  });
+  const peerAttempt = await db.attempt.create({
+    data: {
+      userId: b.user.id,
+      lessonId: weak.id,
+      questionIds: [],
+      status: 'COMPLETED',
+      score: 99,
+      completedAt: new Date(),
+    },
+  });
+  await db.assignmentSubmission.create({
+    data: {
+      assignmentId: assignment.id,
+      userId: b.user.id,
+      attemptId: peerAttempt.id,
+      score: 99,
+      late: false,
+    },
+  });
+  await new Client().request('/students/me/classes', { expected: 401 });
+  await staff.request('/students/me/classes', { expected: 403 });
+  const ownClasses = await a.client.request('/students/me/classes');
+  assert.deepEqual(new Set(ownClasses.map((x) => x.id)), new Set([group.id, secondClass.id]));
+  await a.client.request(`/students/me/classes/${peerClass.id}`, { expected: 404 });
+  await outside.client.request(`/students/me/classes/${group.id}`, { expected: 404 });
+  assert.equal((await outside.client.request('/users/me/profile')).student.classes.length, 0);
+  await a.client.request('/students/me/classes/not-a-uuid', { expected: 400 });
+  const studentClass = await a.client.request(`/students/me/classes/${group.id}`);
+  assert.equal(studentClass.studentCount, 3);
+  assert.deepEqual(
+    new Set(studentClass.members.map((x) => x.id)),
+    new Set([a.user.id, b.user.id, c.user.id]),
+  );
+  assert.deepEqual(Object.keys(studentClass.teacher), ['name']);
+  for (const member of studentClass.members)
+    assert.deepEqual(Object.keys(member).sort(), ['friendship', 'id', 'isMe', 'name']);
+  const serialized = JSON.stringify(studentClass);
+  assert.ok(!serialized.includes(b.user.email));
+  assert.ok(!serialized.includes('passwordHash'));
+  assert.ok(!serialized.includes('inviteCode'));
+  assert.equal(studentClass.assignments.length, 2);
+  const ownTask = studentClass.assignments.find((x) => x.id === assignment.id);
+  assert.equal(ownTask.submissions.length, 1);
+  assert.equal(ownTask.submissions[0].score, 70);
+  assert.equal(
+    (await a.client.request(`/students/me/classes/${secondClass.id}`)).assignments.length,
+    0,
+  );
+  await a.client.request(`/leaderboards?scope=class&classId=${peerClass.id}`, { expected: 404 });
+  assert.ok(
+    (await a.client.request(`/leaderboards?scope=class&classId=${group.id}`)).every((x) =>
+      [a.user.id, b.user.id, c.user.id].includes(x.userId),
+    ),
+  );
+  await a.client.request('/friends/classmates', {
+    method: 'POST',
+    expected: 400,
+    body: { classId: group.id, userId: c.user.id, status: 'ACCEPTED' },
+  });
+  for (const [classId, userId] of [
+    [peerClass.id, c.user.id],
+    [group.id, outside.user.id],
+    [group.id, inactive.user.id],
+  ])
+    await a.client.request('/friends/classmates', {
+      method: 'POST',
+      expected: 404,
+      body: { classId, userId },
+    });
+  await a.client.request('/friends/classmates', {
+    method: 'POST',
+    expected: 400,
+    body: { classId: group.id, userId: a.user.id },
+  });
+  const classRequest = await a.client.request('/friends/classmates', {
+    method: 'POST',
+    expected: 201,
+    body: { classId: group.id, userId: c.user.id },
+  });
+  const duplicate = await a.client.request('/friends/classmates', {
+    method: 'POST',
+    expected: 201,
+    body: { classId: secondClass.id, userId: c.user.id },
+  });
+  assert.equal(duplicate.id, classRequest.id);
+  assert.equal(
+    (await a.client.request(`/students/me/classes/${group.id}`)).members.find(
+      (x) => x.id === c.user.id,
+    ).friendship.state,
+    'OUTGOING',
+  );
+  assert.equal(
+    (await c.client.request(`/students/me/classes/${group.id}`)).members.find(
+      (x) => x.id === a.user.id,
+    ).friendship.state,
+    'INCOMING',
+  );
+  assert.equal(await db.notification.count({ where: { userId: c.user.id, type: 'FRIEND' } }), 1);
+  await c.client.request(`/friends/requests/${classRequest.id}/accept`, {
+    method: 'PATCH',
+    body: {},
+  });
+  assert.equal(
+    (await a.client.request(`/students/me/classes/${secondClass.id}`)).members.find(
+      (x) => x.id === c.user.id,
+    ).friendship.state,
+    'FRIENDS',
+  );
+  await a.client.request(`/friends/${classRequest.id}`, { method: 'DELETE' });
+  await db.notification.deleteMany({
+    where: { userId: { in: [a.user.id, c.user.id] }, type: 'FRIEND' },
+  });
+  pass(
+    'student classes enforce membership and grade, expose a private roster and own submissions, and send consent-based classmate requests across multiple classes',
+  );
+
   const pa = await a.client.request('/friends'),
     pb = await b.client.request('/friends'),
     pc = await c.client.request('/friends'),
@@ -323,6 +484,14 @@ export async function verifyTeachingAndFriends({
     ],
   );
   assert.equal(ranks[1].isMe, true);
+  const classRanks = await a.client.request(`/leaderboards?scope=class&classId=${group.id}`);
+  assert.deepEqual(
+    classRanks.map((row) => [row.userId, row.xp]),
+    [
+      [b.user.id, 1040],
+      [a.user.id, 10],
+    ],
+  );
   const privateView = await a.client.request('/friends');
   assert.equal(privateView.friends.length, 2);
   assert.ok(!JSON.stringify(privateView).includes(b.user.email));

@@ -27,6 +27,7 @@ const studentNav = [
   { to: '/subjects', label: 'Mening fanlarim', icon: BookOpen },
   { to: '/challenge', label: 'Kunlik challenge', icon: Zap },
   { to: '/progress', label: 'Mening progressim', icon: ChartNoAxesCombined },
+  { to: '/my-class', label: 'Mening sinfim', icon: GraduationCap },
   { to: '/leaderboard', label: 'Reyting', icon: Trophy },
   { to: '/friends', label: 'Do‘stlarim', icon: Users },
   { to: '/badges', label: 'Nishonlar', icon: Award },

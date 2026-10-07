@@ -9,13 +9,34 @@ import {
   PasswordResetRequestDto,
 } from '../src/auth/password.dto';
 import { UpdateUserDto } from '../src/admin/admin.dto';
-import { FriendRequestDto, AcceptFriendDto } from '../src/friends/friends.dto';
+import { FriendRequestDto, AcceptFriendDto, ClassmateRequestDto } from '../src/friends/friends.dto';
 import {
   NotificationQueryDto,
   ReadNotificationDto,
   ReadAllNotificationsDto,
 } from '../src/notifications/notifications.dto';
 const pipe = createValidationPipe();
+test('classmate requests require two UUIDs and reject authority or consent fields', async () => {
+  const body = {
+    classId: 'a99b071b-b367-45ac-8033-63c2c1632576',
+    userId: '319ac10c-cb63-439d-888a-563a7e780346',
+  };
+  assert.deepEqual(
+    await pipe.transform(body, { type: 'body', metatype: ClassmateRequestDto }),
+    Object.assign(new ClassmateRequestDto(), body),
+  );
+  for (const invalid of [
+    { ...body, classId: null },
+    { ...body, userId: 'someone' },
+    { ...body, status: 'ACCEPTED' },
+    { ...body, role: 'ADMIN' },
+    { userId: body.userId },
+  ])
+    await assert.rejects(
+      pipe.transform(invalid, { type: 'body', metatype: ClassmateRequestDto }),
+      BadRequestException,
+    );
+});
 test('friendship DTOs accept only private invite codes and explicit recipient acceptance', async () => {
   const valid = await pipe.transform(
     { code: '  AbCd0123456789_-  ' },

@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Patch } from '@nestjs/commo
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Actor, CurrentUser, Roles } from '../common/security';
 import { IdDto } from '../common/dto';
-import { AcceptFriendDto, FriendRequestDto } from './friends.dto';
+import { AcceptFriendDto, ClassmateRequestDto, FriendRequestDto } from './friends.dto';
 import { FriendsService } from './friends.service';
 @ApiTags('Friends')
 @ApiBearerAuth()
@@ -15,6 +15,9 @@ export class FriendsController {
   }
   @Post('requests') request(@CurrentUser() actor: Actor, @Body() dto: FriendRequestDto) {
     return this.friends.request(actor, dto.code);
+  }
+  @Post('classmates') classmate(@CurrentUser() actor: Actor, @Body() dto: ClassmateRequestDto) {
+    return this.friends.requestClassmate(actor, dto.classId, dto.userId);
   }
   @Patch('requests/:id/accept') accept(
     @CurrentUser() actor: Actor,

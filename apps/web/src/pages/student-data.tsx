@@ -1,24 +1,12 @@
-import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useSearchParams } from 'react-router-dom';
-import {
-  Award,
-  BookOpen,
-  CheckCircle2,
-  Clock3,
-  Flame,
-  LockKeyhole,
-  Target,
-  Trophy,
-  Zap,
-} from 'lucide-react';
+import { Award, BookOpen, Flame, LockKeyhole, Target, Trophy, Zap } from 'lucide-react';
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { api } from '../lib/api';
 import type { Assignment, Badge, Dashboard, Ranking } from '../lib/types';
 import {
   Button,
   Card,
-  EmptyState,
   ErrorState,
   Loading,
   PageHeader,
@@ -27,16 +15,23 @@ import {
   dateLabel,
 } from '../components/ui';
 import { LeaderboardPreview, subjectStyle } from './dashboard';
+import { StudentAssignments } from '../components/student-assignments';
 
 export default function StudentDataPage({
   mode,
 }: {
   mode: 'progress' | 'badges' | 'leaderboard' | 'assignments';
 }) {
-  const [params] = useSearchParams();
-  const [scope, setScope] = useState<'weekly' | 'class' | 'friends'>(
-    params.get('scope') === 'friends' ? 'friends' : 'weekly',
-  );
+  const [params, setParams] = useSearchParams();
+  const scope =
+    params.get('scope') === 'friends'
+      ? 'friends'
+      : params.get('scope') === 'class'
+        ? 'class'
+        : 'weekly';
+  const classId = scope === 'class' ? params.get('classId') : null;
+  const setScope = (next: 'weekly' | 'class' | 'friends') =>
+    setParams(next === 'class' && classId ? { scope: next, classId } : { scope: next });
   const progress = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => api<Dashboard>('/students/me'),
@@ -48,8 +43,11 @@ export default function StudentDataPage({
     enabled: mode === 'badges',
   });
   const ranking = useQuery({
-    queryKey: ['ranking', scope],
-    queryFn: () => api<Ranking[]>(`/leaderboards?scope=${scope}`),
+    queryKey: ['ranking', scope, classId],
+    queryFn: () =>
+      api<Ranking[]>(
+        `/leaderboards?scope=${scope}${classId ? `&classId=${encodeURIComponent(classId)}` : ''}`,
+      ),
     enabled: mode === 'leaderboard',
   });
   const assignments = useQuery({
@@ -226,7 +224,9 @@ export default function StudentDataPage({
           <LeaderboardPreview rows={ranking.data || []} />
         </Card>
         <p className="formula-note">
-          Haftalik reyting dushanbadan boshlanadi (Toshkent vaqti). Avvalgi XP tarixi saqlanadi.
+          {scope === 'class'
+            ? 'Sinf reytingi shu sinfning faol o‘quvchilari barcha davrda to‘plagan XP asosida hisoblanadi.'
+            : 'Haftalik reyting dushanbadan boshlanadi (Toshkent vaqti). Avvalgi XP tarixi saqlanadi.'}
         </p>
         {scope === 'friends' && (
           <p className="formula-note">
@@ -243,56 +243,7 @@ export default function StudentDataPage({
         title="Mening topshiriqlarim"
         description="Darslarni yakunlang, bilimni mustahkamlang va natijangizni ko‘ring."
       />
-      {assignments.data?.length ? (
-        <div className="assignment-grid">
-          {assignments.data.map((a) => (
-            <Card key={a.id} className="assignment-card">
-              <div className="card-heading">
-                <span className={`square-icon ${a.submissions.length ? 'mint' : 'blue'}`}>
-                  {a.submissions.length ? <CheckCircle2 size={24} /> : <BookOpen size={24} />}
-                </span>
-                <span className={`pill ${a.submissions.length ? 'status-completed' : ''}`}>
-                  {a.submissions.length
-                    ? 'Bajarilgan'
-                    : new Date(a.deadline) < new Date()
-                      ? 'Muddat o‘tgan'
-                      : 'Bajarish kerak'}
-                </span>
-              </div>
-              <h3>{a.title}</h3>
-              <p>{a.lesson.title}</p>
-              <div className="assignment-meta">
-                <Clock3 size={16} />
-                {dateLabel(a.deadline)} gacha · {a.class.name}
-              </div>
-              {a.submissions[0] && (
-                <p className="submission-score">
-                  Natija: <strong>{a.submissions[0].score}%</strong>
-                  {a.submissions[0].late ? ' · kech topshirilgan' : ''}
-                </p>
-              )}
-              <Link
-                to={`/lessons/${a.lesson.id}`}
-                className={`btn ${a.submissions.length ? 'btn-secondary' : 'btn-primary'}`}
-              >
-                {a.submissions.length ? 'Darsni takrorlash' : 'Topshiriqni boshlash'}
-              </Link>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <Card>
-          <EmptyState
-            title="Hozircha topshiriqlar yo‘q"
-            description="O‘qituvchingiz topshiriq berganda shu yerda ko‘rinadi."
-            action={
-              <Link to="/subjects" className="btn btn-primary">
-                Mustaqil o‘rganish
-              </Link>
-            }
-          />
-        </Card>
-      )}
+      <StudentAssignments assignments={assignments.data || []} />
     </>
   );
 }

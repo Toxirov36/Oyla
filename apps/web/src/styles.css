@@ -3221,6 +3221,38 @@ summary {
 .friend-code {
   margin-top: 10px;
 }
+.student-class-picker {
+  max-width: 350px;
+  margin-bottom: 20px;
+}
+.student-class-summary {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.student-class-info {
+  flex: 1;
+  min-width: 160px;
+  overflow-wrap: anywhere;
+}
+.student-class-info h2 {
+  margin: 8px 0;
+}
+.student-class-info p {
+  color: var(--muted);
+  margin-top: 5px;
+}
+.classmate-me {
+  color: var(--primary);
+}
+.classmates-manage {
+  display: inline-flex;
+  margin-top: 20px;
+}
+.student-class-summary + .section-title {
+  margin-top: 30px;
+}
 .friend-code input {
   min-width: 0;
   flex: 1;

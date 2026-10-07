@@ -40,6 +40,7 @@ export default function FriendsPage() {
   const refresh = async () => {
     await Promise.all([
       cache.invalidateQueries({ queryKey: ['friends', user!.id] }),
+      cache.invalidateQueries({ queryKey: ['student-class', user!.id] }),
       cache.invalidateQueries({ queryKey: ['ranking'] }),
       cache.invalidateQueries({ queryKey: ['notifications', user!.id] }),
     ]);

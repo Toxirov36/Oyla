@@ -32,7 +32,8 @@ export class ProfileService {
         }),
         this.db.userBadge.count({ where: { userId: user.id } }),
         this.db.classStudent.findMany({
-          where: { studentId: user.id },
+          where: { studentId: user.id, class: { grade: user.student!.grade } },
+          orderBy: [{ class: { name: 'asc' } }, { classId: 'asc' }],
           select: {
             class: {
               select: {

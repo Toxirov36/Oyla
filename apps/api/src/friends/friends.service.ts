@@ -91,9 +91,12 @@ export class FriendsService {
       return work(tx);
     });
   }
-  async request(actor: Actor, code: string) {
+  private async requestLimit(actor: Actor) {
     if ((await this.redis.incrementWindow(`friend-requests:${actor.id}`, 3600)) > 20)
       throw new HttpException('Bir soatda 20 ta so‘rovdan ortiq yuborib bo‘lmaydi.', 429);
+  }
+  async request(actor: Actor, code: string) {
+    await this.requestLimit(actor);
     const target = await this.db.friendProfile.findUnique({
       where: { inviteCode: code },
       select: { userId: true },
@@ -107,62 +110,87 @@ export class FriendsService {
         !(await tx.friendProfile.findFirst({ where: { userId: target.userId, inviteCode: code } }))
       )
         throw new NotFoundException('Taklif kodi topilmadi.');
-      const [userLowId, userHighId] = [actor.id, target.userId].sort();
-      const existing = await tx.friendship.findUnique({
-        where: { userLowId_userHighId: { userLowId, userHighId } },
+      return this.createRequest(tx, actor, target.userId);
+    });
+  }
+  async requestClassmate(actor: Actor, classId: string, userId: string) {
+    await this.requestLimit(actor);
+    if (userId === actor.id) throw new BadRequestException('O‘zingizga so‘rov yubora olmaysiz.');
+    return this.participants(actor.id, userId, async (tx) => {
+      const group = await tx.class.findFirst({
+        where: { id: classId, students: { some: { studentId: actor.id } } },
+        select: { grade: true },
       });
-      if (existing)
-        return {
-          id: existing.id,
-          state:
-            existing.status === 'ACCEPTED'
-              ? 'ACCEPTED'
-              : existing.requestedById === actor.id
-                ? 'PENDING'
-                : 'INCOMING',
-        };
       if (
-        (await tx.friendship.count({ where: { requestedById: actor.id, status: 'PENDING' } })) >= 20
+        !group ||
+        (await tx.classStudent.count({
+          where: {
+            classId,
+            studentId: { in: [actor.id, userId] },
+            student: { student: { grade: group.grade } },
+          },
+        })) !== 2
       )
-        throw new BadRequestException(
-          'Avval yuborilgan so‘rovlar javobini kuting yoki ularni bekor qiling.',
-        );
+        throw new NotFoundException('Sinfdosh topilmadi.');
+      return this.createRequest(tx, actor, userId);
+    });
+  }
+  private async createRequest(tx: Prisma.TransactionClient, actor: Actor, targetId: string) {
+    const [userLowId, userHighId] = [actor.id, targetId].sort();
+    const existing = await tx.friendship.findUnique({
+      where: { userLowId_userHighId: { userLowId, userHighId } },
+    });
+    if (existing)
+      return {
+        id: existing.id,
+        state:
+          existing.status === 'ACCEPTED'
+            ? 'ACCEPTED'
+            : existing.requestedById === actor.id
+              ? 'PENDING'
+              : 'INCOMING',
+      };
+    if (
+      (await tx.friendship.count({ where: { requestedById: actor.id, status: 'PENDING' } })) >= 20
+    )
+      throw new BadRequestException(
+        'Avval yuborilgan so‘rovlar javobini kuting yoki ularni bekor qiling.',
+      );
+    if (
+      (await tx.friendship.count({
+        where: {
+          status: 'PENDING',
+          OR: [{ userLowId: targetId }, { userHighId: targetId }],
+        },
+      })) >= 100
+    )
+      throw new BadRequestException(
+        'Bu o‘quvchining so‘rovlar ro‘yxati to‘lgan. Keyinroq urinib ko‘ring.',
+      );
+    for (const id of [actor.id, targetId])
       if (
         (await tx.friendship.count({
-          where: {
-            status: 'PENDING',
-            OR: [{ userLowId: target.userId }, { userHighId: target.userId }],
-          },
-        })) >= 100
+          where: { status: 'ACCEPTED', OR: [{ userLowId: id }, { userHighId: id }] },
+        })) >= 200
       )
-        throw new BadRequestException(
-          'Bu o‘quvchining so‘rovlar ro‘yxati to‘lgan. Keyinroq urinib ko‘ring.',
-        );
-      for (const id of [actor.id, target.userId])
-        if (
-          (await tx.friendship.count({
-            where: { status: 'ACCEPTED', OR: [{ userLowId: id }, { userHighId: id }] },
-          })) >= 200
-        )
-          throw new BadRequestException('Do‘stlar soni chegarasiga yetilgan.');
-      const row = await tx.friendship.create({
-        data: { userLowId, userHighId, requestedById: actor.id },
-      });
-      const user = await tx.user.findUniqueOrThrow({
-        where: { id: actor.id },
-        select: { name: true },
-      });
-      await tx.notification.create({
-        data: {
-          userId: target.userId,
-          type: 'FRIEND',
-          title: 'Yangi do‘stlik so‘rovi',
-          body: `${user.name} sizni do‘stlikka taklif qildi.`,
-          link: '/friends',
-        },
-      });
-      return { id: row.id, state: 'PENDING' };
+        throw new BadRequestException('Do‘stlar soni chegarasiga yetilgan.');
+    const row = await tx.friendship.create({
+      data: { userLowId, userHighId, requestedById: actor.id },
     });
+    const user = await tx.user.findUniqueOrThrow({
+      where: { id: actor.id },
+      select: { name: true },
+    });
+    await tx.notification.create({
+      data: {
+        userId: targetId,
+        type: 'FRIEND',
+        title: 'Yangi do‘stlik so‘rovi',
+        body: `${user.name} sizni do‘stlikka taklif qildi.`,
+        link: '/friends',
+      },
+    });
+    return { id: row.id, state: 'PENDING' };
   }
   private async own(actor: Actor, id: string) {
     const row = await this.db.friendship.findFirst({

@@ -204,6 +204,23 @@ export interface Ranking {
   xp: number;
   isMe: boolean;
 }
+export interface StudentClassSummary {
+  id: string;
+  name: string;
+  grade: number;
+  teacher: { name: string };
+  studentCount: number;
+}
+export interface Classmate {
+  id: string;
+  name: string;
+  isMe: boolean;
+  friendship: { id: string; state: 'FRIENDS' | 'OUTGOING' | 'INCOMING' } | null;
+}
+export interface StudentClass extends StudentClassSummary {
+  members: Classmate[];
+  assignments: Assignment[];
+}
 export interface Daily {
   day: string;
   questionCount: number;

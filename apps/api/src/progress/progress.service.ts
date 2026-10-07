@@ -155,10 +155,14 @@ export class ProgressService {
       activity,
     };
   }
-  async assignments(actor: Actor) {
+  async assignments(actor: Actor, classId?: string) {
     return this.db.assignment.findMany({
       where: {
-        class: { students: { some: { studentId: actor.id } } },
+        class: {
+          ...(classId ? { id: classId } : {}),
+          grade: actor.grade ?? -1,
+          students: { some: { studentId: actor.id } },
+        },
         lesson: visibleLesson(actor.grade),
       },
       include: {
@@ -213,18 +217,25 @@ export class ProgressService {
         where: {
           ...(classId ? { id: classId } : {}),
           ...(actor.role === 'STUDENT'
-            ? { students: { some: { studentId: actor.id } } }
+            ? { grade: actor.grade ?? -1, students: { some: { studentId: actor.id } } }
             : actor.role === 'TEACHER'
               ? { teacherId: actor.id }
               : {}),
         },
-        include: { students: { select: { studentId: true } } },
+        orderBy: [{ name: 'asc' }, { id: 'asc' }],
       });
       if (!group) {
         if (classId) throw new NotFoundException('Sinf topilmadi.');
         return [];
       }
-      memberIds = group.students.map((s) => s.studentId);
+      const members = await this.db.classStudent.findMany({
+        where: {
+          classId: group.id,
+          student: { active: true, role: 'STUDENT', student: { grade: group.grade } },
+        },
+        select: { studentId: true },
+      });
+      memberIds = members.map((s) => s.studentId);
     }
     const rows = await this.db.xpTransaction.groupBy({
       by: ['userId'],

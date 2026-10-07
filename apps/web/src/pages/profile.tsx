@@ -250,13 +250,17 @@ export default function ProfilePage() {
               {student ? (
                 student.classes.length ? (
                   student.classes.map((group) => (
-                    <div className="profile-class" key={group.id}>
+                    <Link
+                      className="profile-class"
+                      key={group.id}
+                      to={`/my-class?classId=${group.id}`}
+                    >
                       <GraduationCap size={22} />
                       <div>
                         <strong>{group.name}</strong>
                         <small>{group.teacher.name}</small>
                       </div>
-                    </div>
+                    </Link>
                   ))
                 ) : (
                   <EmptyState
