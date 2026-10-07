@@ -2,6 +2,7 @@ import type { Prisma, PrismaClient } from '../../generated/prisma/client';
 import { curriculum } from './index';
 import { legacyCurriculum } from './legacy';
 import { lessonId, seedId, type Grade, type SeedLesson } from './types';
+import { applyReviewedCorrections } from './corrections';
 
 type StoredLesson = Prisma.LessonGetPayload<{
   include: { questions: { include: { options: true } } };
@@ -189,5 +190,6 @@ export async function syncCurriculum(db: PrismaClient) {
         if (status === 'archived') archivedLegacy++;
         if (status === 'preserved') preservedLegacy++;
       }
-  return { lessons, questions, archivedLegacy, preservedLegacy };
+  const review = await applyReviewedCorrections(db);
+  return { lessons, questions, archivedLegacy, preservedLegacy, review };
 }

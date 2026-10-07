@@ -4,6 +4,12 @@ OYLA is an Uzbek learning platform for grades 5–7. Students study lessons, ans
 
 All roles have a dedicated `/profile` page with account details and name editing. Students see server-calculated learning metrics and their class; teachers see their classes and student/assignment counts. Grade and email remain under administrator control. The grade-specific catalog supplies 54 original lessons and 324 questions.
 
+Teachers can open **My classes → class → topic analysis**, filter by subject or weak topics, and assign a recommended practice lesson. Calculations use only the current grade's published content and active student roster. An unstarted topic is distinct from a low score; historical assignment submissions remain visible outside the current completion count.
+
+Students can open **Do‘stlarim** (`/friends`), share a private invite code, send a request, accept/reject incoming requests, cancel outgoing requests, or end a friendship. **Leaderboard → Do‘stlar** shows the current student and accepted active friends, including zero-XP users, ordered by this week's server-recorded XP from Monday 00:00 in Tashkent. Moving a student to staff removes friendship links while preserving learning history.
+
+The [content review](docs/CONTENT_REVIEW.md) records the 7 October 2026 review, 13 precise corrections, independent answer checks, and safe database application rules. Run `npm run db:seed` after migrations to install the catalog and apply only corrections that still match their original fingerprints.
+
 ## Stack and layout
 
 - `apps/api`: NestJS 12, TypeScript strict mode, **class-validator + class-transformer DTOs**, PostgreSQL, Prisma ORM 7.10 with `@prisma/adapter-pg`, Redis, Argon2id, JWT, rotating HttpOnly refresh cookies, OpenAPI.

@@ -305,7 +305,7 @@ export const informatics: GradeCurriculum = {
           'Matn mazmuni yoki yozilishi o‘zgaradi.',
         ),
         txt(
-          'Matnni o‘zgartirishdan oldin kerakli qismini nima qilish kerak? Bir so‘z yozing.',
+          'Mavjud matnning kerakli qismini qalin shriftga o‘tkazishdan oldin uni nima qilish kerak? Bir so‘z yozing.',
           'tanlash',
           'Amal tanlangan matnga qo‘llanadi.',
         ),
@@ -627,7 +627,7 @@ export const informatics: GradeCurriculum = {
         ),
         txt(
           'Agar—aks holda tuzilmasi algoritmning qaysi turiga tegishli? Bir so‘z yozing.',
-          'shartli',
+          'shartli|tarmoqlanuvchi',
           'Bu shartli algoritm.',
         ),
         num(

@@ -28,6 +28,7 @@ const studentNav = [
   { to: '/challenge', label: 'Kunlik challenge', icon: Zap },
   { to: '/progress', label: 'Mening progressim', icon: ChartNoAxesCombined },
   { to: '/leaderboard', label: 'Reyting', icon: Trophy },
+  { to: '/friends', label: 'Do‘stlarim', icon: Users },
   { to: '/badges', label: 'Nishonlar', icon: Award },
   { to: '/assignments', label: 'Topshiriqlar', icon: ClipboardList },
   { to: '/profile', label: 'Mening profilim', icon: UserRound },

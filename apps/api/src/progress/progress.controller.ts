@@ -5,8 +5,9 @@ import { Optional } from '../common/dto';
 import { Actor, CurrentUser, Roles } from '../common/security';
 import { ProgressService } from './progress.service';
 class LeaderboardQuery {
-  @ApiPropertyOptional({ enum: ['weekly', 'class'] }) @IsIn(['weekly', 'class']) scope:
-    'weekly' | 'class' = 'weekly';
+  @ApiPropertyOptional({ enum: ['weekly', 'class', 'friends'] })
+  @IsIn(['weekly', 'class', 'friends'])
+  scope: 'weekly' | 'class' | 'friends' = 'weekly';
   @ApiPropertyOptional({ format: 'uuid' }) @Optional() @IsUUID('4') classId?: string;
 }
 @ApiTags('Progress')

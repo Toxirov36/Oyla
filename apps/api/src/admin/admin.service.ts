@@ -158,9 +158,11 @@ export class AdminService {
         if ((await tx.user.count({ where: { role: 'ADMIN', active: true } })) <= 1)
           throw new BadRequestException('Oxirgi adminni o‘chira olmaysiz.');
       }
-      if (user.role === 'STUDENT' && role !== 'STUDENT')
+      if (user.role === 'STUDENT' && role !== 'STUDENT') {
         await tx.classStudent.deleteMany({ where: { studentId: id } });
-      else if (role === 'STUDENT' && grade)
+        await tx.friendship.deleteMany({ where: { OR: [{ userLowId: id }, { userHighId: id }] } });
+        await tx.friendProfile.deleteMany({ where: { userId: id } });
+      } else if (role === 'STUDENT' && grade)
         await tx.classStudent.deleteMany({
           where: { studentId: id, class: { grade: { not: grade } } },
         });

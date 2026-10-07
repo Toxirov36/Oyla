@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   Award,
   BookOpen,
@@ -33,7 +33,10 @@ export default function StudentDataPage({
 }: {
   mode: 'progress' | 'badges' | 'leaderboard' | 'assignments';
 }) {
-  const [scope, setScope] = useState<'weekly' | 'class'>('weekly');
+  const [params] = useSearchParams();
+  const [scope, setScope] = useState<'weekly' | 'class' | 'friends'>(
+    params.get('scope') === 'friends' ? 'friends' : 'weekly',
+  );
   const progress = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => api<Dashboard>('/students/me'),
@@ -208,6 +211,12 @@ export default function StudentDataPage({
           >
             Mening sinfim
           </Button>
+          <Button
+            variant={scope === 'friends' ? 'primary' : 'ghost'}
+            onClick={() => setScope('friends')}
+          >
+            Do‘stlar
+          </Button>
         </div>
         <Card className="full-leaderboard">
           <div className="leaderboard-heading">
@@ -219,6 +228,12 @@ export default function StudentDataPage({
         <p className="formula-note">
           Haftalik reyting dushanbadan boshlanadi (Toshkent vaqti). Avvalgi XP tarixi saqlanadi.
         </p>
+        {scope === 'friends' && (
+          <p className="formula-note">
+            Reytingga siz va faqat qabul qilingan faol do‘stlaringiz kiradi.{' '}
+            <Link to="/friends">Do‘stlarimni boshqarish</Link>
+          </p>
+        )}
       </>
     );
   return (

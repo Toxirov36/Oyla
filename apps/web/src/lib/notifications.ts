@@ -2,6 +2,7 @@ import type { NotificationType } from './types';
 import { formatDate, tashkentDate } from './locale';
 
 export const notificationTypes: { value: NotificationType; label: string }[] = [
+  { value: 'FRIEND', label: 'Do‘stlar' },
   { value: 'ASSIGNMENT', label: 'Topshiriqlar' },
   { value: 'BADGE', label: 'Nishonlar' },
   { value: 'ACCOUNT', label: 'Hisob' },

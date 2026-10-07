@@ -48,6 +48,11 @@ enum NotificationType {
   SECURITY
   SYSTEM
   WARNING
+  FRIEND
+}
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
 }
 model User {
   id String @id @default(uuid()) @db.Uuid
@@ -74,6 +79,10 @@ model User {
   notifications Notification[]
   passwordResetTokens PasswordResetToken[] @relation("PasswordResetOwner")
   issuedPasswordResetTokens PasswordResetToken[] @relation("PasswordResetIssuer")
+  friendProfile FriendProfile?
+  friendshipsLow Friendship[] @relation("FriendLow")
+  friendshipsHigh Friendship[] @relation("FriendHigh")
+  requestedFriendships Friendship[] @relation("FriendRequester")
   @@index([role, active])
 }
 model StudentProfile {
@@ -372,4 +381,27 @@ model PasswordResetToken {
   user User @relation("PasswordResetOwner", fields: [userId], references: [id], onDelete: Cascade)
   createdBy User? @relation("PasswordResetIssuer", fields: [createdById], references: [id], onDelete: SetNull)
   @@index([userId, consumedAt])
+}
+model FriendProfile {
+  userId String @id @db.Uuid
+  inviteCode String @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+model Friendship {
+  id String @id @default(uuid()) @db.Uuid
+  userLowId String @db.Uuid
+  userHighId String @db.Uuid
+  requestedById String @db.Uuid
+  status FriendshipStatus @default(PENDING)
+  acceptedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userLow User @relation("FriendLow", fields: [userLowId], references: [id], onDelete: Cascade)
+  userHigh User @relation("FriendHigh", fields: [userHighId], references: [id], onDelete: Cascade)
+  requestedBy User @relation("FriendRequester", fields: [requestedById], references: [id], onDelete: Cascade)
+  @@unique([userLowId, userHighId])
+  @@index([userHighId, status])
+  @@index([requestedById, status])
 }

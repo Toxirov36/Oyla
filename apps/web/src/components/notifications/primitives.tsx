@@ -13,6 +13,7 @@ import {
   MoreHorizontal,
   ShieldCheck,
   Trash2,
+  Users,
   TriangleAlert,
   X,
 } from 'lucide-react';
@@ -25,6 +26,7 @@ import {
 } from '../../lib/notifications';
 
 const icons = {
+  FRIEND: Users,
   ASSIGNMENT: ClipboardList,
   BADGE: Award,
   ACCOUNT: ShieldCheck,

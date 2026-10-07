@@ -9,12 +9,38 @@ import {
   PasswordResetRequestDto,
 } from '../src/auth/password.dto';
 import { UpdateUserDto } from '../src/admin/admin.dto';
+import { FriendRequestDto, AcceptFriendDto } from '../src/friends/friends.dto';
 import {
   NotificationQueryDto,
   ReadNotificationDto,
   ReadAllNotificationsDto,
 } from '../src/notifications/notifications.dto';
 const pipe = createValidationPipe();
+test('friendship DTOs accept only private invite codes and explicit recipient acceptance', async () => {
+  const valid = await pipe.transform(
+    { code: '  AbCd0123456789_-  ' },
+    { type: 'body', metatype: FriendRequestDto },
+  );
+  assert.equal(valid.code, 'AbCd0123456789_-');
+  for (const body of [
+    { code: null },
+    { code: 'short' },
+    { code: 'AbCd0123456789_-', status: 'ACCEPTED' },
+  ])
+    await assert.rejects(
+      pipe.transform(body, { type: 'body', metatype: FriendRequestDto }),
+      BadRequestException,
+    );
+  for (const body of [{ accept: false }, { accept: 'true' }, { requestedById: 'other' }])
+    await assert.rejects(
+      pipe.transform(body, { type: 'body', metatype: AcceptFriendDto }),
+      BadRequestException,
+    );
+  assert.equal(
+    (await pipe.transform({}, { type: 'body', metatype: AcceptFriendDto })).accept,
+    true,
+  );
+});
 test('password operations reject weak passwords and account/token mass assignment', async () => {
   for (const body of [
     { currentPassword: 'previous-password', newPassword: 'short' },

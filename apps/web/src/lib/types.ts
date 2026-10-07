@@ -32,7 +32,7 @@ export interface Profile {
   } | null;
 }
 export type NotificationType =
-  'ASSIGNMENT' | 'BADGE' | 'ACCOUNT' | 'SECURITY' | 'SYSTEM' | 'WARNING';
+  'ASSIGNMENT' | 'BADGE' | 'ACCOUNT' | 'SECURITY' | 'SYSTEM' | 'WARNING' | 'FRIEND';
 export interface Notification {
   id: string;
   type: NotificationType;
@@ -134,6 +134,7 @@ export interface Feedback {
   counted?: boolean;
 }
 export interface Assignment {
+  completion?: { completed: number; total: number; late: number; historical: number };
   id: string;
   title: string;
   deadline: string;
@@ -212,6 +213,10 @@ export interface Daily {
   result: Result | null;
 }
 export interface StudentPerformance extends User {
+  totalLessons: number;
+  progressPercent: number;
+  needsHelp: boolean;
+  topics: StudentTopic[];
   mastery: number;
   completed: number;
   progress: {
@@ -221,6 +226,9 @@ export interface StudentPerformance extends User {
   }[];
 }
 export interface Classroom {
+  totalLessons: number;
+  topics: ClassTopic[];
+  studentsNeedingHelp: { id: string; name: string; mastery: number; topics: StudentTopic[] }[];
   id: string;
   name: string;
   grade: number;
@@ -247,6 +255,44 @@ export interface Analytics {
     user: { name: string };
     lesson: { title: string } | null;
   }[];
+}
+export interface StudentTopic {
+  id: string;
+  title: string;
+  subject: string;
+  totalLessons: number;
+  completed: number;
+  mastery: number | null;
+  progressPercent: number;
+  needsHelp: boolean;
+  suggestedLesson: { id: string; title: string };
+}
+export interface ClassTopic {
+  id: string;
+  title: string;
+  subject: string;
+  totalLessons: number;
+  completed: number;
+  mastery: number | null;
+  participants: number;
+  notStarted: number;
+  struggling: number;
+  progressPercent: number;
+  suggestedLesson: { id: string; title: string };
+}
+export interface FriendConnection {
+  id: string;
+  status: 'PENDING' | 'ACCEPTED';
+  requestedById: string;
+  createdAt: string;
+  acceptedAt: string | null;
+  user: { id: string; name: string; grade: number | null; active: boolean };
+}
+export interface FriendsData {
+  inviteCode: string;
+  friends: FriendConnection[];
+  incoming: FriendConnection[];
+  outgoing: FriendConnection[];
 }
 export interface Level {
   id: string;

@@ -14,8 +14,8 @@ The bit/byte lesson distinguishes decimal and binary prefixes: one byte is eight
 
 ## Safe catalog installation
 
-Run `npm run db:seed` against the local development database. New lessons use deterministic versioned IDs. Repeated seeds add missing items without overwriting administrator edits or answer keys.
+Run `npm run db:seed` against the local development database. New lessons use deterministic versioned IDs. Repeated seeds add missing items without overwriting administrator edits. The reviewed correction manifest can clarify unchanged original questions and add an accepted synonym; it never removes an accepted answer, rewrites scores/XP/history, or replaces administrator edits. Recent active attempts defer question corrections until the next seed. The seed reports corrected/current/preserved/active counts. See [the dated content review](CONTENT_REVIEW.md).
 
 An old starter lesson is archived only if it exactly matches the original seed and has no attempt, daily-question snapshot, progress, or assignment reference. Referenced or edited lessons remain available, preserving results, XP, and existing assignments. The same protections apply to every grade. Consequently, an upgraded development database may have additional preserved starter lessons beyond the 54 catalog lessons; a fresh database contains the 54 grade-specific lessons.
 
-Review and extend the material through the admin editor for a school-specific program. Source modules are under `apps/api/prisma/curriculum/`. Automated checks enforce lesson/question completeness, distinct grade sequences, answer-option integrity, representative independently calculated answers, and preservation rules. Browser tests verify grade visibility and the real answer → result → XP flow.
+Review and extend the material through the admin editor for a school-specific program. Source modules are under `apps/api/prisma/curriculum/`. Automated checks enforce lesson/question completeness, distinct grade sequences, answer-option integrity, independently calculated answers for every numerical question, and preservation rules. Browser tests verify grade visibility and the real answer → result → XP flow.

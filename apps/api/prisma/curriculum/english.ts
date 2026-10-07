@@ -234,7 +234,7 @@ export const english: GradeCurriculum = {
         tf('She reading now — to‘g‘ri gap.', false, 'She is reading now bo‘lishi kerak.'),
         txt('Write fe’lining -ing shaklini yozing.', 'writing', 'Oxirgi e tushadi: writing.'),
         mc(
-          'They are studying. Savol shaklini tanlang.',
+          'They are studying. Are bilan boshlanadigan savol shaklini tanlang.',
           ['Are they studying?', 'Do they studying?', 'Is they studying?', 'They are studying?'],
           'Are they studying?',
           'Are egadan oldinga chiqadi.',
@@ -260,7 +260,11 @@ export const english: GradeCurriculum = {
           'One apple, two apples deyish mumkin.',
         ),
         tf('How many water? — odatiy to‘g‘ri savol.', false, 'Water sanalmaydi: How much water?'),
-        txt('There are ___ apples. (tasdiq gap)', 'some', 'Tasdiq gaplarda odatda some.'),
+        txt(
+          'There are ___ apples. Tasdiq gap uchun some yoki any ni tanlang.',
+          'some',
+          'Tasdiq gaplarda odatda some.',
+        ),
         mc(
           'There isn’t ___ milk.',
           ['any', 'many', 'a', 'an'],
@@ -273,7 +277,7 @@ export const english: GradeCurriculum = {
           'How many sanaladigan ko‘plik ot bilan.',
         ),
         mc(
-          'Suv taklif qilayotgan gapni tanlang.',
+          'Water sanalmaydigan ot bo‘lgan, some bilan suv taklif qilayotgan gapni tanlang.',
           [
             'Would you like some water?',
             'Would you like many water?',
@@ -401,7 +405,11 @@ export const english: GradeCurriculum = {
       'Present Perfect ega + have/has + past participle shaklida tuziladi. I have visited Samarkand. She has finished her homework. Gap ko‘pincha o‘tgan ishning hozirgi natijasi yoki tajribasiga e’tibor beradi.\n\nI, you, we, they bilan have; he, she, it bilan has ishlatiladi. Past participle oddiy fe’llarda -ed, ayrim fe’llarda maxsus shakl: see → seen, go → gone, be → been. Tajriba haqida been to ishlatiladi: I have been to Bukhara.\n\nEver “hech qachon tajribangiz bo‘lganmi?” savollarida, never esa tajriba yo‘qligini bildiradi. Aniq tugallangan vaqt yesterday bilan odatda Past Simple ishlatiladi. Present Perfect da esa vaqtni aniq belgilash shart emas.',
       'Have you ever been to Samarkand? — Yes, I have.\nShe has already finished her homework.\nI saw the film yesterday. — Aniq o‘tgan vaqt, shuning uchun Past Simple.',
       [
-        txt('She ___ finished her homework.', 'has', 'She bilan has + finished.'),
+        txt(
+          'She ___ finished her homework. Present Perfect uchun have yoki has ni yozing.',
+          'has',
+          'She bilan has + finished.',
+        ),
         mc(
           'See fe’lining past participle shakli?',
           ['seen', 'saw', 'see', 'seeing'],
@@ -440,7 +448,7 @@ export const english: GradeCurriculum = {
       'Past Continuous va uzilgan harakat',
       'Voqealar davomida',
       'O‘tmishda davom etayotgan ishni was/were + -ing bilan ayting.',
-      'Past Continuous o‘tmishdagi ma’lum paytda davom etayotgan harakatni bildiradi. Tuzilishi: was/were + fe’l-ing. I was reading at eight last night. They were playing at five.\n\nI, he, she, it bilan was; you, we, they bilan were ishlatiladi. Davom etayotgan harakatni boshqa qisqa harakat bo‘lishi mumkin: I was reading when the phone rang. Reading davom etayotgan ish, rang esa shu paytda sodir bo‘lgan voqea.\n\nWhile ko‘pincha ikki davomiy ishni bog‘laydi: While I was reading, my sister was drawing. When va while ni tarjimasi bilangina emas, gapdagi harakatlar vazifasiga qarab tushuning.',
+      'Past Continuous o‘tmishdagi ma’lum paytda davom etayotgan harakatni bildiradi. Tuzilishi: was/were + fe’l-ing. I was reading at eight last night. They were playing at five.\n\nI, he, she, it bilan was; you, we, they bilan were ishlatiladi. Davom etayotgan harakatni boshqa qisqa harakat to‘xtatishi mumkin: I was reading when the phone rang. Reading davom etayotgan ish, rang esa shu paytda sodir bo‘lgan voqea.\n\nWhile ko‘pincha ikki davomiy ishni bog‘laydi: While I was reading, my sister was drawing. When va while ni tarjimasi bilangina emas, gapdagi harakatlar vazifasiga qarab tushuning.',
       'At seven, Madina was doing homework. Her brothers were playing.\nShe was writing when the phone rang.\nRang Past Simple, was writing Past Continuous.',
       [
         txt('I ___ reading at eight last night.', 'was', 'I bilan was.'),
@@ -462,7 +470,11 @@ export const english: GradeCurriculum = {
           'She was writing.',
           'Was + writing davomiy o‘tgan harakat.',
         ),
-        txt('While I was reading, she ___ drawing.', 'was', 'She bilan was drawing.'),
+        txt(
+          'While I was reading, she ___ drawing. Past Continuous uchun was yoki were ni yozing.',
+          'was',
+          'She bilan was drawing.',
+        ),
       ],
     ),
     lesson(
@@ -535,7 +547,7 @@ export const english: GradeCurriculum = {
           'Masalan, a book which I like.',
         ),
         txt(
-          'This is the library ___ we read.',
+          'This is the library ___ we read. Joyni bildiradigan who, which yoki where dan birini yozing.',
           'where|in which',
           'Joy uchun where; in which ham mos keladi.',
         ),

@@ -3,10 +3,14 @@ import { PrismaService } from '../common/prisma.service';
 import { Actor } from '../common/security';
 import { visibleLesson } from '../content/content.service';
 import { localDay, mean, weekStart } from '../learning/rules';
+import { FriendsService } from '../friends/friends.service';
 
 @Injectable()
 export class ProgressService {
-  constructor(private readonly db: PrismaService) {}
+  constructor(
+    private readonly db: PrismaService,
+    private readonly friends: FriendsService,
+  ) {}
   async dashboard(actor: Actor) {
     const [user, xp, levels, streak, progress, lessons, badges, assignments, daily] =
       await Promise.all([
@@ -178,7 +182,31 @@ export class ProgressService {
       unlockedAt: users[0]?.createdAt || null,
     }));
   }
-  async leaderboard(actor: Actor, scope: 'weekly' | 'class', classId?: string) {
+  async leaderboard(actor: Actor, scope: 'weekly' | 'class' | 'friends', classId?: string) {
+    if (scope === 'friends') {
+      const ids = await this.friends.acceptedIds(actor);
+      const [users, xp] = await Promise.all([
+        this.db.user.findMany({
+          where: { id: { in: ids }, role: 'STUDENT', active: true },
+          select: { id: true, name: true },
+        }),
+        this.db.xpTransaction.groupBy({
+          by: ['userId'],
+          where: { userId: { in: ids }, createdAt: { gte: weekStart() } },
+          _sum: { amount: true },
+        }),
+      ]);
+      const totals = new Map(xp.map((row) => [row.userId, row._sum.amount || 0]));
+      return users
+        .map((user) => ({
+          userId: user.id,
+          name: user.name,
+          xp: totals.get(user.id) || 0,
+          isMe: user.id === actor.id,
+        }))
+        .sort((a, b) => b.xp - a.xp || a.userId.localeCompare(b.userId))
+        .map((row, index) => ({ ...row, rank: index + 1 }));
+    }
     let memberIds: string[] | undefined;
     if (scope === 'class') {
       const group = await this.db.class.findFirst({

@@ -151,9 +151,13 @@ export const mathematics: GradeCurriculum = {
       'Geometriya asoslari',
       'To‘rtburchakning chegarasi va ichki maydonini alohida hisoblang.',
       'Perimetr — shaklning barcha tomonlari uzunliklari yig‘indisi. To‘g‘ri to‘rtburchakda qarama-qarshi tomonlar teng: P = 2 × (a + b). Yuz esa shakl ichki maydonini bildiradi: S = a × b.\n\nPerimetr cm yoki m da, yuz cm² yoki m² da o‘lchanadi. 8 m va 3 m tomonli xonaning yuzi 24 m², perimetri esa 22 m. Ikkala natija bir xil miqdor emas.\n\nKvadratning barcha tomonlari teng: P = 4a, S = a². Yuza va bitta tomon ma’lum bo‘lsa, ikkinchi tomonni bo‘lish orqali topamiz. Masalan, S = 48 m², b = 6 m bo‘lsa, a = 48 ÷ 6 = 8 m.',
-      'Xona 10 m × 4 m.\nPolning yuzi: 10 × 4 = 40 m².\nDevorlar bo‘ylab umumiy uzunlik: 2 × (10 + 4) = 28 m.\nPolni qoplash uchun yuz kerak, chegara bo‘ylab lenta uchun perimetr kerak.',
+      'Xona 10 m × 4 m.\nPolning yuzi: 10 × 4 = 40 m².\nDevorlar bo‘ylab umumiy uzunlik: 2 × (10 + 4) = 28 m.\nPolni qoplash uchun yuza kerak, chegara bo‘ylab lenta uchun perimetr kerak.',
       [
-        num('8 va 3 tomonli to‘rtburchakning yuzi?', 24, 'S = 8 × 3 = 24.'),
+        num(
+          'Tomonlari 8 m va 3 m bo‘lgan to‘g‘ri to‘rtburchakning yuzi necha m²?',
+          24,
+          'S = 8 × 3 = 24.',
+        ),
         tf(
           'To‘g‘ri to‘rtburchak perimetri 2 × (a + b) bilan topiladi.',
           true,
@@ -165,13 +169,21 @@ export const mathematics: GradeCurriculum = {
           '32',
           'P = 4 × 8 = 32.',
         ),
-        num('Yuzi 48, eni 6 bo‘lgan to‘rtburchak uzunligi?', 8, 'a = S ÷ b = 48 ÷ 6 = 8.'),
+        num(
+          'Yuzi 48 m², eni 6 m bo‘lgan to‘g‘ri to‘rtburchakning uzunligi necha metr?',
+          8,
+          'a = S ÷ b = 48 ÷ 6 = 8.',
+        ),
         num(
           '10 m × 4 m polni 1 m² lik qoplamalar bilan yopish uchun nechta qoplama kerak?',
           40,
           'Pol yuzi 40 m²; har biri 1 m² bo‘lsa, 40 ta kerak.',
         ),
-        num('Uzunligi 7, eni 5 bo‘lgan to‘rtburchak perimetri?', 24, 'P = 2 × (7 + 5) = 24.'),
+        num(
+          'Uzunligi 7 m, eni 5 m bo‘lgan to‘g‘ri to‘rtburchakning perimetri necha metr?',
+          24,
+          'P = 2 × (7 + 5) = 24.',
+        ),
       ],
     ),
   ],

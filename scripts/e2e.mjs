@@ -3,6 +3,7 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { config } from 'dotenv';
 import { createPrismaClient } from '../apps/api/prisma/client.ts';
 import { verifyAccountFeatures } from './account-checks.mjs';
+import { verifyTeachingAndFriends } from './teaching-friends-checks.mjs';
 config({ path: 'apps/api/.env', override: true, quiet: true });
 const db = createPrismaClient();
 const base = process.env.E2E_API || 'http://127.0.0.1:3001/api/v1';
@@ -417,6 +418,16 @@ try {
     password,
     createdUsers,
     createdClasses,
+    pass,
+  });
+  await verifyTeachingAndFriends({
+    db,
+    Client,
+    admin,
+    password,
+    createdUsers,
+    createdClasses,
+    createdSubjects,
     pass,
   });
   console.log(`${checks} end-to-end groups passed against PostgreSQL and Redis.`);

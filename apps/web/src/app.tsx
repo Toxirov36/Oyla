@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Navigate, Route, Routes, Outlet } from 'react-router-dom';
+import { Navigate, Route, Routes, Outlet, useLocation } from 'react-router-dom';
 import { homeFor, useAuth } from './lib/auth';
 import type { Role } from './lib/types';
 import { AppShell } from './components/shell';
@@ -12,12 +12,25 @@ const StudentData = lazy(() => import('./pages/student-data'));
 const Teacher = lazy(() => import('./pages/teacher'));
 const Admin = lazy(() => import('./pages/admin'));
 const Profile = lazy(() => import('./pages/profile'));
+const Friends = lazy(() => import('./pages/friends'));
 const Notifications = lazy(() => import('./pages/notifications'));
 const PasswordRecovery = lazy(() => import('./pages/password-recovery'));
 function Protected({ role }: { role?: Role }) {
+  const location = useLocation();
   const { user, loading } = useAuth();
   if (loading) return <Loading />;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user)
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={
+          location.pathname === '/friends' && new URLSearchParams(location.search).has('code')
+            ? { returnTo: location.pathname + location.search }
+            : null
+        }
+      />
+    );
   const teacherAccess = role === 'TEACHER' && user.teacherAccess === true;
   if (role && user.role !== role && !teacherAccess) return <Navigate to={homeFor(user)} replace />;
   return <Outlet />;
@@ -40,6 +53,7 @@ export default function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route element={<Protected role="STUDENT" />}>
+              <Route path="/friends" element={<Friends />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/subjects" element={<Subjects />} />
               <Route path="/subjects/:id" element={<Subjects />} />

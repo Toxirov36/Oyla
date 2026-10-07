@@ -128,5 +128,6 @@ async function main() {
   console.log(
     `Seed ready: 3 subjects, 9 courses, ${curriculumReport.lessons} grade-specific lessons, ${curriculumReport.questions} questions; ${curriculumReport.archivedLegacy} unused starter lessons archived, ${curriculumReport.preservedLegacy} referenced or edited starter lessons preserved. No learning statistics are fabricated.`,
   );
+  console.log('Content review corrections:', curriculumReport.review);
 }
 main().finally(() => db.$disconnect());

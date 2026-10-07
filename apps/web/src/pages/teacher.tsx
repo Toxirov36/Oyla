@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { api, errorText } from '../lib/api';
 import { ComboboxField } from '../components/combobox-field';
+import { TeacherAnalysis } from '../components/teacher-analysis';
 import type { Assignment, Classroom, Subject } from '../lib/types';
 import {
   Button,
@@ -36,7 +37,17 @@ const schema = z.object({
   title: z.string().trim().min(2, 'Nomini kiriting.').max(100),
   deadline: z.string().min(1, 'Muddatni belgilang.'),
 });
-function AssignmentForm({ classes, close }: { classes: Classroom[]; close: () => void }) {
+function AssignmentForm({
+  classes,
+  close,
+  initialClassId,
+  initialLessonId,
+}: {
+  classes: Classroom[];
+  close: () => void;
+  initialClassId?: string;
+  initialLessonId?: string;
+}) {
   const cache = useQueryClient();
   const [error, setError] = useState('');
   const content = useQuery({
@@ -52,7 +63,12 @@ function AssignmentForm({ classes, close }: { classes: Classroom[]; close: () =>
     formState: { errors, isSubmitting },
   } = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
-    defaultValues: { classId: classes[0]?.id || '', lessonId: '', title: '', deadline: '' },
+    defaultValues: {
+      classId: initialClassId || classes[0]?.id || '',
+      lessonId: initialLessonId || '',
+      title: '',
+      deadline: '',
+    },
   });
   const selectedClass = classes.find((c) => c.id === watch('classId'));
   const lessons =
@@ -176,7 +192,8 @@ function AssignmentResults({
   return (
     <div className="teacher-assignments">
       {assignments.map((a) => {
-        const count = studentCount ?? a.class?._count?.students ?? 0;
+        const count = a.completion?.total ?? studentCount ?? a.class?._count?.students ?? 0;
+        const completed = a.completion?.completed ?? a.submissions.length;
         return (
           <Card key={a.id}>
             <div className="card-heading">
@@ -194,10 +211,15 @@ function AssignmentResults({
             <div className="progress-label">
               <span>Bajarilish holati</span>
               <strong>
-                {a.submissions.length} / {count}
+                {completed} / {count}
               </strong>
             </div>
-            <ProgressBar value={count ? (a.submissions.length / count) * 100 : 0} tone="mint" />
+            <ProgressBar value={count ? (completed / count) * 100 : 0} tone="mint" />
+            {!!a.completion?.historical && (
+              <p className="subtle">
+                {a.completion.historical} ta avvalgi a’zo topshirishi tarixda saqlangan.
+              </p>
+            )}
             {a.submissions.length ? (
               <details className="submission-details">
                 <summary>Natijalarni ko‘rish</summary>
@@ -236,6 +258,7 @@ function AssignmentResults({
 export default function TeacherPage({ assignmentsOnly = false }: { assignmentsOnly?: boolean }) {
   const { id } = useParams();
   const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState<{ classId?: string; lessonId?: string }>({});
   const query = useQuery({
     queryKey: ['teacher', 'classes'],
     queryFn: () => api<Classroom[]>('/teacher/classes'),
@@ -266,7 +289,7 @@ export default function TeacherPage({ assignmentsOnly = false }: { assignmentsOn
     );
   const groups = query.data!;
   const students = groups.flatMap((c) => c.students);
-  const struggling = students.filter((s) => s.completed > 0 && s.mastery < 60);
+  const struggling = students.filter((s) => s.needsHelp);
   return (
     <>
       {id && (
@@ -290,7 +313,13 @@ export default function TeacherPage({ assignmentsOnly = false }: { assignmentsOn
             : 'Sinfingizning o‘rganish jarayonini kuzating va keyingi qadamni belgilang.'
         }
         action={
-          <Button onClick={() => setOpen(true)} disabled={!groups.length}>
+          <Button
+            onClick={() => {
+              setDraft(id ? { classId: id } : {});
+              setOpen(true);
+            }}
+            disabled={!groups.length}
+          >
             <Plus size={18} />
             Topshiriq berish
           </Button>
@@ -313,7 +342,7 @@ export default function TeacherPage({ assignmentsOnly = false }: { assignmentsOn
               label="Yordam kerak"
               value={new Set(struggling.map((s) => s.id)).size}
               icon={<BookOpen size={26} />}
-              detail="O‘zlashtirish 60% dan past"
+              detail="Kamida bitta mavzuda 60% dan past"
             />
           </div>
           <div className="section-title">
@@ -373,6 +402,13 @@ export default function TeacherPage({ assignmentsOnly = false }: { assignmentsOn
       )}
       {id && detail.data && (
         <>
+          <TeacherAnalysis
+            group={detail.data}
+            assign={(lessonId) => {
+              setDraft({ classId: detail.data!.id, lessonId });
+              setOpen(true);
+            }}
+          />
           <Card>
             <div className="card-heading">
               <h2>O‘quvchilar</h2>
@@ -386,7 +422,10 @@ export default function TeacherPage({ assignmentsOnly = false }: { assignmentsOn
                       <span className="avatar">{student.name[0]}</span>
                       <div>
                         <strong>{student.name}</strong>
-                        <small>{student.completed} ta dars yakunlangan</small>
+                        <small>
+                          {student.completed} / {student.totalLessons} dars · progress{' '}
+                          {student.progressPercent}%
+                        </small>
                       </div>
                       <span
                         className={`pill ${student.mastery >= 80 ? 'status-completed' : student.completed && student.mastery < 60 ? 'warm' : ''}`}
@@ -432,7 +471,12 @@ export default function TeacherPage({ assignmentsOnly = false }: { assignmentsOn
         title="Yangi topshiriq"
         description="Sinf, dars va muddatni tanlang."
       >
-        <AssignmentForm classes={groups} close={() => setOpen(false)} />
+        <AssignmentForm
+          classes={groups}
+          close={() => setOpen(false)}
+          initialClassId={draft.classId}
+          initialLessonId={draft.lessonId}
+        />
       </Modal>
     </>
   );

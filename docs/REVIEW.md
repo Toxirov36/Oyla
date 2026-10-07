@@ -1,6 +1,6 @@
 # OYLA implementation review
 
-Reviewed on 6 October 2026. The local application uses real PostgreSQL 18 and Redis 7.4.7; no learning metrics are invented.
+Reviewed on 7 October 2026. The local application uses real PostgreSQL 18 and Redis 7.4.7; no learning metrics are invented.
 
 ## Corrected findings
 
@@ -22,8 +22,8 @@ Reviewed on 6 October 2026. The local application uses real PostgreSQL 18 and Re
 ## Verification
 
 - Lint and strict TypeScript checks pass for both workspaces.
-- 22 backend unit tests cover all question graders, score/mastery calculations, date/week/streak boundaries, JWT verification, validation, nested errors, safe optional fields, normalization, curriculum integrity, preservation rules, and PATCH behavior.
-- Nine live E2E groups cover registration/login, RBAC, CSRF origin checks, UUID/body validation, publishing, hidden keys, teacher/class ownership, assignments, all four question types, parallel completion, repeat reward prevention, mastery, badges, seven-day streak bonus, daily rewards, refresh replay, and logout.
+- 32 backend unit tests cover all question graders, score/mastery calculations, date/week/streak boundaries, JWT verification, validation, nested errors, safe optional fields, normalization, curriculum integrity, preservation rules, and PATCH behavior.
+- 15 live E2E groups cover registration/login, RBAC, CSRF origin checks, UUID/body validation, publishing, hidden keys, teacher/class ownership, assignments, all four question types, parallel completion, repeat reward prevention, mastery, badges, seven-day streak bonus, daily rewards, refresh replay, and logout.
 - Both production builds pass; frontend pages are split into lazy-loaded chunks.
 - Browser verification exercised the student lesson through explanation, example, multiple-choice, true/false, numerical, text, challenge, retry, and result. A deliberately wrong first answer produced 83%, 200 XP, mastery 83%, a one-day streak, and the first-lesson badge through the server.
 - Desktop (1366×900) and mobile (390×844) dashboard layouts were inspected. Responsive navigation, reading width, form labels, focus states, accessible Radix dialogs, and reduced-motion styles are included.
@@ -34,7 +34,7 @@ Reviewed on 6 October 2026. The local application uses real PostgreSQL 18 and Re
 
 Docker Desktop's Linux engine was unavailable on this host, so Docker image builds and container startup were not executed. Dockerfiles, Nginx configuration, and Compose are supplied; the application is currently running with native local infrastructure. Production needs HTTPS, private API connectivity, configured secrets, backups, and staff provisioning as documented in README.
 
-The original shared starter curriculum has now been extended with a separate 54-lesson/324-question grade-specific catalog. The new material is an original MVP learning sequence and does not claim to cover a full current national annual syllabus. Referenced/edited old content is preserved. Educators can review and extend it through the admin editor. AI tutor, parent/sponsor dashboards, rewards, duels, and friendship relationships remain outside the MVP. Public staff signup, email delivery, and external paid services are not used.
+The original shared starter curriculum has now been extended with a separate 54-lesson/324-question grade-specific catalog. The new material is an original MVP learning sequence and does not claim to cover a full current national annual syllabus. Referenced/edited old content is preserved. Educators can review and extend it through the admin editor. AI tutor, parent/sponsor dashboards, physical rewards and duels remain outside the MVP. Public staff signup, email delivery, and external paid services are not used.
 
 ## Profile curriculum and frontend automation update
 
@@ -65,4 +65,10 @@ The original shared starter curriculum has now been extended with a separate 54-
 
 - All native select fields in modals now use a shared searchable Combobox with the provided shadcn composition API. Labels remain separate from submitted UUID/enum values, and grade serializers continue to send numbers.
 - Added dialog-scoped popup portals and a separate inner scroll region to retain focus trapping, accessible options, and popup visibility. ESC closes the open combobox before closing the dialog. Existing self-role restrictions remain enforced.
-- Teacher assignment forms clear the selected lesson when the class changes and offer only the selected class's grade. Browser tests verify role changes, search/empty results, keyboard selection, nested ESC, alternate teacher UUID submission, mobile sizing, and grade-matched assignment persistence. The browser suite contains 21 tests.
+- Teacher assignment forms clear the selected lesson when the class changes and offer only the selected class's grade. Browser tests verify role changes, search/empty results, keyboard selection, nested ESC, alternate teacher UUID submission, mobile sizing, and grade-matched assignment persistence. The browser suite now contains 23 tests.
+
+## Teacher analytics, Friends and content review update
+
+Teacher calculations now share the student dashboard visibility and grade rules. Current active roster counts distinguish unstarted learners from low mastery; per-topic cohort analysis identifies weak students and offers a prefilled assignment. Assignment completion excludes former/ineligible roster members while retaining submission history. Private code-based, recipient-approved friendship relationships and a weekly accepted-friends leaderboard are implemented with row locks, unique pairs, role/ownership guards and class-validator DTOs. A dated review of the 54-lesson/324-question catalog applied 13 original-fingerprint corrections without changing recorded scores or XP.
+
+Validation: 32 backend and 11 frontend unit tests, 23 browser tests, 15 PostgreSQL/Redis API groups, lint/type checks and both production builds. See CONTENT_REVIEW.md and TESTING.md for scope and preservation rules.

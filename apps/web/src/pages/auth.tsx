@@ -42,7 +42,14 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<AuthFields>({ resolver: zodResolver(schema), defaultValues: { grade: 6 } });
-  if (user) return <Navigate to={homeFor(user)} replace />;
+  const requestedPath = (location.state as { returnTo?: string } | null)?.returnTo;
+  const returnTo =
+    requestedPath?.startsWith('/') &&
+    !requestedPath.startsWith('//') &&
+    !/[\\\r\n]/.test(requestedPath)
+      ? requestedPath
+      : null;
+  if (user) return <Navigate to={returnTo || homeFor(user)} replace />;
   const submit = handleSubmit(async (data) => {
     setError('');
     try {
@@ -171,7 +178,7 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
           </form>
           <p className="auth-switch">
             {register ? 'Hisobingiz bormi?' : 'Hali hisobingiz yo‘qmi?'}{' '}
-            <Link to={register ? '/login' : '/register'}>
+            <Link to={register ? '/login' : '/register'} state={location.state}>
               {register ? 'Kirish' : 'Ro‘yxatdan o‘tish'}
             </Link>
           </p>
