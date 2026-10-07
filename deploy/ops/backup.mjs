@@ -175,7 +175,7 @@ try {
 } finally {
   if (testContainer) {
     try {
-      run(['rm', '-f', testContainer], { stdio: 'ignore' });
+      run(['rm', '-f', '-v', testContainer], { stdio: 'ignore' });
     } catch {}
   }
   client.destroy();

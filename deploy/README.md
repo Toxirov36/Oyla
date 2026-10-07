@@ -2,6 +2,8 @@
 
 Production runs on the existing Google Cloud VM at 34.176.204.70. The requested domain is **olya.uz**. Point its A record to that IP; remove stale AAAA records before requesting HTTPS. DNS is managed externally in Beget. Host Nginx terminates TLS and proxies `/api/` directly to the loopback API, preserving client IP and HTTPS headers. PostgreSQL, API and frontend ports bind only to localhost; Redis has no published port.
 
+While that DNS update is pending, OYLA serves the existing HTTPS address `https://hr-recruiter.ddns.net`, with the API origin configured consistently. After the A record resolves only to 34.176.204.70, run `bash ~/oyla/current/deploy/change-domain.sh olya.uz`. This checks DNS/AAAA, obtains the new certificate, backs up Nginx configuration, updates the origin, restarts the healthy API and reloads Nginx. No new database import or application rebuild is needed.
+
 GitHub Actions verifies the application, builds and checks the API/web Docker images, and publishes immutable commit tags to GHCR. The runtime API installs only production API dependencies. `deploy/release.sh` validates the archive, serializes releases, backs up the database before migrations, starts healthy containers and records the active commit. Source archives contain no secrets. A previous release and database dump are retained; schema rollback is deliberately manual.
 
 Required repository secrets: DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY, DEPLOY_KNOWN_HOSTS. The production environment uses only `main`. `OYLA_DEPLOY_ENABLED=true` enables deployment after first-time database provisioning. Images can build while this flag is false. Avoid enabling deployment before the database import and `.database-ready` marker have been verified.
