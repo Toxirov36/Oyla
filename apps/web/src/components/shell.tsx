@@ -17,7 +17,6 @@ import {
   ClipboardList,
   Zap,
   UserRound,
-  Bell,
 } from 'lucide-react';
 import { homeFor, useAuth } from '../lib/auth';
 import { Button } from './ui';
@@ -60,7 +59,7 @@ export function Logo() {
 export function AppShell() {
   const { user, signOut } = useAuth();
   const [menu, setMenu] = useState(false);
-  const baseNav =
+  const nav =
     user!.role === 'STUDENT'
       ? studentNav
       : user!.role === 'TEACHER'
@@ -68,7 +67,6 @@ export function AppShell() {
         : user!.teacherAccess
           ? adminTeacherNav
           : adminNav;
-  const nav = [...baseNav, { to: '/notifications', label: 'Bildirishnomalar', icon: Bell }];
   const roleLabel =
     user!.role === 'STUDENT'
       ? `${user!.student?.grade}-sinf o‘quvchisi`
