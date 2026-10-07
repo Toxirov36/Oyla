@@ -17,7 +17,8 @@ docker login ghcr.io -u "$registry_user" --password-stdin
 source_dir="$base/releases/$revision"
 mkdir -p "$source_dir"
 entries=$(tar -tzf "$base/incoming/$revision.tar.gz")
-if grep -Ev '(^|/)\.env\.example$' <<< "$entries" | grep -Eq '(^|/)\.env($|\.)|(^|/)\.\.(/|$)|^/'; then
+filtered_entries=$(grep -Ev '(^|/)\.env\.example$' <<< "$entries" || true)
+if grep -Eq '(^|/)\.env($|\.)|(^|/)\.\.(/|$)|^/' <<< "$filtered_entries"; then
   echo 'Archive contains an unsafe or protected file'; exit 1
 fi
 tar -xzf "$base/incoming/$revision.tar.gz" -C "$source_dir" --no-same-owner --same-permissions
