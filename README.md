@@ -2,7 +2,7 @@
 
 OYLA is an Uzbek learning platform for grades 5–7. Students study lessons, complete 18 question types in standard, mini-game, or boss-battle lesson modes, receive educational feedback, and see server-calculated results, XP, mastery, streaks, badges, and a next lesson. Teachers manage their assigned classes and lesson assignments. Administrators manage users, classes, the full content hierarchy, publishing, XP rules, levels, and badges.
 
-All roles have a dedicated `/profile` page with account details and name editing. Students see server-calculated learning metrics and their class; teachers see their classes and student/assignment counts. Grade and email remain under administrator control. The grade-specific catalog supplies 54 original lessons and 324 questions.
+All roles have a dedicated `/profile` page with account details and name editing. Students see server-calculated learning metrics and their class; teachers see their classes and student/assignment counts. Grade and email remain under administrator control. The grade-specific catalog supplies 54 reviewed lessons and 324 questions, plus 9 interactive pilot lessons with 72 exercises.
 
 Teachers can open **My classes → class → topic analysis**, filter by subject or weak topics, and assign a recommended practice lesson. Calculations use only the current grade's published content and active student roster. An unstarted topic is distinct from a low score; historical assignment submissions remain visible outside the current completion count.
 
@@ -16,7 +16,7 @@ The [content review](docs/CONTENT_REVIEW.md) records the 7 October 2026 review, 
 
 Subjects now show a vertical lesson path with completed scores, resume actions, available lessons, and server-enforced prerequisites. Desktop shows XP/streak/challenge cards; mobile uses a single column.
 
-Administrators open **O‘quv kontenti → Mashqlar katalogi** (`/admin/exercises`) to try 18 exercise types and two game modes. The type-specific question editor supports structured definitions and a student preview. Started attempts keep immutable private snapshots; browser drafts and server answers resume after refresh. Speech supports local recording, playback and transcript matching. See [interactive exercise documentation](docs/INTERACTIVE_EXERCISES.md) for authoring, formats, grading, prerequisites, and migration details.
+Administrators open **O‘quv kontenti → Mashqlar katalogi** (`/admin/exercises`) to try 18 exercise types and two game modes. The type-specific question editor supports structured definitions and a student preview. Started attempts keep immutable private snapshots; browser drafts and server answers resume after refresh. Speech supports local recording, playback and transcript matching. Completion and mastery are shown separately; teachers also see exercise-type accuracy and learners needing help. Nine published pilot lessons cover all grades and subjects. See [interactive exercise documentation](docs/INTERACTIVE_EXERCISES.md) for authoring, formats, grading, prerequisites, and migration details.
 
 ## Stack and layout
 
@@ -85,7 +85,7 @@ Seeding supports development/test environments and requires `DEMO_PASSWORD` (at 
 | Administrator       | admin@oyla.uz                   |
 | Grade 5 / Grade 7   | grade5@oyla.uz / grade7@oyla.uz |
 
-The seed is idempotent and preserves existing user/content edits. A fresh database receives 3 subjects, 9 grade courses, 54 grade-specific lessons, 324 questions, 11 accounts, 2 classes, and one assignment. Every subject has a different sequence for grades 5, 6, and 7. Existing starter lessons with attempts, progress, assignments, or edits are retained; unused unmodified starters are archived. XP and progress are never reset or fabricated. See `docs/CURRICULUM.md` for the grade map and references. Demo credentials are for development.
+The seed is idempotent and preserves existing user/content edits. A fresh database receives 3 subjects, 9 grade courses, 63 grade-specific lessons, 396 questions, 11 accounts, 2 classes, and one assignment. Every subject has a different sequence for grades 5, 6, and 7. Existing starter lessons with attempts, progress, assignments, or edits are retained; unused unmodified starters are archived. XP and progress are never reset or fabricated. See `docs/CURRICULUM.md` for the grade map and references. Demo credentials are for development.
 
 ## Checks
 

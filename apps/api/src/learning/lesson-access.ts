@@ -24,7 +24,12 @@ export async function lessonAccess(
       select: { lessonId: true },
     }),
   ]);
-  return (lesson: { id: string; prerequisiteId?: string | null; unlockScore?: number }) => {
+  return (lesson: {
+    id: string;
+    prerequisiteId?: string | null;
+    unlockScore?: number;
+    masteryScore?: number;
+  }) => {
     const own = progress.find((p) => p.lessonId === lesson.id);
     const attempt = attempts.find((a) => a.lessonId === lesson.id);
     const prerequisite = progress.find((p) => p.lessonId === lesson.prerequisiteId);
@@ -36,6 +41,8 @@ export async function lessonAccess(
     return {
       state: locked ? 'LOCKED' : attempt ? 'IN_PROGRESS' : own ? 'COMPLETED' : 'AVAILABLE',
       bestScore: own?.bestScore ?? null,
+      mastered: !!own && own.bestScore >= (lesson.masteryScore ?? 70),
+      masteryThreshold: lesson.masteryScore ?? 70,
       attemptId: locked ? null : (attempt?.id ?? null),
       unlockScore: lesson.unlockScore ?? 70,
     };

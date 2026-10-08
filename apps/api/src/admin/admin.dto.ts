@@ -69,6 +69,7 @@ export class TopicDto {
 }
 export class UpdateTopicDto extends PartialType(TopicDto, { skipNullProperties: false }) {}
 export class LessonDto {
+  @Optional() @IsInt() @Min(0) @Max(100) masteryScore?: number;
   @Optional()
   @IsString()
   @Matches(/^(?:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})?$/i)

@@ -1,0 +1,1697 @@
+[
+  {
+    "slug": "mathematics",
+    "grade": 5,
+    "title": "Kasrlar: tanla, juftla va tartibla",
+    "explanation": "Kasr butunning teng qismlarini bildiradi. Maxraj nechta teng qism borligini, surat nechta qism olinganini ko‘rsatadi. Teng kasrlarni topishda surat va maxrajni bir xil songa ko‘paytiramiz.",
+    "example": "1/2 = 4/8, chunki surat va maxrajni 4 ga ko‘paytirdik. 1/2 + 1/4 = 2/4 + 1/4 = 3/4.",
+    "questions": [
+      {
+        "type": "MULTIPLE_CHOICE",
+        "text": "1/2 + 1/4 nechaga teng?",
+        "answer": "3/4",
+        "explanation": "1/2 = 2/4. 2/4 + 1/4 = 3/4.",
+        "hint": "Variantlarni birma-bir tekshiring.",
+        "options": ["1/4", "2/4", "3/4", "1"]
+      },
+      {
+        "type": "NUMERICAL",
+        "text": "20 ning 3/4 qismini toping.",
+        "answer": "15",
+        "explanation": "20 ÷ 4 × 3 = 15.",
+        "hint": "Amallarni ko‘rsatilgan tartibda bajaring."
+      },
+      {
+        "type": "TRUE_FALSE",
+        "text": "2/4 va 1/2 teng kasrlardir.",
+        "answer": "true",
+        "explanation": "2/4 surat va maxrajini 2 ga bo‘lsak 1/2 hosil bo‘ladi.",
+        "hint": "Bayonotdagi asosiy tushunchaga e’tibor bering."
+      },
+      {
+        "type": "FILL_GAP",
+        "text": "1/2 = ___/8",
+        "answer": "structured",
+        "explanation": "2 ni 8 ga aylantirish uchun 4 ga ko‘paytiramiz; 1 × 4 = 4.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "slots": [
+            {
+              "id": "s0",
+              "text": "Yetishmayotgan surat"
+            }
+          ]
+        },
+        "grading": {
+          "values": ["4"]
+        }
+      },
+      {
+        "type": "MATCH_PAIRS",
+        "text": "Kasrni uning nomi bilan juftlang.",
+        "answer": "structured",
+        "explanation": "1/2 — yarim, 1/4 — chorak, 3/4 — uch chorak.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "items": [
+            {
+              "id": "l0",
+              "text": "1/2"
+            },
+            {
+              "id": "l1",
+              "text": "1/4"
+            },
+            {
+              "id": "l2",
+              "text": "3/4"
+            }
+          ],
+          "targets": [
+            {
+              "id": "r0",
+              "text": "Yarim"
+            },
+            {
+              "id": "r1",
+              "text": "Chorak"
+            },
+            {
+              "id": "r2",
+              "text": "Uch chorak"
+            }
+          ]
+        },
+        "grading": {
+          "pairs": [
+            {
+              "left": "l0",
+              "right": "r0"
+            },
+            {
+              "left": "l1",
+              "right": "r1"
+            },
+            {
+              "left": "l2",
+              "right": "r2"
+            }
+          ]
+        }
+      },
+      {
+        "type": "SORT_ORDER",
+        "text": "Kasrlarni kichikdan kattaga joylashtiring.",
+        "answer": "structured",
+        "explanation": "Bir xil maxrajda 1/4 < 2/4 < 3/4.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "items": [
+            {
+              "id": "i0",
+              "text": "3/4"
+            },
+            {
+              "id": "i1",
+              "text": "1/4"
+            },
+            {
+              "id": "i2",
+              "text": "1/2"
+            }
+          ]
+        },
+        "grading": {
+          "values": ["i1", "i2", "i0"]
+        }
+      },
+      {
+        "type": "FIND_MISTAKE",
+        "text": "Qaysi tenglik noto‘g‘ri?",
+        "answer": "structured",
+        "explanation": "1/2 + 1/4 = 3/4 bo‘ladi.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "items": [
+            {
+              "id": "i0",
+              "text": "1/2 + 1/2 = 1"
+            },
+            {
+              "id": "i1",
+              "text": "1/4 + 1/4 = 1/2"
+            },
+            {
+              "id": "i2",
+              "text": "1/2 + 1/4 = 1/4"
+            }
+          ]
+        },
+        "grading": {
+          "values": ["i2"]
+        }
+      },
+      {
+        "type": "DRAW",
+        "text": "A va B nuqtalarini to‘g‘ri kesma bilan tutashtiring.",
+        "answer": "structured",
+        "explanation": "Kesmaning ikkala uchi A va B nuqtalariga mos keladi.",
+        "hint": "A dan B gacha sudrang yoki koordinatalarni kiriting.",
+        "config": {
+          "markers": [
+            {
+              "x": 20,
+              "y": 70
+            },
+            {
+              "x": 80,
+              "y": 30
+            }
+          ]
+        },
+        "grading": {
+          "points": [
+            {
+              "x": 20,
+              "y": 70
+            },
+            {
+              "x": 80,
+              "y": 30
+            }
+          ],
+          "radius": 5
+        }
+      }
+    ]
+  },
+  {
+    "slug": "mathematics",
+    "grade": 6,
+    "title": "Foizlar: hisobla va taqqosla",
+    "explanation": "Foiz yuzdan bir ulushni bildiradi. 25% = 25/100 = 0,25. Sonning foizini topish uchun sonni 100 ga bo‘lib, kerakli foizga ko‘paytiramiz.",
+    "example": "80 ning 25% qismi: 80 ÷ 100 × 25 = 20. 200 ning 15% qismi: 200 ÷ 100 × 15 = 30.",
+    "questions": [
+      {
+        "type": "MULTIPLE_CHOICE",
+        "text": "80 ning 25% qismi nechaga teng?",
+        "answer": "20",
+        "explanation": "80 × 25/100 = 20.",
+        "hint": "Variantlarni birma-bir tekshiring.",
+        "options": ["10", "20", "25", "40"]
+      },
+      {
+        "type": "NUMERICAL",
+        "text": "200 ning 15% qismini toping.",
+        "answer": "30",
+        "explanation": "200 ÷ 100 × 15 = 30.",
+        "hint": "Amallarni ko‘rsatilgan tartibda bajaring."
+      },
+      {
+        "type": "TRUE_FALSE",
+        "text": "0,5 soni 50% ga teng.",
+        "answer": "true",
+        "explanation": "0,5 × 100% = 50%.",
+        "hint": "Bayonotdagi asosiy tushunchaga e’tibor bering."
+      },
+      {
+        "type": "FILL_GAP",
+        "text": "100 ning ___% qismi 25 ga teng.",
+        "answer": "structured",
+        "explanation": "25/100 = 25%.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "slots": [
+            {
+              "id": "s0",
+              "text": "Foiz qiymati"
+            }
+          ]
+        },
+        "grading": {
+          "values": ["25"]
+        }
+      },
+      {
+        "type": "MATCH_PAIRS",
+        "text": "Foiz va o‘nli kasrni juftlang.",
+        "answer": "structured",
+        "explanation": "Foizni 100 ga bo‘lib o‘nli kasr olamiz.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "items": [
+            {
+              "id": "l0",
+              "text": "25%"
+            },
+            {
+              "id": "l1",
+              "text": "50%"
+            },
+            {
+              "id": "l2",
+              "text": "75%"
+            }
+          ],
+          "targets": [
+            {
+              "id": "r0",
+              "text": "0,25"
+            },
+            {
+              "id": "r1",
+              "text": "0,5"
+            },
+            {
+              "id": "r2",
+              "text": "0,75"
+            }
+          ]
+        },
+        "grading": {
+          "pairs": [
+            {
+              "left": "l0",
+              "right": "r0"
+            },
+            {
+              "left": "l1",
+              "right": "r1"
+            },
+            {
+              "left": "l2",
+              "right": "r2"
+            }
+          ]
+        }
+      },
+      {
+        "type": "SORT_ORDER",
+        "text": "Foizlarni kichikdan kattaga joylashtiring.",
+        "answer": "structured",
+        "explanation": "5% < 12% < 25% < 50%.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "items": [
+            {
+              "id": "i0",
+              "text": "50%"
+            },
+            {
+              "id": "i1",
+              "text": "12%"
+            },
+            {
+              "id": "i2",
+              "text": "25%"
+            },
+            {
+              "id": "i3",
+              "text": "5%"
+            }
+          ]
+        },
+        "grading": {
+          "values": ["i3", "i1", "i2", "i0"]
+        }
+      },
+      {
+        "type": "FIND_MISTAKE",
+        "text": "Qaysi hisoblashda xato bor?",
+        "answer": "structured",
+        "explanation": "60 ning yarmi 30 ga teng.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "items": [
+            {
+              "id": "i0",
+              "text": "80 ning 25% qismi 20"
+            },
+            {
+              "id": "i1",
+              "text": "200 ning 10% qismi 20"
+            },
+            {
+              "id": "i2",
+              "text": "60 ning 50% qismi 20"
+            }
+          ]
+        },
+        "grading": {
+          "values": ["i2"]
+        }
+      },
+      {
+        "type": "DRAW",
+        "text": "A va B orasidagi o‘sish yo‘nalishini kesma bilan ko‘rsating.",
+        "answer": "structured",
+        "explanation": "Kesmaning ikkala uchi A va B nuqtalariga mos keladi.",
+        "hint": "A dan B gacha sudrang yoki koordinatalarni kiriting.",
+        "config": {
+          "markers": [
+            {
+              "x": 20,
+              "y": 70
+            },
+            {
+              "x": 80,
+              "y": 30
+            }
+          ]
+        },
+        "grading": {
+          "points": [
+            {
+              "x": 20,
+              "y": 70
+            },
+            {
+              "x": 80,
+              "y": 30
+            }
+          ],
+          "radius": 5
+        }
+      }
+    ]
+  },
+  {
+    "slug": "mathematics",
+    "grade": 7,
+    "title": "Tenglamalar: yechimni bosqichma-bosqich top",
+    "explanation": "Tenglamada noma’lumni yolg‘iz qoldirish uchun ikki tomonga bir xil amal qo‘llanadi. Avval qo‘shilgan yoki ayrilgan sonni, so‘ng ko‘paytiruvchini bartaraf etamiz.",
+    "example": "2x + 7 = 19: ikki tomondan 7 ni ayiramiz, 2x = 12. Ikkala tomonni 2 ga bo‘lamiz, x = 6. Tekshirish: 2 × 6 + 7 = 19.",
+    "questions": [
+      {
+        "type": "MULTIPLE_CHOICE",
+        "text": "3x + 4 = 19. x nechaga teng?",
+        "answer": "5",
+        "explanation": "3x = 19 − 4 = 15, x = 5.",
+        "hint": "Variantlarni birma-bir tekshiring.",
+        "options": ["3", "4", "5", "6"]
+      },
+      {
+        "type": "NUMERICAL",
+        "text": "2(x − 3) = 14. x ni toping.",
+        "answer": "10",
+        "explanation": "x − 3 = 7, x = 10.",
+        "hint": "Amallarni ko‘rsatilgan tartibda bajaring."
+      },
+      {
+        "type": "TRUE_FALSE",
+        "text": "x + x = 2x tenglik barcha x lar uchun to‘g‘ri.",
+        "answer": "true",
+        "explanation": "Ikki bir xil x ning yig‘indisi 2x.",
+        "hint": "Bayonotdagi asosiy tushunchaga e’tibor bering."
+      },
+      {
+        "type": "FILL_GAP",
+        "text": "x = 4 bo‘lsa, 2x + ___ = 11.",
+        "answer": "structured",
+        "explanation": "2 × 4 = 8; 11 − 8 = 3.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "slots": [
+            {
+              "id": "s0",
+              "text": "Yetishmayotgan son"
+            }
+          ]
+        },
+        "grading": {
+          "values": ["3"]
+        }
+      },
+      {
+        "type": "MATCH_PAIRS",
+        "text": "x = 2 bo‘lganda ifoda va qiymatini juftlang.",
+        "answer": "structured",
+        "explanation": "3 × 2 = 6, 2 + 5 = 7, 2² = 4.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "items": [
+            {
+              "id": "l0",
+              "text": "3x"
+            },
+            {
+              "id": "l1",
+              "text": "x + 5"
+            },
+            {
+              "id": "l2",
+              "text": "x²"
+            }
+          ],
+          "targets": [
+            {
+              "id": "r0",
+              "text": "6"
+            },
+            {
+              "id": "r1",
+              "text": "7"
+            },
+            {
+              "id": "r2",
+              "text": "4"
+            }
+          ]
+        },
+        "grading": {
+          "pairs": [
+            {
+              "left": "l0",
+              "right": "r0"
+            },
+            {
+              "left": "l1",
+              "right": "r1"
+            },
+            {
+              "left": "l2",
+              "right": "r2"
+            }
+          ]
+        }
+      },
+      {
+        "type": "SORT_ORDER",
+        "text": "2x + 7 = 19 tenglamasining yechim bosqichlarini tartiblang.",
+        "answer": "structured",
+        "explanation": "Avval 2x = 12, so‘ng x = 6 va oxirida tekshirish.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "items": [
+            {
+              "id": "i0",
+              "text": "x = 6"
+            },
+            {
+              "id": "i1",
+              "text": "2x = 12"
+            },
+            {
+              "id": "i2",
+              "text": "2 × 6 + 7 = 19 tekshirish"
+            }
+          ]
+        },
+        "grading": {
+          "values": ["i1", "i0", "i2"]
+        }
+      },
+      {
+        "type": "FIND_MISTAKE",
+        "text": "Qaysi qadamda xato bor?",
+        "answer": "structured",
+        "explanation": "3x = 15 dan x = 15 ÷ 3 = 5 bo‘ladi.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "items": [
+            {
+              "id": "i0",
+              "text": "3x + 4 = 19"
+            },
+            {
+              "id": "i1",
+              "text": "3x = 15"
+            },
+            {
+              "id": "i2",
+              "text": "x = 15 − 3 = 12"
+            }
+          ]
+        },
+        "grading": {
+          "values": ["i2"]
+        }
+      },
+      {
+        "type": "GEOMETRY",
+        "text": "A(20,70) va B(80,30) kesmasining o‘rtasini belgilang.",
+        "answer": "structured",
+        "explanation": "O‘rta nuqta koordinatalari: (20 + 80)/2 = 50 va (70 + 30)/2 = 50.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "markers": [
+            {
+              "x": 20,
+              "y": 70
+            },
+            {
+              "x": 80,
+              "y": 30
+            }
+          ]
+        },
+        "grading": {
+          "points": [
+            {
+              "x": 50,
+              "y": 50
+            }
+          ],
+          "radius": 4
+        }
+      }
+    ]
+  },
+  {
+    "slug": "english",
+    "grade": 5,
+    "title": "Daily life: kundalik hayot",
+    "explanation": "Present Simple kundalik odatlar uchun ishlatiladi. I bilan go, he yoki she bilan goes ishlatiladi. Am, is va are egaga mos tanlanadi.",
+    "example": "I go to school. She goes to school. I am a student.",
+    "questions": [
+      {
+        "type": "MULTIPLE_CHOICE",
+        "text": "I ___ to school every day.",
+        "answer": "go",
+        "explanation": "To‘g‘ri gap: I go to school every day.",
+        "hint": "Variantlarni birma-bir tekshiring.",
+        "options": ["go", "goes", "going", "gone"]
+      },
+      {
+        "type": "TEXT",
+        "text": "Kitob so‘zini inglizcha yozing.",
+        "answer": "book",
+        "explanation": "Qabul qilinadigan shakl: book",
+        "hint": "Atamani yoki so‘zni eslang."
+      },
+      {
+        "type": "TRUE_FALSE",
+        "text": "She goes to school. gapi grammatik jihatdan to‘g‘ri.",
+        "answer": "true",
+        "explanation": "She bilan go fe’liga -es qo‘shiladi.",
+        "hint": "Bayonotdagi asosiy tushunchaga e’tibor bering."
+      },
+      {
+        "type": "FILL_GAP",
+        "text": "My name ___ Ali. I ___ a student.",
+        "answer": "structured",
+        "explanation": "To‘g‘ri shakl(lar): is, am",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "slots": [
+            {
+              "id": "s0",
+              "text": "Birinchi bo‘shliq"
+            },
+            {
+              "id": "s1",
+              "text": "Ikkinchi bo‘shliq"
+            }
+          ]
+        },
+        "grading": {
+          "values": ["is", "am"]
+        }
+      },
+      {
+        "type": "MATCH_PAIRS",
+        "text": "So‘zlarni mos shakli yoki ma’nosi bilan juftlang.",
+        "answer": "structured",
+        "explanation": "Mosliklar: cat → mushuk; mother → ona; school → maktab",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "items": [
+            {
+              "id": "l0",
+              "text": "cat"
+            },
+            {
+              "id": "l1",
+              "text": "mother"
+            },
+            {
+              "id": "l2",
+              "text": "school"
+            }
+          ],
+          "targets": [
+            {
+              "id": "r0",
+              "text": "mushuk"
+            },
+            {
+              "id": "r1",
+              "text": "ona"
+            },
+            {
+              "id": "r2",
+              "text": "maktab"
+            }
+          ]
+        },
+        "grading": {
+          "pairs": [
+            {
+              "left": "l0",
+              "right": "r0"
+            },
+            {
+              "left": "l1",
+              "right": "r1"
+            },
+            {
+              "left": "l2",
+              "right": "r2"
+            }
+          ]
+        }
+      },
+      {
+        "type": "DRAG_DROP",
+        "text": "So‘zlarni mos tarjimaga joylashtiring.",
+        "answer": "structured",
+        "explanation": "Mosliklar: blue → ko‘k; yellow → sariq; red → qizil",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "items": [
+            {
+              "id": "l0",
+              "text": "blue"
+            },
+            {
+              "id": "l1",
+              "text": "yellow"
+            },
+            {
+              "id": "l2",
+              "text": "red"
+            }
+          ],
+          "targets": [
+            {
+              "id": "r0",
+              "text": "ko‘k"
+            },
+            {
+              "id": "r1",
+              "text": "sariq"
+            },
+            {
+              "id": "r2",
+              "text": "qizil"
+            }
+          ]
+        },
+        "grading": {
+          "pairs": [
+            {
+              "left": "l0",
+              "right": "r0"
+            },
+            {
+              "left": "l1",
+              "right": "r1"
+            },
+            {
+              "left": "l2",
+              "right": "r2"
+            }
+          ]
+        }
+      },
+      {
+        "type": "LISTEN_ANSWER",
+        "text": "What time does Tom get up?",
+        "answer": "structured",
+        "explanation": "Audio matni: Tom gets up at seven o’clock.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "audioText": "Tom gets up at seven o’clock.",
+          "language": "en-US"
+        },
+        "grading": {
+          "text": "7:00|seven|7|seven o’clock"
+        }
+      },
+      {
+        "type": "SPEAK",
+        "text": "Namunani tinglang va gapni ayting.",
+        "answer": "structured",
+        "explanation": "Matndagi so‘zlarni namuna bilan solishtiring. Baho talaffuz emas, matn mosligiga asoslanadi.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "audioText": "My name is Ali.",
+          "language": "en-US"
+        },
+        "grading": {
+          "text": "My name is Ali.|My name is Ali"
+        }
+      }
+    ]
+  },
+  {
+    "slug": "english",
+    "grade": 6,
+    "title": "Past Simple: kechagi voqealar",
+    "explanation": "Past Simple tugagan o‘tgan voqeani bildiradi. Ba’zi fe’llar -ed oladi, ayrimlari went, bought, wrote kabi alohida shaklga ega. Did bilan asosiy fe’l boshlang‘ich shaklda keladi.",
+    "example": "Gapdagi egani, yordamchi fe’lni va asosiy fe’l shaklini tekshiring. To‘g‘ri shaklga misol: We went to the park yesterday.",
+    "questions": [
+      {
+        "type": "MULTIPLE_CHOICE",
+        "text": "We ___ to the park yesterday.",
+        "answer": "went",
+        "explanation": "To‘g‘ri gap: We went to the park yesterday.",
+        "hint": "Variantlarni birma-bir tekshiring.",
+        "options": ["go", "went", "going", "gone"]
+      },
+      {
+        "type": "TEXT",
+        "text": "Go fe’lining Past Simple shaklini yozing.",
+        "answer": "went",
+        "explanation": "Qabul qilinadigan shakl: went",
+        "hint": "Atamani yoki so‘zni eslang."
+      },
+      {
+        "type": "TRUE_FALSE",
+        "text": "He didn’t went to school. gapi grammatik jihatdan to‘g‘ri.",
+        "answer": "false",
+        "explanation": "Didn’t dan keyin went emas, go ishlatiladi.",
+        "hint": "Bayonotdagi asosiy tushunchaga e’tibor bering."
+      },
+      {
+        "type": "FILL_GAP",
+        "text": "She ___ her grandmother yesterday.",
+        "answer": "structured",
+        "explanation": "To‘g‘ri shakl(lar): visited",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "slots": [
+            {
+              "id": "s0",
+              "text": "Visit fe’lining o‘tgan zamoni"
+            }
+          ]
+        },
+        "grading": {
+          "values": ["visited"]
+        }
+      },
+      {
+        "type": "MATCH_PAIRS",
+        "text": "So‘zlarni mos shakli yoki ma’nosi bilan juftlang.",
+        "answer": "structured",
+        "explanation": "Mosliklar: buy → bought; write → wrote; eat → ate",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "items": [
+            {
+              "id": "l0",
+              "text": "buy"
+            },
+            {
+              "id": "l1",
+              "text": "write"
+            },
+            {
+              "id": "l2",
+              "text": "eat"
+            }
+          ],
+          "targets": [
+            {
+              "id": "r0",
+              "text": "bought"
+            },
+            {
+              "id": "r1",
+              "text": "wrote"
+            },
+            {
+              "id": "r2",
+              "text": "ate"
+            }
+          ]
+        },
+        "grading": {
+          "pairs": [
+            {
+              "left": "l0",
+              "right": "r0"
+            },
+            {
+              "left": "l1",
+              "right": "r1"
+            },
+            {
+              "left": "l2",
+              "right": "r2"
+            }
+          ]
+        }
+      },
+      {
+        "type": "DRAG_DROP",
+        "text": "So‘zlarni mos tarjimaga joylashtiring.",
+        "answer": "structured",
+        "explanation": "Mosliklar: yesterday → kecha; last week → o‘tgan hafta; two days ago → ikki kun oldin",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "items": [
+            {
+              "id": "l0",
+              "text": "yesterday"
+            },
+            {
+              "id": "l1",
+              "text": "last week"
+            },
+            {
+              "id": "l2",
+              "text": "two days ago"
+            }
+          ],
+          "targets": [
+            {
+              "id": "r0",
+              "text": "kecha"
+            },
+            {
+              "id": "r1",
+              "text": "o‘tgan hafta"
+            },
+            {
+              "id": "r2",
+              "text": "ikki kun oldin"
+            }
+          ]
+        },
+        "grading": {
+          "pairs": [
+            {
+              "left": "l0",
+              "right": "r0"
+            },
+            {
+              "left": "l1",
+              "right": "r1"
+            },
+            {
+              "left": "l2",
+              "right": "r2"
+            }
+          ]
+        }
+      },
+      {
+        "type": "LISTEN_ANSWER",
+        "text": "Who did Anna visit?",
+        "answer": "structured",
+        "explanation": "Audio matni: Anna visited her grandmother on Sunday.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "audioText": "Anna visited her grandmother on Sunday.",
+          "language": "en-US"
+        },
+        "grading": {
+          "text": "her grandmother|grandmother"
+        }
+      },
+      {
+        "type": "SPEAK",
+        "text": "Namunani tinglang va gapni ayting.",
+        "answer": "structured",
+        "explanation": "Matndagi so‘zlarni namuna bilan solishtiring. Baho talaffuz emas, matn mosligiga asoslanadi.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "audioText": "I visited the park yesterday.",
+          "language": "en-US"
+        },
+        "grading": {
+          "text": "I visited the park yesterday.|I visited the park yesterday"
+        }
+      }
+    ]
+  },
+  {
+    "slug": "english",
+    "grade": 7,
+    "title": "Present Perfect: tajriba va natija",
+    "explanation": "Present Perfect have yoki has va fe’lning past participle shakli bilan tuziladi. Masalan, I have written va she has done. Aniq tugagan vaqtni ko‘rsatadigan yesterday bilan odatda Past Simple ishlatiladi.",
+    "example": "Gapdagi egani, yordamchi fe’lni va asosiy fe’l shaklini tekshiring. To‘g‘ri shaklga misol: She has done her homework.",
+    "questions": [
+      {
+        "type": "MULTIPLE_CHOICE",
+        "text": "She has ___ her homework.",
+        "answer": "done",
+        "explanation": "To‘g‘ri gap: She has done her homework.",
+        "hint": "Variantlarni birma-bir tekshiring.",
+        "options": ["do", "did", "done", "doing"]
+      },
+      {
+        "type": "TEXT",
+        "text": "Write fe’lining past participle shaklini yozing.",
+        "answer": "written",
+        "explanation": "Qabul qilinadigan shakl: written",
+        "hint": "Atamani yoki so‘zni eslang."
+      },
+      {
+        "type": "TRUE_FALSE",
+        "text": "I have saw this film. gapi grammatik jihatdan to‘g‘ri.",
+        "answer": "false",
+        "explanation": "Have dan keyin saw emas, seen ishlatiladi.",
+        "hint": "Bayonotdagi asosiy tushunchaga e’tibor bering."
+      },
+      {
+        "type": "FILL_GAP",
+        "text": "We have ___ the project.",
+        "answer": "structured",
+        "explanation": "To‘g‘ri shakl(lar): finished",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "slots": [
+            {
+              "id": "s0",
+              "text": "Finish fe’lining past participle shakli"
+            }
+          ]
+        },
+        "grading": {
+          "values": ["finished"]
+        }
+      },
+      {
+        "type": "MATCH_PAIRS",
+        "text": "So‘zlarni mos shakli yoki ma’nosi bilan juftlang.",
+        "answer": "structured",
+        "explanation": "Mosliklar: go → gone; eat → eaten; see → seen",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "items": [
+            {
+              "id": "l0",
+              "text": "go"
+            },
+            {
+              "id": "l1",
+              "text": "eat"
+            },
+            {
+              "id": "l2",
+              "text": "see"
+            }
+          ],
+          "targets": [
+            {
+              "id": "r0",
+              "text": "gone"
+            },
+            {
+              "id": "r1",
+              "text": "eaten"
+            },
+            {
+              "id": "r2",
+              "text": "seen"
+            }
+          ]
+        },
+        "grading": {
+          "pairs": [
+            {
+              "left": "l0",
+              "right": "r0"
+            },
+            {
+              "left": "l1",
+              "right": "r1"
+            },
+            {
+              "left": "l2",
+              "right": "r2"
+            }
+          ]
+        }
+      },
+      {
+        "type": "DRAG_DROP",
+        "text": "So‘zlarni mos tarjimaga joylashtiring.",
+        "answer": "structured",
+        "explanation": "Mosliklar: already → allaqachon; yet → hali; never → hech qachon",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "items": [
+            {
+              "id": "l0",
+              "text": "already"
+            },
+            {
+              "id": "l1",
+              "text": "yet"
+            },
+            {
+              "id": "l2",
+              "text": "never"
+            }
+          ],
+          "targets": [
+            {
+              "id": "r0",
+              "text": "allaqachon"
+            },
+            {
+              "id": "r1",
+              "text": "hali"
+            },
+            {
+              "id": "r2",
+              "text": "hech qachon"
+            }
+          ]
+        },
+        "grading": {
+          "pairs": [
+            {
+              "left": "l0",
+              "right": "r0"
+            },
+            {
+              "left": "l1",
+              "right": "r1"
+            },
+            {
+              "left": "l2",
+              "right": "r2"
+            }
+          ]
+        }
+      },
+      {
+        "type": "LISTEN_ANSWER",
+        "text": "What has Ali finished?",
+        "answer": "structured",
+        "explanation": "Audio matni: Ali has already finished his homework.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "audioText": "Ali has already finished his homework.",
+          "language": "en-US"
+        },
+        "grading": {
+          "text": "his homework|homework"
+        }
+      },
+      {
+        "type": "SPEAK",
+        "text": "Namunani tinglang va gapni ayting.",
+        "answer": "structured",
+        "explanation": "Matndagi so‘zlarni namuna bilan solishtiring. Baho talaffuz emas, matn mosligiga asoslanadi.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "audioText": "I have finished my homework.",
+          "language": "en-US"
+        },
+        "grading": {
+          "text": "I have finished my homework.|I have finished my homework"
+        }
+      }
+    ]
+  },
+  {
+    "slug": "informatics",
+    "grade": 5,
+    "title": "Kompyuter qurilmalari va algoritmlar",
+    "explanation": "Kiritish qurilmalari kompyuterga ma’lumot beradi, chiqarish qurilmalari natijani ko‘rsatadi. CPU hisoblaydi, RAM vaqtincha saqlaydi, SSD esa ma’lumotni doimiy saqlaydi. Algoritm — aniq ketma-ketlikdagi ko‘rsatmalar.",
+    "example": "Klaviatura matn kiritadi, monitor tasvir ko‘rsatadi. Kompyuter o‘chirilganda RAM dagi ma’lumot saqlanmaydi. Ish natijasini faylga saqlash zarur.",
+    "questions": [
+      {
+        "type": "MULTIPLE_CHOICE",
+        "text": "Qaysi qurilma matn kiritishga xizmat qiladi?",
+        "answer": "Klaviatura",
+        "explanation": "Klaviatura kiritish qurilmasidir.",
+        "hint": "Variantlarni birma-bir tekshiring.",
+        "options": ["Monitor", "Klaviatura", "Printer", "Karnay"]
+      },
+      {
+        "type": "TEXT",
+        "text": "Aniq tartibda bajariladigan ko‘rsatmalar ketma-ketligi nima?",
+        "answer": "algoritm|algorithm",
+        "explanation": "Bu — algoritm.",
+        "hint": "Atamani yoki so‘zni eslang."
+      },
+      {
+        "type": "TRUE_FALSE",
+        "text": "RAM kompyuter o‘chirilganda ham ma’lumotni doimiy saqlaydi.",
+        "answer": "false",
+        "explanation": "RAM vaqtinchalik xotira.",
+        "hint": "Bayonotdagi asosiy tushunchaga e’tibor bering."
+      },
+      {
+        "type": "FILL_GAP",
+        "text": "Matn kiritish uchun ___ ishlatiladi.",
+        "answer": "structured",
+        "explanation": "Klaviatura tugmalari orqali matn kiritiladi.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "slots": [
+            {
+              "id": "s0",
+              "text": "Qurilma nomi"
+            }
+          ]
+        },
+        "grading": {
+          "values": ["klaviatura|keyboard"]
+        }
+      },
+      {
+        "type": "MATCH_PAIRS",
+        "text": "Qurilma va vazifani juftlang.",
+        "answer": "structured",
+        "explanation": "CPU — hisoblash; RAM — vaqtinchalik; SSD — doimiy saqlash.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "items": [
+            {
+              "id": "l0",
+              "text": "CPU"
+            },
+            {
+              "id": "l1",
+              "text": "RAM"
+            },
+            {
+              "id": "l2",
+              "text": "SSD"
+            }
+          ],
+          "targets": [
+            {
+              "id": "r0",
+              "text": "Hisoblash"
+            },
+            {
+              "id": "r1",
+              "text": "Vaqtinchalik xotira"
+            },
+            {
+              "id": "r2",
+              "text": "Doimiy xotira"
+            }
+          ]
+        },
+        "grading": {
+          "pairs": [
+            {
+              "left": "l0",
+              "right": "r0"
+            },
+            {
+              "left": "l1",
+              "right": "r1"
+            },
+            {
+              "left": "l2",
+              "right": "r2"
+            }
+          ]
+        }
+      },
+      {
+        "type": "DRAG_DROP",
+        "text": "Qurilmani uning vazifasiga joylashtiring.",
+        "answer": "structured",
+        "explanation": "Har qurilmaning o‘z vazifasi bor.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "items": [
+            {
+              "id": "l0",
+              "text": "Sichqoncha"
+            },
+            {
+              "id": "l1",
+              "text": "Monitor"
+            },
+            {
+              "id": "l2",
+              "text": "Printer"
+            }
+          ],
+          "targets": [
+            {
+              "id": "r0",
+              "text": "Kursorni boshqarish"
+            },
+            {
+              "id": "r1",
+              "text": "Tasvirni ko‘rsatish"
+            },
+            {
+              "id": "r2",
+              "text": "Qog‘ozga chiqarish"
+            }
+          ]
+        },
+        "grading": {
+          "pairs": [
+            {
+              "left": "l0",
+              "right": "r0"
+            },
+            {
+              "left": "l1",
+              "right": "r1"
+            },
+            {
+              "left": "l2",
+              "right": "r2"
+            }
+          ]
+        }
+      },
+      {
+        "type": "FIND_MISTAKE",
+        "text": "Qaysi bayonot noto‘g‘ri?",
+        "answer": "structured",
+        "explanation": "Tovushni karnay chiqaradi; printer qog‘ozga chiqaradi.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "items": [
+            {
+              "id": "i0",
+              "text": "Klaviatura matn kiritadi"
+            },
+            {
+              "id": "i1",
+              "text": "Monitor tasvir ko‘rsatadi"
+            },
+            {
+              "id": "i2",
+              "text": "Printer tovush chiqaradi"
+            }
+          ]
+        },
+        "grading": {
+          "values": ["i2"]
+        }
+      },
+      {
+        "type": "INTERACTIVE_IMAGE",
+        "text": "Plataning uzun xotira modulini belgilang.",
+        "answer": "structured",
+        "explanation": "Uzun modul RAM — vaqtinchalik xotira.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "imageUrl": "/exercises/computer-board.svg",
+          "imageAlt": "Kompyuter platasi: kvadrat CPU va uzun RAM moduli."
+        },
+        "grading": {
+          "points": [
+            {
+              "x": 75,
+              "y": 40
+            }
+          ],
+          "radius": 10
+        }
+      }
+    ]
+  },
+  {
+    "slug": "informatics",
+    "grade": 6,
+    "title": "Algoritm va ikkilik sanoq",
+    "explanation": "Algoritmning bosqichlari aniq tartibda bajariladi. Ikkilik sanoq tizimida faqat 0 va 1 ishlatiladi. Xona qiymatlari o‘ngdan chapga 1, 2, 4, 8 kabi ikki baravar oshadi.",
+    "example": "101₂ = 1 × 4 + 0 × 2 + 1 × 1 = 5. 110₂ = 1 × 4 + 1 × 2 + 0 × 1 = 6. Algoritm: boshlash, ma’lumot kiritish, hisoblash, natijani chiqarish, tugatish.",
+    "questions": [
+      {
+        "type": "MULTIPLE_CHOICE",
+        "text": "101₂ o‘nlik sanoqda nechaga teng?",
+        "answer": "5",
+        "explanation": "101₂ = 4 + 1 = 5.",
+        "hint": "Variantlarni birma-bir tekshiring.",
+        "options": ["3", "4", "5", "6"]
+      },
+      {
+        "type": "NUMERICAL",
+        "text": "110₂ sonini o‘nlik sanoqqa o‘tkazing.",
+        "answer": "6",
+        "explanation": "110₂ = 4 + 2 = 6.",
+        "hint": "Amallarni ko‘rsatilgan tartibda bajaring."
+      },
+      {
+        "type": "TRUE_FALSE",
+        "text": "Algoritm bosqichlarini istalgan tartibda bajarish har doim bir xil natija beradi.",
+        "answer": "false",
+        "explanation": "Bosqichlar tartibi natijaga ta’sir qiladi.",
+        "hint": "Bayonotdagi asosiy tushunchaga e’tibor bering."
+      },
+      {
+        "type": "FILL_GAP",
+        "text": "Ikkilik sanoqda faqat 0 va ___ raqamlari ishlatiladi.",
+        "answer": "structured",
+        "explanation": "Ikkilik tizim raqamlari 0 va 1.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "slots": [
+            {
+              "id": "s0",
+              "text": "Ikkinchi raqam"
+            }
+          ]
+        },
+        "grading": {
+          "values": ["1"]
+        }
+      },
+      {
+        "type": "MATCH_PAIRS",
+        "text": "Algoritm turini uning tavsifi bilan juftlang.",
+        "answer": "structured",
+        "explanation": "Chiziqli — ketma-ket; tarmoqlanuvchi — shart; takrorlanuvchi — sikl.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "items": [
+            {
+              "id": "l0",
+              "text": "Chiziqli"
+            },
+            {
+              "id": "l1",
+              "text": "Tarmoqlanuvchi"
+            },
+            {
+              "id": "l2",
+              "text": "Takrorlanuvchi"
+            }
+          ],
+          "targets": [
+            {
+              "id": "r0",
+              "text": "Bosqichlar ketma-ket bajariladi"
+            },
+            {
+              "id": "r1",
+              "text": "Shart asosida yo‘l tanlanadi"
+            },
+            {
+              "id": "r2",
+              "text": "Amallar bir necha marta bajariladi"
+            }
+          ]
+        },
+        "grading": {
+          "pairs": [
+            {
+              "left": "l0",
+              "right": "r0"
+            },
+            {
+              "left": "l1",
+              "right": "r1"
+            },
+            {
+              "left": "l2",
+              "right": "r2"
+            }
+          ]
+        }
+      },
+      {
+        "type": "SORT_ORDER",
+        "text": "Algoritm bosqichlarini tartiblang.",
+        "answer": "structured",
+        "explanation": "Boshlash → kiritish → hisoblash → chiqarish → tugatish.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "items": [
+            {
+              "id": "i0",
+              "text": "Hisoblash"
+            },
+            {
+              "id": "i1",
+              "text": "Tugatish"
+            },
+            {
+              "id": "i2",
+              "text": "Boshlash"
+            },
+            {
+              "id": "i3",
+              "text": "Natijani chiqarish"
+            },
+            {
+              "id": "i4",
+              "text": "Ma’lumot kiritish"
+            }
+          ]
+        },
+        "grading": {
+          "values": ["i2", "i4", "i0", "i3", "i1"]
+        }
+      },
+      {
+        "type": "CODE_COMPLETION",
+        "text": "HTML sarlavhasida OYLA matnini chiqaring.",
+        "answer": "structured",
+        "explanation": "<h1>OYLA</h1> sahifa sarlavhasini beradi.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "code": "<h1>___</h1>"
+        },
+        "grading": {
+          "text": "OYLA"
+        }
+      },
+      {
+        "type": "CONNECT_CONCEPT",
+        "text": "Ikkilik sonlarni o‘nlik qiymatlari bilan bog‘lang.",
+        "answer": "structured",
+        "explanation": "1₂ = 1, 10₂ = 2, 11₂ = 3.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "items": [
+            {
+              "id": "l0",
+              "text": "1₂"
+            },
+            {
+              "id": "l1",
+              "text": "10₂"
+            },
+            {
+              "id": "l2",
+              "text": "11₂"
+            }
+          ],
+          "targets": [
+            {
+              "id": "r0",
+              "text": "1"
+            },
+            {
+              "id": "r1",
+              "text": "2"
+            },
+            {
+              "id": "r2",
+              "text": "3"
+            }
+          ]
+        },
+        "grading": {
+          "pairs": [
+            {
+              "left": "l0",
+              "right": "r0"
+            },
+            {
+              "left": "l1",
+              "right": "r1"
+            },
+            {
+              "left": "l2",
+              "right": "r2"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "slug": "informatics",
+    "grade": 7,
+    "title": "Python: ifoda, funksiya va xatolar",
+    "explanation": "Python o‘zgaruvchilari qiymat saqlaydi. Print natijani chiqaradi, input ma’lumot oladi, len uzunlikni topadi. Shart qatori ikki nuqta bilan tugaydi, shart ichidagi amal esa chekinish bilan yoziladi.",
+    "example": "x = 3 bo‘lsa print(x + 2) natijasi 5. if age >= 18: qatoridan keyin print(\"Adult\") chekinish bilan yoziladi.",
+    "questions": [
+      {
+        "type": "MULTIPLE_CHOICE",
+        "text": "x = 3. print(x + 2) nima chiqaradi?",
+        "answer": "5",
+        "explanation": "3 + 2 = 5.",
+        "hint": "Variantlarni birma-bir tekshiring.",
+        "options": ["2", "3", "5", "6"]
+      },
+      {
+        "type": "TEXT",
+        "text": "Natijani ekranga chiqaradigan Python funksiyasini yozing.",
+        "answer": "print|print()",
+        "explanation": "Print funksiyasi natijani chiqaradi.",
+        "hint": "Atamani yoki so‘zni eslang."
+      },
+      {
+        "type": "TRUE_FALSE",
+        "text": "Python if shart qatori ikki nuqta bilan tugaydi.",
+        "answer": "true",
+        "explanation": "if age >= 18: — to‘g‘ri sintaksis.",
+        "hint": "Bayonotdagi asosiy tushunchaga e’tibor bering."
+      },
+      {
+        "type": "FILL_GAP",
+        "text": "range(1, 4) ketma-ketligida ___ ta son bor.",
+        "answer": "structured",
+        "explanation": "range(1,4): 1, 2, 3. Oxirgi chegara kirmaydi.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "slots": [
+            {
+              "id": "s0",
+              "text": "Sonlar miqdori"
+            }
+          ]
+        },
+        "grading": {
+          "values": ["3"]
+        }
+      },
+      {
+        "type": "MATCH_PAIRS",
+        "text": "Funksiya va vazifani juftlang.",
+        "answer": "structured",
+        "explanation": "len — uzunlik; print — chiqarish; input — kiritish.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "items": [
+            {
+              "id": "l0",
+              "text": "len"
+            },
+            {
+              "id": "l1",
+              "text": "print"
+            },
+            {
+              "id": "l2",
+              "text": "input"
+            }
+          ],
+          "targets": [
+            {
+              "id": "r0",
+              "text": "Uzunlikni topish"
+            },
+            {
+              "id": "r1",
+              "text": "Natijani chiqarish"
+            },
+            {
+              "id": "r2",
+              "text": "Ma’lumot kiritish"
+            }
+          ]
+        },
+        "grading": {
+          "pairs": [
+            {
+              "left": "l0",
+              "right": "r0"
+            },
+            {
+              "left": "l1",
+              "right": "r1"
+            },
+            {
+              "left": "l2",
+              "right": "r2"
+            }
+          ]
+        }
+      },
+      {
+        "type": "DRAG_DROP",
+        "text": "Operatorlarni mos amalga joylashtiring.",
+        "answer": "structured",
+        "explanation": "Har bir operator o‘z amalini bajaradi.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "items": [
+            {
+              "id": "l0",
+              "text": "+"
+            },
+            {
+              "id": "l1",
+              "text": "−"
+            },
+            {
+              "id": "l2",
+              "text": "*"
+            }
+          ],
+          "targets": [
+            {
+              "id": "r0",
+              "text": "Qo‘shish"
+            },
+            {
+              "id": "r1",
+              "text": "Ayirish"
+            },
+            {
+              "id": "r2",
+              "text": "Ko‘paytirish"
+            }
+          ]
+        },
+        "grading": {
+          "pairs": [
+            {
+              "left": "l0",
+              "right": "r0"
+            },
+            {
+              "left": "l1",
+              "right": "r1"
+            },
+            {
+              "left": "l2",
+              "right": "r2"
+            }
+          ]
+        }
+      },
+      {
+        "type": "CODE_COMPLETION",
+        "text": "Name o‘zgaruvchisini ekranga chiqaring.",
+        "answer": "structured",
+        "explanation": "print(name) o‘zgaruvchining qiymatini chiqaradi.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "code": "name = \"Ali\"\nprint(___)"
+        },
+        "grading": {
+          "text": "name"
+        }
+      },
+      {
+        "type": "DEBUG_CODE",
+        "text": "Shart qatoridagi yetishmayotgan ikki nuqtani tuzating.",
+        "answer": "structured",
+        "explanation": "Shart qatori : bilan tugaydi; ichki amal chekinish bilan yoziladi.",
+        "hint": "Ko‘rsatmani o‘qing va barcha elementlar bilan ishlang.",
+        "config": {
+          "code": "if age >= 18\n    print(\"Adult\")"
+        },
+        "grading": {
+          "text": "if age >= 18:\n    print(\"Adult\")"
+        }
+      }
+    ]
+  }
+]

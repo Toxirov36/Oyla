@@ -15,6 +15,7 @@ export function isUntouchedStarter(stored: StoredLesson, original: SeedLesson, p
     stored.status !== 'PUBLISHED' ||
     stored.prerequisiteId !== null ||
     stored.unlockScore !== 70 ||
+    stored.masteryScore !== 70 ||
     stored.position !== position ||
     stored.duration !== 8 + position * 2 ||
     stored.questions.length !== original.questions.length

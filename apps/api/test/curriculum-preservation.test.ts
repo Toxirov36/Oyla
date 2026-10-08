@@ -11,6 +11,7 @@ function stored(): Parameters<typeof canArchiveStarter>[0] {
   return {
     id: lessonId,
     prerequisiteId: null,
+    masteryScore: 70,
     unlockScore: 70,
     topicId: seedId('mathematics:5:topic:0'),
     title: original.title,

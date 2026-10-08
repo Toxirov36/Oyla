@@ -185,6 +185,7 @@ model Topic {
   @@index([courseId, status])
 }
 model Lesson {
+  masteryScore Int @default(70)
   prerequisiteId String? @db.Uuid
   prerequisite Lesson? @relation("LessonPrerequisite", fields: [prerequisiteId], references: [id], onDelete: Restrict)
   dependents Lesson[] @relation("LessonPrerequisite")

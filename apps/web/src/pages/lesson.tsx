@@ -49,6 +49,13 @@ export function ResultSummary({
           {result.correct} / {result.total} to‘g‘ri javob
         </p>
       </div>
+      {!daily && (
+        <p className={`pill ${(result.mastered ?? result.score >= 70) ? '' : 'warm'}`}>
+          {(result.mastered ?? result.score >= 70)
+            ? 'Dars yakunlandi · O‘zlashtirildi'
+            : `Dars yakunlandi · Mustahkamlash kerak (${result.masteryThreshold ?? 70}% maqsad)`}
+        </p>
+      )}
       <div className="result-stats">
         <div>
           <Zap size={24} />

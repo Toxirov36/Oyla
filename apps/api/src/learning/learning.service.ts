@@ -319,9 +319,19 @@ export class LearningService {
       const next =
         available.find((l) => l.topic.courseId === currentLesson?.topic.courseId) ?? available[0];
       const nextLesson = next ? { id: next.id, title: next.title } : null;
+      const masteryThreshold = attempt.lessonId
+        ? (
+            await tx.lesson.findUniqueOrThrow({
+              where: { id: attempt.lessonId },
+              select: { masteryScore: true },
+            })
+          ).masteryScore
+        : 70;
       const result = {
         attemptId: id,
         score,
+        mastered: score >= masteryThreshold,
+        masteryThreshold,
         correct: attempt.answers.filter((a) => a.correct).length,
         total: attempt.questionIds.length,
         earnedXp,

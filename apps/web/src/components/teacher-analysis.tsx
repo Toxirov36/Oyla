@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Classroom } from '../lib/types';
 import { Button, Card, EmptyState, ProgressBar } from './ui';
 import { ComboboxField } from './combobox-field';
+import { exerciseLabels } from '../lib/exercises';
 
 export function TeacherAnalysis({
   group,
@@ -15,6 +16,9 @@ export function TeacherAnalysis({
   const subjects = [...new Set(group.topics.map((topic) => topic.subject))];
   const topics = group.topics.filter(
     (topic) => (!subject || topic.subject === subject) && (!helpOnly || topic.struggling > 0),
+  );
+  const exerciseTypes = (group.exerciseTypes ?? []).filter(
+    (t) => (!subject || t.subject === subject) && (!helpOnly || t.struggling > 0),
   );
   return (
     <>
@@ -101,6 +105,58 @@ export function TeacherAnalysis({
           </div>
         ) : (
           <EmptyState title="Filtr bo‘yicha mavzular yo‘q" />
+        )}
+      </Card>
+      <div className="section-title">
+        <h2>Mashq turlari bo‘yicha tahlil</h2>
+        <span className="subtle">Eng so‘nggi yakunlangan urinishlar</span>
+      </div>
+      <Card>
+        <p className="formula-note">
+          Har o‘quvchining har darsdagi eng so‘nggi yakunlangan urinishining birinchi javoblari
+          olinadi. Mustahkamlash uchun bir savolni qayta tekshirish hisobga qo‘shilmaydi.
+        </p>
+        {exerciseTypes.length ? (
+          <div className="table-scroll">
+            <table className="teacher-exercise-table">
+              <thead>
+                <tr>
+                  <th>Mashq turi</th>
+                  <th>To‘g‘ri javoblar</th>
+                  <th>Ishtirokchilar</th>
+                  <th>Yordam kerak</th>
+                </tr>
+              </thead>
+              <tbody>
+                {exerciseTypes.map((t) => (
+                  <tr key={`${t.subject}:${t.type}`}>
+                    <td>
+                      <strong>{exerciseLabels[t.type]}</strong>
+                      <small>{t.subject}</small>
+                    </td>
+                    <td>
+                      <strong>{t.accuracy}%</strong>
+                      <small>
+                        {t.correct} / {t.answers} javob
+                      </small>
+                      <ProgressBar value={t.accuracy} tone={t.accuracy < 60 ? 'orange' : 'mint'} />
+                    </td>
+                    <td>{t.participants} o‘quvchi</td>
+                    <td>
+                      <span className={`pill ${t.struggling ? 'warm' : ''}`}>
+                        {t.struggling} o‘quvchi
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <EmptyState
+            title="Mashq turlari bo‘yicha hali natija yo‘q"
+            description="O‘quvchilar darsni yakunlaganda birinchi javoblar tahlili ko‘rinadi."
+          />
         )}
       </Card>
       <div className="section-title">

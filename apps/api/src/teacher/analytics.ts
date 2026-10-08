@@ -1,6 +1,7 @@
 import { mean } from '../learning/rules';
 
 export interface LearningLesson {
+  masteryScore?: number;
   id: string;
   title: string;
   topic: {
@@ -43,6 +44,7 @@ export function studentLearning(
       subject: first.topic.course.subject.title,
       totalLessons: available.length,
       completed: completed.length,
+      mastered: completed.filter((row) => row.bestScore >= (row.lesson.masteryScore ?? 70)).length,
       progressPercent: Math.round((completed.length / available.length) * 100),
       mastery,
       needsHelp: mastery !== null && mastery < 60,
@@ -52,6 +54,7 @@ export function studentLearning(
   return {
     progress,
     completed: progress.length,
+    mastered: progress.filter((row) => row.bestScore >= (row.lesson.masteryScore ?? 70)).length,
     totalLessons: lessons.length,
     progressPercent: lessons.length ? Math.round((progress.length / lessons.length) * 100) : 0,
     mastery: mean(progress.map((row) => row.bestScore)),
@@ -95,6 +98,7 @@ export function classTopics(
         notStarted: students.length - started.length,
         struggling,
         completed,
+        mastered: scores.reduce((sum, entry) => sum + entry.mastered, 0),
         progressPercent: students.length
           ? Math.round((completed / (students.length * topic.totalLessons)) * 100)
           : 0,

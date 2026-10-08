@@ -354,10 +354,16 @@ try {
   assert.equal(daily.questions.length, 5);
   for (const q of daily.questions) {
     const key = await db.question.findUniqueOrThrow({ where: { id: q.id } });
+    const payload = key.grading ? { ...key.grading } : null;
+    if (payload) {
+      delete payload.radius;
+      if (payload.text) payload.text = payload.text.split('|')[0];
+      if (payload.values) payload.values = payload.values.map((v) => v.split('|')[0]);
+    }
     await student.request(`/attempts/${daily.id}/answers`, {
       method: 'POST',
       expected: 201,
-      body: { questionId: q.id, value: key.answer.split('|')[0] },
+      body: { questionId: q.id, ...(payload ? { payload } : { value: key.answer.split('|')[0] }) },
     });
   }
   const dailyResult = await student.request(`/attempts/${daily.id}/complete`, {

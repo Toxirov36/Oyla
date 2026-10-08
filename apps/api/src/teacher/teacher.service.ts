@@ -3,6 +3,7 @@ import { PrismaService } from '../common/prisma.service';
 import { Actor } from '../common/security';
 import { visibleLesson } from '../content/content.service';
 import { studentLearning, classTopics } from './analytics';
+import { exerciseAnalysis } from './exercise-analytics';
 import { CreateAssignmentDto } from './teacher.dto';
 
 const studentSelect = {
@@ -69,6 +70,26 @@ export class TeacherService {
             select: { userId: true, lessonId: true, bestScore: true },
           })
         : [];
+    const attempts =
+      rosterIds.length && lessons.length
+        ? await this.db.attempt.findMany({
+            where: {
+              userId: { in: rosterIds },
+              lessonId: { in: lessons.map((l) => l.id) },
+              status: 'COMPLETED',
+            },
+            select: {
+              id: true,
+              userId: true,
+              lessonId: true,
+              completedAt: true,
+              questionsSnapshot: true,
+              answers: {
+                select: { questionId: true, correct: true, question: { select: { type: true } } },
+              },
+            },
+          })
+        : [];
     return groups.map((group) => {
       const visible = lessons.filter((lesson) => lesson.topic.course.grade === group.grade);
       const students = group.students
@@ -77,11 +98,24 @@ export class TeacherService {
             student.active && student.role === 'STUDENT' && student.student?.grade === group.grade,
         )
         .map(({ student }) => ({ ...student, ...studentLearning(student.id, visible, rows) }));
-      const topics = classTopics(visible, students);
+      const topics = classTopics(visible, students).map((t) => ({
+        ...t,
+        exerciseTypes: exerciseAnalysis(
+          attempts,
+          visible,
+          students.map((s) => s.id),
+          t.id,
+        ),
+      }));
       return {
         ...group,
         students,
         topics,
+        exerciseTypes: exerciseAnalysis(
+          attempts,
+          visible,
+          students.map((s) => s.id),
+        ),
         totalLessons: visible.length,
         studentsNeedingHelp: students
           .filter((student) => student.needsHelp)

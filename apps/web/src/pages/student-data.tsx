@@ -152,6 +152,10 @@ export default function StudentDataPage({
           ))}
         </div>
         <p className="formula-note">
+          {d.completedLessons} ta dars yakunlangan, {d.masteredLessons ?? 0} tasi belgilangan
+          o‘zlashtirish maqsadiga yetgan.
+        </p>
+        <p className="formula-note">
           Progress — yakunlangan darslar ulushi. O‘zlashtirish — har bir yakunlangan darsdagi eng
           yaxshi natijalaringiz o‘rtachasi.
         </p>

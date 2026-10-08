@@ -6,12 +6,13 @@ import { Card, ProgressBar } from './ui';
 export function LessonPath({ subject, dashboard }: { subject: Subject; dashboard?: Dashboard }) {
   const all = subject.courses.flatMap((c) => c.topics.flatMap((t) => t.lessons));
   const completed = all.filter((l) => l.bestScore != null || l.state === 'COMPLETED').length;
+  const mastered = all.filter((l) => l.mastered).length;
   const current =
     all.find((l) => l.state === 'IN_PROGRESS') ??
     all.find((l) => l.state !== 'LOCKED' && l.state !== 'COMPLETED');
   return (
     <div className="learning-journey">
-      <main className="lesson-path">
+      <div className="lesson-path">
         <div className="journey-overview">
           <div>
             <span className="eyebrow">SIZNING O‘QUV YO‘LINGIZ</span>
@@ -20,6 +21,9 @@ export function LessonPath({ subject, dashboard }: { subject: Subject; dashboard
             </strong>
           </div>
           <ProgressBar value={all.length ? (completed / all.length) * 100 : 0} tone="mint" />
+          <p className="subtle">
+            {completed} ta yakunlangan · {mastered} ta o‘zlashtirilgan
+          </p>
         </div>
         {subject.courses.map((course) => (
           <section key={course.id} className="path-course">
@@ -60,7 +64,7 @@ export function LessonPath({ subject, dashboard }: { subject: Subject; dashboard
                             {state === 'LOCKED'
                               ? `Oldingi darsdan ${lesson.unlockScore ?? 70}% oling`
                               : state === 'COMPLETED'
-                                ? `Yakunlangan · ${lesson.bestScore ?? 0}%`
+                                ? `Yakunlangan · ${lesson.bestScore ?? 0}% · ${lesson.mastered ? 'O‘zlashtirildi' : 'Mustahkamlash kerak'}`
                                 : state === 'IN_PROGRESS'
                                   ? 'Davom ettirish'
                                   : `${lesson.duration} daqiqa · ${active ? 'Boshlash' : 'Mashq qilish'}`}
@@ -72,7 +76,7 @@ export function LessonPath({ subject, dashboard }: { subject: Subject; dashboard
                     return (
                       <li
                         key={lesson.id}
-                        className={`path-step state-${state.toLowerCase()} offset-${i % 3}`}
+                        className={`path-step state-${state.toLowerCase()} ${state === 'COMPLETED' && !lesson.mastered ? 'needs-practice' : ''} offset-${i % 3}`}
                         aria-current={active ? 'step' : undefined}
                       >
                         {state === 'LOCKED' ? (
@@ -93,7 +97,7 @@ export function LessonPath({ subject, dashboard }: { subject: Subject; dashboard
             ))}
           </section>
         ))}
-      </main>
+      </div>
       <aside className="journey-sidebar" aria-label="O‘quv ko‘rsatkichlari">
         <Card className="journey-motivation">
           <span className="eyebrow">HAR KUNI BIR QADAM</span>

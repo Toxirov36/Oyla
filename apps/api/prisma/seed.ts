@@ -5,6 +5,7 @@ import * as argon2 from 'argon2';
 import { createHash } from 'node:crypto';
 import { syncCurriculum } from './curriculum/sync';
 import { lessonId } from './curriculum/types';
+import { installInteractivePilot } from './interactive-pilot';
 
 loadEnv({ override: true, quiet: true });
 const db = createPrismaClient();
@@ -91,6 +92,7 @@ async function main() {
       create: { slug, title, description, criterion, threshold },
     });
   const curriculumReport = await syncCurriculum(db);
+  await installInteractivePilot(db);
   for (const [name, teacher, emails] of [
     [
       '6-A',

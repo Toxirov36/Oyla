@@ -10,7 +10,8 @@
     "test": "node --require ts-node/register --test test/*.test.ts",
     "db:generate": "node scripts/prisma.mjs generate",
     "db:migrate": "node scripts/prisma.mjs migrate deploy",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "db:seed:interactive": "tsx prisma/seed-interactive.ts"
   },
   "dependencies": {
     "@nestjs/common": "^12.1.2",

@@ -231,6 +231,13 @@ export default function AdminPage({
           min: 0,
           max: 100,
         },
+        {
+          key: 'masteryScore',
+          label: 'Darsni o‘zlashtirish uchun minimal natija (%)',
+          kind: 'number',
+          min: 0,
+          max: 100,
+        },
         ...(item ? [statusField] : []),
         positionField,
       ];
@@ -238,6 +245,7 @@ export default function AdminPage({
         topicId: parentId,
         duration: 10,
         unlockScore: 70,
+        masteryScore: 70,
         ...values,
         prerequisiteId: values.prerequisiteId ?? '',
       };

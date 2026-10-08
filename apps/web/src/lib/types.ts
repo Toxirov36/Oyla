@@ -51,6 +51,9 @@ export interface NotificationList {
   limit: number;
 }
 export interface LessonSummary {
+  mastered?: boolean;
+  masteryThreshold?: number;
+  masteryScore?: number;
   prerequisiteId?: string | null;
   unlockScore?: number;
   state?: 'LOCKED' | 'COMPLETED' | 'IN_PROGRESS' | 'AVAILABLE';
@@ -112,6 +115,8 @@ export interface Lesson extends LessonSummary {
   };
 }
 export interface Result {
+  mastered?: boolean;
+  masteryThreshold?: number;
   attemptId: string;
   score: number;
   correct: number;
@@ -166,6 +171,7 @@ export interface Badge {
   unlockedAt?: string | null;
 }
 export interface Dashboard {
+  masteredLessons?: number;
   user: User;
   totalXp: number;
   level: { number: number; title: string; threshold: number };
@@ -239,6 +245,7 @@ export interface Daily {
   result: Result | null;
 }
 export interface StudentPerformance extends User {
+  mastered?: number;
   totalLessons: number;
   progressPercent: number;
   needsHelp: boolean;
@@ -252,6 +259,7 @@ export interface StudentPerformance extends User {
   }[];
 }
 export interface Classroom {
+  exerciseTypes?: ExerciseTypeAnalysis[];
   totalLessons: number;
   topics: ClassTopic[];
   studentsNeedingHelp: { id: string; name: string; mastery: number; topics: StudentTopic[] }[];
@@ -294,6 +302,8 @@ export interface StudentTopic {
   suggestedLesson: { id: string; title: string };
 }
 export interface ClassTopic {
+  mastered?: number;
+  exerciseTypes?: ExerciseTypeAnalysis[];
   id: string;
   title: string;
   subject: string;
@@ -305,6 +315,15 @@ export interface ClassTopic {
   struggling: number;
   progressPercent: number;
   suggestedLesson: { id: string; title: string };
+}
+export interface ExerciseTypeAnalysis {
+  type: QuestionType;
+  subject: string;
+  answers: number;
+  correct: number;
+  accuracy: number;
+  participants: number;
+  struggling: number;
 }
 export interface FriendConnection {
   id: string;

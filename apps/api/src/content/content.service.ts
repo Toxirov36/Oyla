@@ -62,6 +62,7 @@ export class ContentService {
                     position: true,
                     prerequisiteId: true,
                     unlockScore: true,
+                    masteryScore: true,
                   },
                 },
               },

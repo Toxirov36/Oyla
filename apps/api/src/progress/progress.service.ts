@@ -1,3 +1,4 @@
+import { lessonAccess } from '../learning/lesson-access';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
 import { Actor } from '../common/security';
@@ -49,8 +50,17 @@ export class ProgressService {
       title: 'Boshlovchi',
     };
     const nextLevel = levels.find((l) => l.threshold > totalXp) || null;
+    const access = await lessonAccess(this.db, actor);
     const continueLesson =
-      lessons.find((l) => !progress.some((p) => p.lessonId === l.id)) || lessons[0] || null;
+      lessons.find((l) => access(l).state === 'IN_PROGRESS') ||
+      lessons.find(
+        (l) => access(l).state !== 'LOCKED' && !progress.some((p) => p.lessonId === l.id),
+      ) ||
+      lessons.find((l) =>
+        progress.some((p) => p.lessonId === l.id && p.bestScore < l.masteryScore),
+      ) ||
+      lessons[0] ||
+      null;
     const subjectMap = new Map<
       string,
       {
@@ -59,6 +69,7 @@ export class ProgressService {
         title: string;
         total: number;
         completed: number;
+        mastered: number;
         scores: number[];
       }
     >();
@@ -70,6 +81,7 @@ export class ProgressService {
         subject: string;
         total: number;
         completed: number;
+        mastered: number;
         scores: number[];
       }
     >();
@@ -81,6 +93,7 @@ export class ProgressService {
         title: subject.title,
         total: 0,
         completed: 0,
+        mastered: 0,
         scores: [],
       };
       const topic = topicMap.get(lesson.topicId) || {
@@ -89,6 +102,7 @@ export class ProgressService {
         subject: subject.title,
         total: 0,
         completed: 0,
+        mastered: 0,
         scores: [],
       };
       current.total++;
@@ -96,6 +110,10 @@ export class ProgressService {
       const completed = progress.find((p) => p.lessonId === lesson.id);
       if (completed) {
         current.completed++;
+        if (completed.bestScore >= lesson.masteryScore) {
+          current.mastered++;
+          topic.mastered++;
+        }
         current.scores.push(completed.bestScore);
         topic.completed++;
         topic.scores.push(completed.bestScore);
@@ -135,6 +153,9 @@ export class ProgressService {
       streak: currentStreak,
       longestStreak: streak?.longest || 0,
       completedLessons: progress.length,
+      masteredLessons: progress.filter(
+        (p) => p.bestScore >= (lessons.find((l) => l.id === p.lessonId)?.masteryScore ?? 70),
+      ).length,
       completedLessonIds: progress.map((p) => p.lessonId),
       totalLessons: lessons.length,
       continueLesson: continueLesson

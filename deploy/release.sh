@@ -43,6 +43,8 @@ test -f "$base/.database-ready" || { echo 'Provision and verify the production d
 "${compose[@]}" up -d --no-build --wait --wait-timeout 180 < /dev/null
 curl --fail --silent --max-time 10 http://127.0.0.1:3001/api/v1/health >/dev/null
 docker exec oyla-web-1 wget -q --spider http://127.0.0.1/
+# Add reviewed pilot content only; the idempotent loader preserves existing edits and history.
+docker exec oyla-api-1 node dist/prisma/seed-interactive.js
 for service in api web; do
   actual=$(docker inspect --format '{{.Config.Image}}' "oyla-$service-1")
   [[ "$actual" == "$IMAGE_PREFIX-$service:$revision" ]] || exit 1

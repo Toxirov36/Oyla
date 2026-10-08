@@ -424,7 +424,8 @@ export default function TeacherPage({ assignmentsOnly = false }: { assignmentsOn
                         <strong>{student.name}</strong>
                         <small>
                           {student.completed} / {student.totalLessons} dars · progress{' '}
-                          {student.progressPercent}%
+                          {student.progressPercent}%{' · '}
+                          {student.mastered ?? 0} ta o‘zlashtirilgan
                         </small>
                       </div>
                       <span

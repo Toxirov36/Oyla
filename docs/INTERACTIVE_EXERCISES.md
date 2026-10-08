@@ -8,7 +8,15 @@ There are 18 question types: multiple choice, true/false, numerical, text, fill 
 
 Administrators open **O‘quv kontenti → Mashqlar katalogi** (`/admin/exercises`) to try all 20 experiences. Preview validation uses `POST /api/v1/admin/exercise-preview`; it writes no attempts, progress, or XP. In the content tree, **Savol qo‘shish** opens the type-specific editor. Input lists and answer mappings are converted into validated structured definitions; no JSON editing is required. The editor also supports a preview before saving.
 
-Existing published questions keep their original four types and answer keys. The catalog's examples are demonstrations, not replacements for the reviewed 5–7 curriculum. New interactive material can be authored and published in existing or new lessons.
+Existing published questions keep their original four types and answer keys. The reviewed curriculum is extended with 9 published pilot lessons and 72 exercises: one lesson per subject per grade, with eight exercises each. They appear in each course's **Interaktiv laboratoriya** topic. The idempotent content loader preserves administrator edits, attempts, progress, XP, and accounts. Catalog examples remain separate demonstrations.
+
+| Grade | Mathematics | English | Informatics |
+|---|---|---|---|
+| 5 | Fractions, matching and ordering | Daily life / Present Simple | Devices and algorithms |
+| 6 | Percentages and comparison | Past Simple | Algorithms and binary numbers |
+| 7 | Equations and solutions | Present Perfect | Python functions and debugging |
+
+Run `npm run db:seed:interactive` locally to install the pilots. The normal development seed also includes them. Production `release.sh` runs the compiled content-only loader after the API health check; it does not create demo users or replace existing content. Each pilot lesson has six core exercises and two enrichment exercises.
 
 ## Definitions and grading
 
@@ -31,6 +39,10 @@ The first submitted answer determines score. Further educational retries can ret
 ## Prerequisites
 
 The lesson editor accepts an optional prior lesson and a minimum score (default 70%). The prior lesson must be earlier in the same course. Cycles are rejected. Access is enforced in the lesson and attempt APIs, not just by disabling the path button. Previously completed lessons and lessons assigned to the student's class remain accessible. Existing lessons have no prerequisite and remain available until an administrator configures one. The next-lesson recommendation prefers an accessible unfinished lesson in the current course.
+
+Completion and mastery are distinct. `Lesson.masteryScore` is the administrator-configured score needed to master that lesson (default 70%), while `unlockScore` controls its prerequisite. Results show whether the attempt reached its mastery target; the path, student progress and teacher reports count mastery from each lesson's best recorded score. A low score still records a completed lesson and can be improved by practice without another lesson reward.
+
+Teachers see **Mashq turlari bo‘yicha tahlil** in the class view, with answer counts, accuracy, participating learners and learners below 60% for each type. The report uses first saved answers from the latest completed attempt per learner/lesson, and immutable question-type snapshots. Incomplete attempts, hidden content, other grades and learners outside the current roster are excluded. Re-checking a saved answer adds no report weight. Subject/weak-result filters apply to both topic and exercise-type reports.
 
 ## Migration and verification
 
