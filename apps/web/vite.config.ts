@@ -2,8 +2,22 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { fileURLToPath } from 'node:url';
+import { brand, brandTitle, brandDescription } from './src/lib/brand';
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    {
+      name: 'platform-brand',
+      transformIndexHtml: (html: string) =>
+        html
+          .replace('%BRAND_DESCRIPTION%', brandDescription)
+          .replace('%BRAND_TITLE%', brandTitle)
+          .replace('%BRAND_FAVICON%', brand.logo.favicon)
+          .replace('%BRAND_FAVICON_TYPE%', brand.logo.faviconType)
+          .replace('%BRAND_THEME_COLOR%', brand.colors.navy),
+    },
+  ],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   server: {
     port: 5173,

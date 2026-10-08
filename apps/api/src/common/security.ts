@@ -103,9 +103,16 @@ export class RateGuard implements CanActivate {
       /\/auth\/(login|register|refresh|password-reset\/(request|confirm))$|\/users\/me\/password$|\/admin\/users\/[^/]+\/password-reset$/.test(
         req.path,
       );
-    const limit = sensitive ? config.AUTH_RATE_LIMIT : config.API_RATE_LIMIT;
+    const playRead =
+      req.method === 'GET' &&
+      /\/(?:brain-ring(?:\/[a-f0-9-]+)?|profile-photos\/[a-f0-9-]+)$/i.test(req.path);
+    const limit = playRead
+      ? config.PLAY_POLL_RATE_LIMIT
+      : sensitive
+        ? config.AUTH_RATE_LIMIT
+        : config.API_RATE_LIMIT;
     const count = await this.redis.incrementWindow(
-      `rate:${sensitive ? 'auth' : 'api'}:${req.ip}`,
+      `rate:${playRead ? 'play-read' : sensitive ? 'auth' : 'api'}:${req.ip}`,
       60,
     );
     if (count > limit)

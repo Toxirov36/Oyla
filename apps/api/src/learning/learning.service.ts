@@ -3,8 +3,9 @@ import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../common/prisma.service';
 import { Actor } from '../common/security';
 import { publicSnapshot, legacyTypes } from './exercises';
+import { buildFeedback, type FeedbackQuestion } from './feedback';
 import { assertLessonAccess, lessonAccess } from './lesson-access';
-import { questionSelect, visibleLesson, visibleQuestion } from '../content/content.service';
+import { visibleLesson, visibleQuestion } from '../content/content.service';
 import { GamificationService } from '../gamification/gamification.service';
 import { checkAnswer, localDay, mean, scoreAnswers } from './rules';
 import { AnswerDto, StartAttemptDto } from './learning.dto';
@@ -118,21 +119,52 @@ export class LearningService {
   async get(actor: Actor, id: string) {
     const attempt = await this.db.attempt.findFirst({
       where: { id, userId: actor.id },
-      include: { answers: { select: { questionId: true, value: true, correct: true } } },
+      include: {
+        answers: {
+          select: {
+            questionId: true,
+            value: true,
+            correct: true,
+            feedback: true,
+            feedbackSeen: true,
+          },
+        },
+      },
     });
     if (!attempt) throw new NotFoundException('Urinish topilmadi.');
     const questions = await this.db.question.findMany({
       where: { id: { in: attempt.questionIds } },
-      select: questionSelect,
+      include: { options: { orderBy: { position: 'asc' } } },
     });
     const { questionsSnapshot, ...safe } = attempt;
     if (attempt.status === 'IN_PROGRESS') await this.ensureAccessible(this.db, actor, attempt);
     const snapshots = questionsSnapshot as unknown as Record<string, unknown>[] | null;
+    const answers = attempt.answers.map((answer) => {
+      const definition =
+        snapshots?.find((q) => q.id === answer.questionId) ??
+        questions.find((q) => q.id === answer.questionId);
+      return {
+        ...answer,
+        feedback:
+          answer.feedback ??
+          (definition
+            ? buildFeedback(definition as unknown as FeedbackQuestion, answer.value, answer.correct)
+            : null),
+      };
+    });
+    const resumeQuestionId =
+      attempt.questionIds.find((qid) =>
+        answers.some((a) => a.questionId === qid && !a.feedbackSeen),
+      ) ??
+      attempt.questionIds.find((qid) => !answers.some((a) => a.questionId === qid)) ??
+      attempt.questionIds.at(-1);
     return {
       ...safe,
+      answers,
+      resumeQuestionId,
       questions: snapshots
         ? snapshots.map(publicSnapshot)
-        : attempt.questionIds.map((qid) => questions.find((q) => q.id === qid)),
+        : attempt.questionIds.map((qid) => publicSnapshot(questions.find((q) => q.id === qid)!)),
     };
   }
   async answer(actor: Actor, id: string, dto: AnswerDto) {
@@ -161,6 +193,7 @@ export class LearningService {
         throw new BadRequestException('Javob formati savolga mos emas.');
       const value = structured ? JSON.stringify(dto.payload) : dto.value!;
       const correct = checkAnswer(question, value);
+      const feedback = buildFeedback(question, value, correct, !existing);
       if (!existing)
         await tx.attemptAnswer.create({
           data: {
@@ -168,17 +201,32 @@ export class LearningService {
             questionId: dto.questionId,
             value,
             correct,
+            feedback: feedback as unknown as Prisma.InputJsonValue,
+            feedbackSeen: false,
             ...(dto.payload ? { payload: dto.payload as unknown as Prisma.InputJsonValue } : {}),
           },
         });
-      return {
-        questionId: question.id,
-        correct,
-        counted: !existing,
-        explanation: question.explanation,
-        hint: question.hint,
-        message: correct ? 'Ajoyib! To‘g‘ri javob.' : 'Yaqin keldingiz! Keling, yechimni ko‘ramiz.',
-      };
+      else
+        await tx.attemptAnswer.update({
+          where: { attemptId_questionId: { attemptId: id, questionId: dto.questionId } },
+          data: { feedback: feedback as unknown as Prisma.InputJsonValue, feedbackSeen: false },
+        });
+      return feedback;
+    });
+  }
+  async continueFeedback(actor: Actor, id: string, questionId: string) {
+    return this.db.withUserLock(actor.id, async (tx) => {
+      const attempt = await tx.attempt.findFirst({ where: { id, userId: actor.id } });
+      if (!attempt) throw new NotFoundException('Urinish topilmadi.');
+      if (attempt.status !== 'IN_PROGRESS') throw new BadRequestException('Urinish yakunlangan.');
+      await this.ensureAccessible(tx, actor, attempt);
+      const answer = await tx.attemptAnswer.findUnique({
+        where: { attemptId_questionId: { attemptId: id, questionId } },
+      });
+      if (!attempt.questionIds.includes(questionId) || !answer)
+        throw new BadRequestException('Avval shu savolga javob bering.');
+      await tx.attemptAnswer.update({ where: { id: answer.id }, data: { feedbackSeen: true } });
+      return { acknowledged: true };
     });
   }
   async complete(actor: Actor, id: string) {

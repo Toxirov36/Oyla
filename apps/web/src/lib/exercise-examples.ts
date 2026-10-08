@@ -1,6 +1,12 @@
-import type { ExerciseConfig, ExerciseGrading, ExerciseType } from './exercises';
+import type {
+  ExerciseConfig,
+  ExerciseGrading,
+  ExerciseType,
+  QuestionFeedbackDefinition,
+} from './exercises';
 import examples from './exercise-examples.json';
 export interface ExerciseExample {
+  feedback?: QuestionFeedbackDefinition;
   text: string;
   answer?: string;
   options?: string[];
@@ -16,6 +22,7 @@ export function exampleQuestion(type: ExerciseType) {
     text: e.text,
     answer: e.answer ?? 'structured',
     explanation: e.explanation,
+    feedback: e.feedback,
     config: e.config,
     grading: e.grading,
     options: (e.options ?? []).map((text) => ({ text, value: text })),

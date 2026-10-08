@@ -48,6 +48,13 @@ export interface ExercisePayload {
 export interface ExerciseGrading extends ExercisePayload {
   radius?: number;
 }
+export interface QuestionFeedbackDefinition {
+  reason?: string;
+  rule?: string;
+  steps?: string[];
+  example?: string;
+  wrongAnswers?: { value: string; reason: string }[];
+}
 export const isStructured = (type: string) =>
   !['MULTIPLE_CHOICE', 'TRUE_FALSE', 'NUMERICAL', 'TEXT'].includes(type);
 export function parsePayload(value: string): ExercisePayload {

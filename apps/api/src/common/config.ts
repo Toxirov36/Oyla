@@ -13,6 +13,7 @@ class Environment {
   @IsIn(['0', '1']) TRUST_PROXY = '0';
   @IsInt() @Min(1) @Max(10000) AUTH_RATE_LIMIT = 20;
   @IsInt() @Min(1) @Max(10000) API_RATE_LIMIT = 240;
+  @IsInt() @Min(1) @Max(10000) PLAY_POLL_RATE_LIMIT = 3000;
 }
 const input = {
   DATABASE_URL: process.env.DATABASE_URL,
@@ -24,6 +25,7 @@ const input = {
   TRUST_PROXY: process.env.TRUST_PROXY || '0',
   AUTH_RATE_LIMIT: Number(process.env.AUTH_RATE_LIMIT || 20),
   API_RATE_LIMIT: Number(process.env.API_RATE_LIMIT || 240),
+  PLAY_POLL_RATE_LIMIT: Number(process.env.PLAY_POLL_RATE_LIMIT || 3000),
 };
 export const config = plainToInstance(Environment, input);
 const errors = validateSync(config, { validationError: { target: false, value: false } });

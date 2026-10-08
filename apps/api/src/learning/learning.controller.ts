@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Actor, CurrentUser, Roles } from '../common/security';
 import { IdDto } from '../common/dto';
-import { AnswerDto, StartAttemptDto } from './learning.dto';
+import { AnswerDto, ContinueFeedbackDto, StartAttemptDto } from './learning.dto';
 import { LearningService } from './learning.service';
 @ApiTags('Learning')
 @ApiBearerAuth()
@@ -28,5 +28,12 @@ export class LearningController {
   }
   @Post('attempts/:id/complete') complete(@CurrentUser() actor: Actor, @Param() params: IdDto) {
     return this.learning.complete(actor, params.id);
+  }
+  @Post('attempts/:id/feedback/continue') continueFeedback(
+    @CurrentUser() actor: Actor,
+    @Param() params: IdDto,
+    @Body() dto: ContinueFeedbackDto,
+  ) {
+    return this.learning.continueFeedback(actor, params.id, dto.questionId);
   }
 }

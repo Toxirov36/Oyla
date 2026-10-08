@@ -84,9 +84,9 @@ for (const { wrongFirst, position, label, mobile } of [
           .check();
         await page.getByRole('button', { name: 'Javobni tekshirish' }).click();
         await expect(
-          page.getByText('Yaqin keldingiz! Keling, yechimni ko‘ramiz.', { exact: true }),
+          page.getByText('Keling, xatoni birga tushunamiz.', { exact: true }),
         ).toBeVisible();
-        await page.getByRole('button', { name: 'Yana sinab ko‘rish' }).click();
+        await page.getByRole('button', { name: 'Yana urinib ko‘rish' }).click();
       }
       await answer();
       await page.getByRole('button', { name: 'Javobni tekshirish' }).click();

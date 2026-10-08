@@ -12,6 +12,11 @@ const StudentData = lazy(() => import('./pages/student-data'));
 const Teacher = lazy(() => import('./pages/teacher'));
 const ExerciseCatalog = lazy(() => import('./pages/admin/exercise-catalog'));
 const Admin = lazy(() => import('./pages/admin'));
+const AdminAvatars = lazy(() => import('./pages/admin/avatars'));
+const Games = lazy(() => import('./pages/games'));
+const BrainRing = lazy(() => import('./pages/brain-ring'));
+const Videos = lazy(() => import('./pages/videos'));
+const AdminVideos = lazy(() => import('./pages/admin/videos'));
 const Profile = lazy(() => import('./pages/profile'));
 const Friends = lazy(() => import('./pages/friends'));
 const StudentClass = lazy(() => import('./pages/student-class'));
@@ -55,6 +60,12 @@ export default function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route element={<Protected role="STUDENT" />}>
+              <Route path="/games" element={<Games />} />
+              <Route path="/games/:game" element={<Games />} />
+              <Route path="/brain-ring" element={<BrainRing />} />
+              <Route path="/brain-ring/:id" element={<BrainRing />} />
+              <Route path="/videos" element={<Videos />} />
+              <Route path="/videos/:id" element={<Videos />} />
               <Route path="/my-class" element={<StudentClass />} />
               <Route path="/friends" element={<Friends />} />
               <Route path="/dashboard" element={<Dashboard />} />
@@ -72,6 +83,8 @@ export default function App() {
               <Route path="/teacher/assignments" element={<Teacher assignmentsOnly />} />
             </Route>
             <Route element={<Protected role="ADMIN" />}>
+              <Route path="/admin/videos" element={<AdminVideos />} />
+              <Route path="/admin/avatars" element={<AdminAvatars />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/admin/exercises" element={<ExerciseCatalog />} />
               {(['users', 'content', 'gamification', 'classes'] as const).map((mode) => (

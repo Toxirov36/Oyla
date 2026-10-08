@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { api, errorText } from '../../lib/api';
-import type { Question } from '../../lib/types';
+import type { Feedback, Question } from '../../lib/types';
+import { ExerciseFeedback } from './exercise-feedback';
 import { exampleQuestion, type PreviewDefinition } from '../../lib/exercise-examples';
 export { exampleQuestion, type PreviewDefinition } from '../../lib/exercise-examples';
 import { Button, ProgressBar } from '../ui';
@@ -14,7 +15,7 @@ export function ExercisePreview({
   mode?: string;
 }) {
   const [value, setValue] = useState('');
-  const [feedback, setFeedback] = useState<{ correct: boolean; explanation: string } | null>(null);
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [round, setRound] = useState(0);
@@ -58,13 +59,13 @@ export function ExercisePreview({
             disabled={busy || !!feedback}
           />
           {feedback && (
-            <div
-              role="status"
-              className={`question-feedback ${feedback.correct ? 'correct' : 'incorrect'}`}
-            >
-              <strong>{feedback.correct ? 'To‘g‘ri!' : 'Yana o‘ylab ko‘ring.'}</strong>
-              <p>{feedback.explanation}</p>
-            </div>
+            <ExerciseFeedback
+              feedback={feedback}
+              retry={() => {
+                setFeedback(null);
+                setValue('');
+              }}
+            />
           )}
           {error && (
             <p role="alert" className="form-error">

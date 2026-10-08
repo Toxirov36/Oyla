@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
 import { Actor } from '../common/security';
 import { ProgressService } from './progress.service';
+import { avatarSelect } from '../profile/avatars';
+import { photoSelect, publicMedia } from '../profile/public-media';
 
 const eligible = (grade: number | null) => ({
   active: true,
@@ -38,7 +40,16 @@ export class StudentClassesService {
         ...classSelect(actor.grade),
         students: {
           where: { student: eligible(actor.grade) },
-          select: { student: { select: { id: true, name: true } } },
+          select: {
+            student: {
+              select: {
+                id: true,
+                name: true,
+                avatar: { select: avatarSelect },
+                photo: { select: photoSelect },
+              },
+            },
+          },
           orderBy: [{ student: { name: 'asc' } }, { studentId: 'asc' }],
         },
       },
@@ -66,7 +77,7 @@ export class StudentClassesService {
           (row) => row.userLowId === student.id || row.userHighId === student.id,
         );
         return {
-          ...student,
+          ...publicMedia(student),
           isMe: student.id === actor.id,
           friendship:
             student.id === actor.id || !connection

@@ -2,7 +2,16 @@ import type { ExerciseType, ExerciseConfig, ExerciseGrading } from './exercises'
 export type Role = 'STUDENT' | 'TEACHER' | 'ADMIN';
 export type Status = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 export type QuestionType = ExerciseType;
+export interface AvatarOption {
+  id: string;
+  name: string;
+  imageUrl: string;
+  active?: boolean;
+  position?: number;
+}
 export interface User {
+  avatarId?: string | null;
+  avatar?: AvatarOption | null;
   id: string;
   name: string;
   email: string;
@@ -131,15 +140,30 @@ export interface Result {
   nextLesson: LessonSummary | null;
 }
 export interface Attempt {
+  resumeQuestionId?: string;
   mode?: 'STANDARD' | 'MINI_GAME' | 'BOSS_BATTLE';
   id: string;
   lessonId: string | null;
   status: 'IN_PROGRESS' | 'COMPLETED';
   questions: Question[];
-  answers: { questionId: string; value: string; correct: boolean }[];
+  answers: {
+    questionId: string;
+    value: string;
+    correct: boolean;
+    feedback?: Feedback | null;
+    feedbackSeen?: boolean;
+  }[];
   result: Result | null;
 }
 export interface Feedback {
+  submittedValue?: string;
+  submittedAnswer?: string;
+  reason?: string;
+  rule?: string;
+  correctAnswer?: string;
+  steps?: string[];
+  example?: string | null;
+  issues?: string[];
   questionId: string;
   correct: boolean;
   explanation: string;
@@ -213,6 +237,7 @@ export interface Dashboard {
   activity: { day: string; xp: number }[];
 }
 export interface Ranking {
+  avatar?: AvatarOption | null;
   rank: number;
   userId: string;
   name: string;
@@ -227,6 +252,7 @@ export interface StudentClassSummary {
   studentCount: number;
 }
 export interface Classmate {
+  avatar?: AvatarOption | null;
   id: string;
   name: string;
   isMe: boolean;
@@ -331,7 +357,13 @@ export interface FriendConnection {
   requestedById: string;
   createdAt: string;
   acceptedAt: string | null;
-  user: { id: string; name: string; grade: number | null; active: boolean };
+  user: {
+    id: string;
+    name: string;
+    grade: number | null;
+    active: boolean;
+    avatar?: AvatarOption | null;
+  };
 }
 export interface FriendsData {
   inviteCode: string;
@@ -351,6 +383,7 @@ export interface GameConfig {
   badges: Badge[];
 }
 export interface AdminQuestion extends Question {
+  feedback?: import('./exercises').QuestionFeedbackDefinition | null;
   grading?: ExerciseGrading | null;
   answer: string;
   explanation: string;

@@ -1,5 +1,6 @@
 import { validateExercise } from '../learning/exercises';
 import { checkAnswer } from '../learning/rules';
+import { buildFeedback, validateFeedback } from '../learning/feedback';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '../../generated/prisma/client';
 import * as argon2 from 'argon2';
@@ -343,11 +344,14 @@ export class AdminService {
   private validateQuestion(dto: {
     type: string;
     answer: string;
-    options: { value: string }[];
+    options: { text: string; value: string }[];
     config?: unknown;
     grading?: unknown;
+    feedback?: unknown;
+    explanation: string;
   }) {
     validateExercise(dto);
+    validateFeedback(dto);
     if (
       dto.type === 'MULTIPLE_CHOICE' &&
       (dto.options.length < 2 ||
@@ -371,12 +375,13 @@ export class AdminService {
   }
   createQuestion(dto: QuestionDto) {
     this.validateQuestion({ ...dto, options: dto.options || [] });
-    const { options = [], config, grading, ...data } = dto;
+    const { options = [], config, grading, feedback, ...data } = dto;
     return this.db.question.create({
       data: {
         ...data,
         ...(config ? { config: config as unknown as Prisma.InputJsonValue } : {}),
         ...(grading ? { grading: grading as unknown as Prisma.InputJsonValue } : {}),
+        ...(feedback ? { feedback: feedback as unknown as Prisma.InputJsonValue } : {}),
         options: { create: options.map((o, i) => ({ ...o, position: i })) },
       },
     });
@@ -388,7 +393,8 @@ export class AdminService {
       options: dto.question.options ?? [],
     };
     this.validateQuestion(question);
-    return { correct: checkAnswer(question, dto.value), explanation: question.explanation };
+    const feedback = buildFeedback(question, dto.value, checkAnswer(question, dto.value));
+    return { ...feedback, message: feedback.correct ? 'To‘g‘ri!' : feedback.message };
   }
   async updateQuestion(id: string, dto: UpdateQuestionDto) {
     return this.db.$transaction(async (tx) => {
@@ -398,7 +404,7 @@ export class AdminService {
         include: { options: true },
       });
       this.validateQuestion({ ...question, ...dto, options: dto.options || question.options });
-      const { options, config, grading, ...data } = dto;
+      const { options, config, grading, feedback, ...data } = dto;
       return tx.question.update({
         where: { id },
         data: {
@@ -406,6 +412,7 @@ export class AdminService {
           version: { increment: 1 },
           ...(config ? { config: config as unknown as Prisma.InputJsonValue } : {}),
           ...(grading ? { grading: grading as unknown as Prisma.InputJsonValue } : {}),
+          ...(feedback ? { feedback: feedback as unknown as Prisma.InputJsonValue } : {}),
           ...(options
             ? {
                 options: { deleteMany: {}, create: options.map((o, i) => ({ ...o, position: i })) },

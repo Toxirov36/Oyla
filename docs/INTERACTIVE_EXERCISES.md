@@ -30,6 +30,16 @@ Code completion is case-sensitive. Debugging compares the corrected code includi
 
 ## Versions, resume, and rewards
 
+### Educational answer feedback
+
+Wrong answers show **Sizning javobingiz → Nima uchun xato? → Qoida → To‘g‘ri yechim va misol**, followed by retry and continue actions. Long explanations expand with a native details control. Submitted structured answers and solutions use visible element text, not internal IDs. Pair, order and fill-gap diagnostics identify verifiable mismatches. A numerical or free-text answer alone never produces a speculative calculation/grammar diagnosis; the existing reviewed explanation is the fallback rule.
+
+The question editor includes optional general reason, rule, solution steps (one per line, at most ten), additional example and per-wrong-option reasons. `Question.feedback` stores `{ reason?, rule?, steps?, example?, wrongAnswers?: [{ value, reason }] }`. Variant mappings must target existing incorrect choices exactly once. Feedback fields are validated nested DTOs and are excluded from public lesson/question snapshots. Admin preview uses the same server-generated panel without saving learning results. Existing questions work with their current explanation; additional examples appear when authored.
+
+Private attempt snapshots include the question's authored feedback, so content edits cannot change explanations in an active attempt. `AttemptAnswer.feedback` stores the last submitted answer's display, solution and explanation. Retries update only this feedback and its acknowledgement, preserving the original `value`, `payload`, and `correct` used for score/XP. `GET /attempts/:id` returns feedback only for questions the authenticated owner has already answered, plus `resumeQuestionId`. Until **Keyingi savol / Natijani ko‘rish** is pressed, refreshing resumes the same question and feedback, including after a retry. `POST /attempts/:id/feedback/continue` with `{ questionId }` acknowledges an existing answer; ownership, active content and attempt expiry are enforced.
+
+Migration `20261008120000_educational_feedback` adds private authored feedback and saved response feedback. Historical answers are marked acknowledged to preserve their previous resume behavior. Learning history, answer keys and XP remain unchanged.
+
 New attempts store full private question snapshots, including definition version and XP override. Learner responses contain only public fields from these snapshots. Admin edits increment `Question.version` and cannot change an existing attempt's prompts or grading. The migration backfills snapshots for existing attempts. Publishing/grade visibility and the existing 24-hour attempt expiry still apply.
 
 Unsubmitted drafts are kept in session storage for the same browser tab and restored after a refresh. Submitted answers are restored from PostgreSQL. Completed drafts are removed. Starting the same lesson resumes its active attempt; expired attempts require a new start.

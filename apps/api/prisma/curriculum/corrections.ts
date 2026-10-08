@@ -21,6 +21,7 @@ export function matchesOriginal(row: StoredQuestion, original: SeedQuestion, pos
     row.position === position &&
     row.status === 'PUBLISHED' &&
     row.xp === null &&
+    row.feedback === null &&
     row.hint === (original.hint ?? null) &&
     row.tolerance === (original.tolerance ?? 0.0001) &&
     row.difficulty ===

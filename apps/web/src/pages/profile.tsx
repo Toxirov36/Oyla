@@ -21,7 +21,10 @@ import { useAuth } from '../lib/auth';
 import type { Profile } from '../lib/types';
 import { tashkentDate } from '../lib/locale';
 import { ChangePasswordForm } from '../components/change-password';
-import { Avatar, AvatarBadge, AvatarFallback } from '../components/ui/avatar';
+import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from '../components/ui/avatar';
+import { AvatarPicker } from '../components/avatar-picker';
+import { ProfilePhoto } from '../components/profile-photo';
+import { brand } from '../lib/brand';
 import {
   Button,
   Card,
@@ -172,6 +175,7 @@ export default function ProfilePage() {
           <Card className="profile-identity">
             <div className="relative inline-flex">
               <Avatar size="2xl" className="profile-avatar" aria-hidden="true">
+                {profile.user.avatar && <AvatarImage src={profile.user.avatar.imageUrl} alt="" />}
                 <AvatarFallback variant="gradient">{initial}</AvatarFallback>
               </Avatar>
               <AvatarBadge status="online" pulse aria-hidden="true" />
@@ -186,8 +190,10 @@ export default function ProfilePage() {
               <p>
                 <CalendarDays size={15} />
                 {dateLabel(profile.user.createdAt)}{' '}
-                {tashkentDate(profile.user.createdAt).getUTCFullYear()} dan beri OYLAda
+                {tashkentDate(profile.user.createdAt).getUTCFullYear()} dan beri {brand.name}da
               </p>
+              <AvatarPicker profile={profile} />
+              <ProfilePhoto profile={profile} />
             </div>
           </Card>
           <section

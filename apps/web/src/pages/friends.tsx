@@ -87,7 +87,7 @@ export default function FriendsPage() {
   const rows = (entries: FriendConnection[], kind: 'incoming' | 'outgoing' | 'friends') =>
     entries.map((entry) => (
       <div className="friend-row" key={entry.id}>
-        <span className="avatar">{entry.user.name[0]}</span>
+        <UserAvatar name={entry.user.name} avatar={entry.user.avatar} />
         <div className="friend-person">
           <strong>{entry.user.name}</strong>
           <small>
@@ -236,3 +236,4 @@ export default function FriendsPage() {
     </>
   );
 }
+import { UserAvatar } from '../components/user-avatar';

@@ -39,6 +39,7 @@ test('reviewed corrections match the current catalog and never invalidate an ear
         version: 1,
         config: null,
         grading: null,
+        feedback: null,
         hint: patch.before.hint ?? null,
         tolerance: patch.before.tolerance ?? 0.0001,
         difficulty:
@@ -63,6 +64,7 @@ test('reviewed corrections match the current catalog and never invalidate an ear
         { status: 'DRAFT' as const },
         { xp: 50 },
         { hint: 'Custom hint' },
+        { feedback: { rule: 'Administrator-authored rule' } },
         { tolerance: 0.01 },
       ])
         assert.equal(matchesOriginal({ ...row, ...edit }, patch.before, patch.position), false);

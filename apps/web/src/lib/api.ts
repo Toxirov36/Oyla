@@ -35,16 +35,20 @@ export async function refreshSession() {
 }
 export async function api<T>(
   path: string,
-  options: { method?: string; body?: unknown; retry?: boolean } = {},
+  options: { method?: string; body?: unknown; retry?: boolean; responseType?: 'blob' } = {},
 ): Promise<T> {
   const response = await fetch(`/api/v1${path}`, {
     method: options.method || 'GET',
     credentials: 'include',
     headers: {
-      ...(options.body === undefined ? {} : { 'Content-Type': 'application/json' }),
+      ...(options.body === undefined || options.body instanceof FormData
+        ? {}
+        : { 'Content-Type': 'application/json' }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    ...(options.body === undefined ? {} : { body: JSON.stringify(options.body) }),
+    ...(options.body === undefined
+      ? {}
+      : { body: options.body instanceof FormData ? options.body : JSON.stringify(options.body) }),
   });
   if (response.status === 401 && !path.startsWith('/auth/') && options.retry !== false) {
     try {
@@ -66,7 +70,7 @@ export async function api<T>(
       data.errors || [],
     );
   }
-  return response.json() as Promise<T>;
+  return (options.responseType === 'blob' ? response.blob() : response.json()) as Promise<T>;
 }
 export const errorText = (error: unknown) =>
   error instanceof Error ? error.message : 'Xatolik yuz berdi.';

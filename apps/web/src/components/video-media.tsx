@@ -1,0 +1,129 @@
+import { useEffect, useState } from 'react';
+import { Pause, Play, RotateCcw, Volume2 } from 'lucide-react';
+import type { VideoLesson } from '../lib/play';
+import { Button, ProgressBar } from './ui';
+import { AnimationScene } from './animation-scene';
+export function VideoMedia({ video }: { video: VideoLesson }) {
+  const [playing, setPlaying] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+  const [youtube, setYoutube] = useState(false);
+  const chapters = video.animation?.chapters ?? [];
+  const duration = chapters.length * 12000;
+  const index = Math.min(chapters.length - 1, Math.floor(elapsed / 12000));
+  const chapter = chapters[index];
+  useEffect(() => {
+    if (!playing || video.kind !== 'ANIMATION') return;
+    const start = performance.now() - elapsed;
+    const timer = setInterval(() => {
+      const next = Math.min(duration, performance.now() - start);
+      setElapsed(next);
+      if (next >= duration) setPlaying(false);
+    }, 100);
+    return () => clearInterval(timer);
+  }, [playing, video.id, duration]);
+  useEffect(
+    () => () => {
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    },
+    [index],
+  );
+  if (video.kind === 'YOUTUBE')
+    return (
+      <div className="youtube-lesson">
+        {youtube ? (
+          <iframe
+            title={video.title}
+            src={`https://www.youtube-nocookie.com/embed/${video.youtubeId}?rel=0`}
+            allow="accelerometer; autoplay; encrypted-media; picture-in-picture"
+            allowFullScreen
+          />
+        ) : (
+          <div className="video-poster">
+            <Play size={54} />
+            <h2>{video.title}</h2>
+            <Button onClick={() => setYoutube(true)}>Videoni ochish</Button>
+          </div>
+        )}
+        <a
+          className="text-link"
+          href={`https://www.youtube.com/watch?v=${video.youtubeId}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          YouTube’da ochish ↗
+        </a>
+      </div>
+    );
+  if (!chapter) return <p>Dars tayyorlanmoqda.</p>;
+  return (
+    <div className={`animated-video ${playing ? 'is-playing' : 'is-paused'}`}>
+      <AnimationScene key={index} visual={chapter.visual} />
+      <div className="video-chapter">
+        <span className="eyebrow">
+          {index + 1} / {chapters.length} QISM
+        </span>
+        <h2>{chapter.title}</h2>
+        <p aria-live="polite">{chapter.text}</p>
+      </div>
+      <ProgressBar value={duration ? (elapsed / duration) * 100 : 0} />
+      <div className="video-controls">
+        <Button
+          onClick={() => {
+            if (elapsed >= duration) setElapsed(0);
+            setPlaying(!playing);
+          }}
+        >
+          {playing ? <Pause size={18} /> : <Play size={18} />}{' '}
+          {playing ? 'Pauza' : 'Ko‘rishni boshlash'}
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={() => {
+            setElapsed(0);
+            setPlaying(false);
+          }}
+          aria-label="Boshidan ko‘rish"
+        >
+          <RotateCcw size={18} />
+        </Button>
+        {'speechSynthesis' in window && (
+          <Button
+            variant="ghost"
+            onClick={() => {
+              window.speechSynthesis.cancel();
+              const speech = new SpeechSynthesisUtterance(chapter.text);
+              speech.lang = 'uz-UZ';
+              speech.rate = 0.85;
+              window.speechSynthesis.speak(speech);
+            }}
+          >
+            <Volume2 size={18} />
+            Matnni tinglash
+          </Button>
+        )}
+        <span>
+          {Math.floor(elapsed / 1000)} / {duration / 1000} s
+        </span>
+      </div>
+      <div className="video-chapters">
+        {chapters.map((part, i) => (
+          <Button
+            key={i}
+            variant={index === i ? 'primary' : 'secondary'}
+            onClick={() => {
+              setElapsed(i * 12000);
+              setPlaying(false);
+            }}
+          >
+            {i + 1}. {part.title}
+          </Button>
+        ))}
+      </div>
+      {elapsed >= duration && (
+        <p role="status" className="video-complete">
+          Ajoyib! Endi mashqlarda sinab ko‘ring.
+        </p>
+      )}
+    </div>
+  );
+}

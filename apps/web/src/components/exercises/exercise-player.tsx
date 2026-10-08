@@ -16,6 +16,10 @@ export function ExercisePlayer({
   onComplete: (result: Result) => void;
 }) {
   const [index, setIndex] = useState(() => {
+    if (attempt.resumeQuestionId) {
+      const resumed = attempt.questions.findIndex((q) => q.id === attempt.resumeQuestionId);
+      if (resumed !== -1) return resumed;
+    }
     const n = attempt.questions.findIndex(
       (q) => !attempt.answers.some((a) => a.questionId === q.id),
     );
@@ -29,12 +33,19 @@ export function ExercisePlayer({
   const question = attempt.questions[index]!;
   const existing = attempt.answers.find((a) => a.questionId === question.id);
   useEffect(() => {
+    const saved = attempt.answers.find((answer) => answer.questionId === question.id);
+    const restored = saved?.feedbackSeen === false ? saved.feedback : null;
     try {
-      setValue(sessionStorage.getItem(`oyla:draft:${attempt.id}:${question.id}`) ?? '');
+      setValue(
+        restored?.submittedValue ??
+          sessionStorage.getItem(`oyla:draft:${attempt.id}:${question.id}`) ??
+          saved?.value ??
+          '',
+      );
     } catch {
-      setValue('');
+      setValue(restored?.submittedValue ?? saved?.value ?? '');
     }
-    setFeedback(null);
+    setFeedback(restored ?? null);
     setShowHint(false);
     setError('');
   }, [index, attempt.id, question.id]);
@@ -52,14 +63,25 @@ export function ExercisePlayer({
         },
       });
       setFeedback(response);
-      if (!existing)
-        setAttempt({
-          ...attempt,
-          answers: [
-            ...attempt.answers,
-            { questionId: question.id, value, correct: response.correct },
-          ],
-        });
+      setAttempt({
+        ...attempt,
+        answers: existing
+          ? attempt.answers.map((answer) =>
+              answer.questionId === question.id
+                ? { ...answer, feedback: response, feedbackSeen: false }
+                : answer,
+            )
+          : [
+              ...attempt.answers,
+              {
+                questionId: question.id,
+                value,
+                correct: response.correct,
+                feedback: response,
+                feedbackSeen: false,
+              },
+            ],
+      });
     } catch (e) {
       setError(errorText(e));
     } finally {
@@ -67,13 +89,23 @@ export function ExercisePlayer({
     }
   };
   const next = async () => {
-    if (index < attempt.questions.length - 1) {
-      setIndex(index + 1);
-      return;
-    }
     setBusy(true);
     setError('');
     try {
+      await api(`/attempts/${attempt.id}/feedback/continue`, {
+        method: 'POST',
+        body: { questionId: question.id },
+      });
+      setAttempt({
+        ...attempt,
+        answers: attempt.answers.map((answer) =>
+          answer.questionId === question.id ? { ...answer, feedbackSeen: true } : answer,
+        ),
+      });
+      if (index < attempt.questions.length - 1) {
+        setIndex(index + 1);
+        return;
+      }
       const result = await api<Result>(`/attempts/${attempt.id}/complete`, { method: 'POST' });
       try {
         for (const q of attempt.questions)
@@ -158,6 +190,11 @@ export function ExercisePlayer({
         {feedback && (
           <ExerciseFeedback
             feedback={feedback}
+            next={() => void next()}
+            nextLabel={
+              index === attempt.questions.length - 1 ? 'Natijani ko‘rish' : 'Keyingi savol'
+            }
+            busy={busy}
             retry={() => {
               setFeedback(null);
               setValue('');
@@ -185,7 +222,7 @@ export function ExercisePlayer({
               <ArrowRight size={17} />
             </Button>
           )}
-          {answered && (
+          {answered && !feedback && (
             <Button
               variant={feedback ? 'primary' : 'secondary'}
               onClick={() => void next()}

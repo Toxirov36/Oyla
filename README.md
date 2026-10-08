@@ -1,6 +1,6 @@
-# OYLA — O‘rgan O‘yla Yarat
+# Bilify — O‘rgan O‘yla Yarat
 
-OYLA is an Uzbek learning platform for grades 5–7. Students study lessons, complete 18 question types in standard, mini-game, or boss-battle lesson modes, receive educational feedback, and see server-calculated results, XP, mastery, streaks, badges, and a next lesson. Teachers manage their assigned classes and lesson assignments. Administrators manage users, classes, the full content hierarchy, publishing, XP rules, levels, and badges.
+Bilify is an Uzbek learning platform for grades 5–7. Students study lessons, complete 18 question types in standard, mini-game, or boss-battle lesson modes, receive educational feedback, and see server-calculated results, XP, mastery, streaks, badges, and a next lesson. Teachers manage their assigned classes and lesson assignments. Administrators manage users, classes, the full content hierarchy, publishing, XP rules, levels, and badges.
 
 All roles have a dedicated `/profile` page with account details and name editing. Students see server-calculated learning metrics and their class; teachers see their classes and student/assignment counts. Grade and email remain under administrator control. The grade-specific catalog supplies 54 reviewed lessons and 324 questions, plus 9 interactive pilot lessons with 72 exercises.
 
@@ -13,6 +13,10 @@ Students can open **Do‘stlarim** (`/friends`), share a private invite code, se
 The [content review](docs/CONTENT_REVIEW.md) records the 7 October 2026 review, 13 precise corrections, independent answer checks, and safe database application rules. Run `npm run db:seed` after migrations to install the catalog and apply only corrections that still match their original fingerprints.
 
 ## Interactive learning
+
+Students can upload a private profile photo, play the new **Bilim bog‘i** memory game, challenge an accepted friend to a synchronized **Brain Ring**, and watch grade-specific animated lessons or a YouTube source. Administrators manage videos at `/admin/videos`. Existing friendship consent, lesson modes, progress and XP rules are preserved. See [new games, media and profile photos](docs/PLAY_AND_PHOTOS.md).
+
+Profiles offer twelve free local avatars with preview and server-persisted selection. The same avatar appears in the header, friends, class roster and rankings. Administrators manage reviewed assets at `/admin/avatars`; product name, logos, favicon, slogan and main colors are configured in `apps/web/src/lib/brand.ts`. See [avatars and branding](docs/AVATARS_AND_BRANDING.md).
 
 Subjects now show a vertical lesson path with completed scores, resume actions, available lessons, and server-enforced prerequisites. Desktop shows XP/streak/challenge cards; mobile uses a single column.
 

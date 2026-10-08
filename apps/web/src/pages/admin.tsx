@@ -357,7 +357,7 @@ export default function AdminPage({
         eyebrow="PLATFORMA BOSHQARUVI"
         title={
           {
-            overview: 'OYLA bir qarashda',
+            overview: `${brand.name} bir qarashda`,
             users: 'Foydalanuvchilar',
             content: 'Bilim kutubxonasi',
             gamification: 'O‘rganishni rag‘batlantiring',
@@ -598,3 +598,4 @@ export default function AdminPage({
     </>
   );
 }
+import { brand } from '../lib/brand';

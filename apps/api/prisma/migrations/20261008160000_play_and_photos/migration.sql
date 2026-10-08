@@ -1,0 +1,17 @@
+CREATE TYPE "BrainMatchStatus" AS ENUM ('INVITED', 'ACTIVE', 'FINISHED', 'DECLINED', 'CANCELLED', 'EXPIRED');
+CREATE TYPE "VideoKind" AS ENUM ('ANIMATION', 'YOUTUBE');
+CREATE TABLE "ProfilePhoto" ("id" UUID NOT NULL, "userId" UUID NOT NULL, "data" BYTEA NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP(3) NOT NULL, CONSTRAINT "ProfilePhoto_pkey" PRIMARY KEY ("id"));
+CREATE UNIQUE INDEX "ProfilePhoto_userId_key" ON "ProfilePhoto"("userId");
+ALTER TABLE "ProfilePhoto" ADD CONSTRAINT "ProfilePhoto_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+CREATE TABLE "BrainMatch" ("id" UUID NOT NULL, "hostId" UUID NOT NULL, "guestId" UUID NOT NULL, "subjectId" UUID, "grade" INTEGER NOT NULL, "status" "BrainMatchStatus" NOT NULL DEFAULT 'INVITED', "questionsSnapshot" JSONB NOT NULL, "roundIndex" INTEGER NOT NULL DEFAULT 0, "startedAt" TIMESTAMP(3), "roundStartedAt" TIMESTAMP(3), "revealedAt" TIMESTAMP(3), "expiresAt" TIMESTAMP(3) NOT NULL, "winnerId" UUID, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP(3) NOT NULL, CONSTRAINT "BrainMatch_pkey" PRIMARY KEY ("id"));
+CREATE INDEX "BrainMatch_hostId_status_createdAt_idx" ON "BrainMatch"("hostId", "status", "createdAt");
+CREATE INDEX "BrainMatch_guestId_status_createdAt_idx" ON "BrainMatch"("guestId", "status", "createdAt");
+ALTER TABLE "BrainMatch" ADD CONSTRAINT "BrainMatch_hostId_fkey" FOREIGN KEY ("hostId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "BrainMatch" ADD CONSTRAINT "BrainMatch_guestId_fkey" FOREIGN KEY ("guestId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+CREATE TABLE "BrainAnswer" ("id" UUID NOT NULL, "matchId" UUID NOT NULL, "userId" UUID NOT NULL, "roundIndex" INTEGER NOT NULL, "value" TEXT NOT NULL, "correct" BOOLEAN NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "BrainAnswer_pkey" PRIMARY KEY ("id"));
+CREATE UNIQUE INDEX "BrainAnswer_matchId_userId_roundIndex_key" ON "BrainAnswer"("matchId", "userId", "roundIndex");
+ALTER TABLE "BrainAnswer" ADD CONSTRAINT "BrainAnswer_matchId_fkey" FOREIGN KEY ("matchId") REFERENCES "BrainMatch"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "BrainAnswer" ADD CONSTRAINT "BrainAnswer_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+CREATE TABLE "VideoLesson" ("id" UUID NOT NULL, "title" TEXT NOT NULL, "description" TEXT NOT NULL, "grade" INTEGER NOT NULL, "subject" TEXT NOT NULL, "kind" "VideoKind" NOT NULL, "animationKey" TEXT, "youtubeId" TEXT, "status" "ContentStatus" NOT NULL DEFAULT 'DRAFT', "position" INTEGER NOT NULL DEFAULT 0, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "VideoLesson_pkey" PRIMARY KEY ("id"));
+CREATE INDEX "VideoLesson_grade_status_position_idx" ON "VideoLesson"("grade", "status", "position");
+ALTER TABLE "VideoLesson" ADD CONSTRAINT "VideoLesson_source_check" CHECK (("kind"='ANIMATION' AND "animationKey" IS NOT NULL AND "youtubeId" IS NULL) OR ("kind"='YOUTUBE' AND "youtubeId" IS NOT NULL AND "animationKey" IS NULL));

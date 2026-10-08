@@ -1,0 +1,402 @@
+[
+  {
+    "key": "math-5",
+    "grade": 5,
+    "subject": "mathematics",
+    "title": "Kasrlar: pitsa bilan o‘rganamiz",
+    "chapters": [
+      {
+        "title": "Bitta butun",
+        "text": "Pitsa hali bo‘linmagan. Bu bitta butun.",
+        "visual": {
+          "kind": "pizza",
+          "n": 1,
+          "d": 1,
+          "label": "1"
+        }
+      },
+      {
+        "title": "Yarim",
+        "text": "Butunni ikki teng bo‘lakka bo‘ldik. Bitta bo‘lak — 1/2.",
+        "visual": {
+          "kind": "pizza",
+          "n": 1,
+          "d": 2,
+          "label": "1/2"
+        }
+      },
+      {
+        "title": "Chorak",
+        "text": "Butunni to‘rt teng bo‘lakka bo‘ldik. Bitta bo‘lak — 1/4.",
+        "visual": {
+          "kind": "pizza",
+          "n": 1,
+          "d": 4,
+          "label": "1/4"
+        }
+      },
+      {
+        "title": "Ikki chorak — yarim",
+        "text": "To‘rtta teng bo‘lakdan ikkitasi butunning yarmi: 2/4 = 1/2.",
+        "visual": {
+          "kind": "pizza",
+          "n": 2,
+          "d": 4,
+          "label": "2/4 = 1/2"
+        }
+      }
+    ]
+  },
+  {
+    "key": "math-6",
+    "grade": 6,
+    "subject": "mathematics",
+    "title": "Foizlar: yuzdan nechta?",
+    "chapters": [
+      {
+        "title": "Foiz nima?",
+        "text": "Foiz — yuzdan bir ulush. 100% bitta butunni bildiradi.",
+        "visual": {
+          "kind": "percent",
+          "n": 100,
+          "label": "100%"
+        }
+      },
+      {
+        "title": "Chorak",
+        "text": "1/4 = 25/100 = 25%.",
+        "visual": {
+          "kind": "percent",
+          "n": 25,
+          "label": "1/4 = 25%"
+        }
+      },
+      {
+        "title": "Yarim",
+        "text": "1/2 = 50/100 = 50%.",
+        "visual": {
+          "kind": "percent",
+          "n": 50,
+          "label": "1/2 = 50%"
+        }
+      },
+      {
+        "title": "Uch chorak",
+        "text": "3/4 = 75/100 = 75%.",
+        "visual": {
+          "kind": "percent",
+          "n": 75,
+          "label": "3/4 = 75%"
+        }
+      }
+    ]
+  },
+  {
+    "key": "math-7",
+    "grade": 7,
+    "subject": "mathematics",
+    "title": "Tenglama: x ni topamiz",
+    "chapters": [
+      {
+        "title": "Tenglikni ko‘ramiz",
+        "text": "2x + 3 = 11. Ikkala tomondagi qiymat teng.",
+        "visual": {
+          "kind": "equation",
+          "step": 0,
+          "label": "2x + 3 = 11"
+        }
+      },
+      {
+        "title": "Ikkala tomondan ayiramiz",
+        "text": "Ikkala tomondan 3 ni ayiramiz: 2x = 11 − 3 = 8.",
+        "visual": {
+          "kind": "equation",
+          "step": 1,
+          "label": "2x = 8"
+        }
+      },
+      {
+        "title": "Teng guruhlarga bo‘lamiz",
+        "text": "Ikkala tomonni 2 ga bo‘lamiz: x = 8 ÷ 2 = 4.",
+        "visual": {
+          "kind": "equation",
+          "step": 2,
+          "label": "x = 4"
+        }
+      },
+      {
+        "title": "Tekshiramiz",
+        "text": "Topilgan x ni qo‘yamiz: 2 × 4 + 3 = 11. Tenglik to‘g‘ri.",
+        "visual": {
+          "kind": "equation",
+          "step": 3,
+          "label": "2 × 4 + 3 = 11"
+        }
+      }
+    ]
+  },
+  {
+    "key": "english-5",
+    "grade": 5,
+    "subject": "english",
+    "title": "My day: kundalik odatlar",
+    "chapters": [
+      {
+        "title": "Ertalab",
+        "text": "I get up at seven. Men soat yettida turaman.",
+        "visual": {
+          "kind": "routine",
+          "step": 0,
+          "label": "I get up at seven."
+        }
+      },
+      {
+        "title": "Maktabga yo‘l",
+        "text": "She goes to school every day. She bilan go o‘rniga goes ishlatiladi.",
+        "visual": {
+          "kind": "routine",
+          "step": 1,
+          "label": "She goes to school."
+        }
+      },
+      {
+        "title": "Inkor gap",
+        "text": "I don’t play in the morning. I bilan inkorda don’t va fe’lning asosiy shakli ishlatiladi.",
+        "visual": {
+          "kind": "routine",
+          "step": 2,
+          "label": "I don’t play in the morning."
+        }
+      },
+      {
+        "title": "Savol",
+        "text": "Does he read every day? Does dan keyin fe’lning asosiy shakli keladi.",
+        "visual": {
+          "kind": "routine",
+          "step": 3,
+          "label": "Does he read every day?"
+        }
+      }
+    ]
+  },
+  {
+    "key": "english-6",
+    "grade": 6,
+    "subject": "english",
+    "title": "Yesterday: kechagi voqealar",
+    "chapters": [
+      {
+        "title": "Kechagi voqea",
+        "text": "I played football yesterday. Oddiy fe’lga -ed qo‘shib, o‘tgan voqeani aytamiz.",
+        "visual": {
+          "kind": "verbs",
+          "step": 0,
+          "label": "play → played"
+        }
+      },
+      {
+        "title": "Maxsus shakl",
+        "text": "I went to school yesterday. Go fe’lining Past Simple shakli went.",
+        "visual": {
+          "kind": "verbs",
+          "step": 1,
+          "label": "go → went"
+        }
+      },
+      {
+        "title": "Inkor",
+        "text": "I didn’t play yesterday. Didn’t dan keyin fe’lning asosiy shakli keladi.",
+        "visual": {
+          "kind": "verbs",
+          "step": 2,
+          "label": "I didn’t play."
+        }
+      },
+      {
+        "title": "Savol",
+        "text": "Did you see the film? Did dan keyin see ishlatiladi.",
+        "visual": {
+          "kind": "verbs",
+          "step": 3,
+          "label": "Did you see the film?"
+        }
+      }
+    ]
+  },
+  {
+    "key": "english-7",
+    "grade": 7,
+    "subject": "english",
+    "title": "Experience: tajriba va natija",
+    "chapters": [
+      {
+        "title": "Tajriba",
+        "text": "I have visited Bukhara. Present Perfect: have yoki has va past participle.",
+        "visual": {
+          "kind": "verbs",
+          "step": 0,
+          "label": "have + visited"
+        }
+      },
+      {
+        "title": "Hozirgi natija",
+        "text": "She has finished her homework. She bilan has ishlatiladi.",
+        "visual": {
+          "kind": "verbs",
+          "step": 1,
+          "label": "has + finished"
+        }
+      },
+      {
+        "title": "Aniq o‘tgan vaqt",
+        "text": "I visited Bukhara yesterday. Yesterday aniq o‘tgan vaqt bo‘lgani uchun Past Simple ishlatiladi.",
+        "visual": {
+          "kind": "verbs",
+          "step": 2,
+          "label": "visited ... yesterday"
+        }
+      },
+      {
+        "title": "Maxsus fe’l",
+        "text": "He has seen this film. See fe’lining past participle shakli seen.",
+        "visual": {
+          "kind": "verbs",
+          "step": 3,
+          "label": "see → saw → seen"
+        }
+      }
+    ]
+  },
+  {
+    "key": "informatics-5",
+    "grade": 5,
+    "subject": "informatics",
+    "title": "Robot bilan algoritm",
+    "chapters": [
+      {
+        "title": "Maqsad",
+        "text": "Robot kitobni olib, javonga qo‘yishi kerak. Maqsadni aniqlaymiz.",
+        "visual": {
+          "kind": "robot",
+          "step": 0,
+          "label": "Maqsad: kitobni javonga qo‘yish"
+        }
+      },
+      {
+        "title": "Birinchi qadam",
+        "text": "Robot kitobga yaqinlashadi.",
+        "visual": {
+          "kind": "robot",
+          "step": 1,
+          "label": "1. Kitobga bor"
+        }
+      },
+      {
+        "title": "Ikkinchi qadam",
+        "text": "Robot kitobni oladi. Buyruqlar ketma-ket bajariladi.",
+        "visual": {
+          "kind": "robot",
+          "step": 2,
+          "label": "2. Kitobni ol"
+        }
+      },
+      {
+        "title": "Uchinchi qadam",
+        "text": "Robot kitobni javonga qo‘yadi. Aniq tartibdagi buyruqlar algoritmni hosil qiladi.",
+        "visual": {
+          "kind": "robot",
+          "step": 3,
+          "label": "3. Javonga qo‘y"
+        }
+      }
+    ]
+  },
+  {
+    "key": "informatics-6",
+    "grade": 6,
+    "subject": "informatics",
+    "title": "Agar... aks holda: shartlar",
+    "chapters": [
+      {
+        "title": "Shartni tekshiramiz",
+        "text": "Agar yomg‘ir yog‘sa, soyabon olamiz.",
+        "visual": {
+          "kind": "condition",
+          "step": 0,
+          "label": "Yomg‘ir? → Soyabon ol"
+        }
+      },
+      {
+        "title": "Aks holda",
+        "text": "Yomg‘ir yog‘masa, soyabonsiz borish mumkin. Boshqa yo‘l tanlanadi.",
+        "visual": {
+          "kind": "condition",
+          "step": 1,
+          "label": "Aks holda → Boshqa yo‘l"
+        }
+      },
+      {
+        "title": "Sonli shart",
+        "text": "Agar ball kamida 70 bo‘lsa, maqsadga yetildi. 78 ≥ 70 — to‘g‘ri.",
+        "visual": {
+          "kind": "condition",
+          "step": 2,
+          "label": "78 ≥ 70 → Ha"
+        }
+      },
+      {
+        "title": "Yolg‘on shart",
+        "text": "60 ≥ 70 — noto‘g‘ri. Dastur aks holda tarmog‘ini bajaradi.",
+        "visual": {
+          "kind": "condition",
+          "step": 3,
+          "label": "60 ≥ 70 → Yo‘q"
+        }
+      }
+    ]
+  },
+  {
+    "key": "informatics-7",
+    "grade": 7,
+    "subject": "informatics",
+    "title": "Takrorlash: uchta yulduz",
+    "chapters": [
+      {
+        "title": "Takroriy buyruq",
+        "text": "Uchta yulduz chizish uchun bir xil buyruq uch marta bajariladi.",
+        "visual": {
+          "kind": "loop",
+          "step": 0,
+          "label": "3 marta takrorla"
+        }
+      },
+      {
+        "title": "Birinchi takror",
+        "text": "Birinchi takrorlashda bitta yulduz hosil bo‘ladi.",
+        "visual": {
+          "kind": "loop",
+          "step": 1,
+          "label": "Takror 1 / 3"
+        }
+      },
+      {
+        "title": "Ikkinchi takror",
+        "text": "Ikkinchi takrorlashda yana bitta yulduz hosil bo‘ladi.",
+        "visual": {
+          "kind": "loop",
+          "step": 2,
+          "label": "Takror 2 / 3"
+        }
+      },
+      {
+        "title": "Uchinchi takror",
+        "text": "Uchinchi takrorlash tugadi. Jami uchta yulduz hosil bo‘ldi.",
+        "visual": {
+          "kind": "loop",
+          "step": 3,
+          "label": "Takror 3 / 3 → Tugadi"
+        }
+      }
+    ]
+  }
+]

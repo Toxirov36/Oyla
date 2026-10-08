@@ -38,6 +38,7 @@ function stored(): Parameters<typeof canArchiveStarter>[0] {
         version: 1,
         config: null,
         grading: null,
+        feedback: null,
         position: i,
         status: 'PUBLISHED',
         createdAt: date,
@@ -84,6 +85,8 @@ test('administrator changes to lesson state, text, answer keys, or XP prevent ar
   version.questions[0]!.version = 2;
   const definition = stored();
   definition.questions[0]!.config = { code: 'teacher-authored' };
-  for (const row of [draft, edited, answer, reward, prerequisite, version, definition])
+  const feedback = stored();
+  feedback.questions[0]!.feedback = { rule: 'teacher-authored feedback' };
+  for (const row of [draft, edited, answer, reward, prerequisite, version, definition, feedback])
     assert.equal(canArchiveStarter(row, original, 0, references), false);
 });

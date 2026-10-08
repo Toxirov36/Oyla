@@ -4,7 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { api } from '../lib/api';
 import type { Dashboard, Subject } from '../lib/types';
-import { Card, EmptyState, ErrorState, Loading, PageHeader, ProgressBar } from '../components/ui';
+import { EmptyState, ErrorState, Loading, PageHeader, ProgressBar } from '../components/ui';
 import { subjectStyle } from './dashboard';
 export default function SubjectsPage() {
   const { id } = useParams();
@@ -50,45 +50,47 @@ export default function SubjectsPage() {
     );
   }
   return (
-    <>
+    <div className="subject-selection">
       <PageHeader
+        className="subject-selection-header"
         eyebrow="BILIM UCHUN VAQT"
         title="Mening fanlarim"
-        description="Qiziqishingizga ergashing. Bugun nimani o‘rganamiz?"
+        description="Fanni tanlang va o‘rganishni boshlang."
       />
-      <div className="subject-browser-grid">
+      <div className="subject-picker-grid">
         {query.data.map((subject) => {
           const { tone, icon: Icon } = subjectStyle(subject.slug);
           const lessons = subject.courses.flatMap((c) => c.topics.flatMap((t) => t.lessons));
           const p = progress.data?.subjects.find((s) => s.id === subject.id);
+          const grade = progress.data?.user.student?.grade ?? subject.courses[0]?.grade;
           return (
-            <Card key={subject.id} className={`subject-browser ${tone}`}>
-              <div className="subject-browser-art">
-                <Icon size={58} />
-                <span className="art-plus">+</span>
-                <span className="art-circle" />
-              </div>
-              <div className="subject-browser-copy">
-                <span className="eyebrow">
-                  {progress.data?.user.student?.grade}-SINF · {lessons.length} TA DARS
-                </span>
-                <h2>{subject.title}</h2>
-                <p>{subject.description}</p>
-                <div className="progress-label">
-                  <span>{p?.completed || 0} ta dars yakunlangan</span>
+            <Link
+              key={subject.id}
+              to={`/subjects/${subject.id}`}
+              className={`subject-tile ${tone}`}
+              aria-label={`${subject.title}. Darslarni ko‘rish`}
+            >
+              <ArrowRight className="subject-tile-arrow" size={16} aria-hidden="true" />
+              <span className={`subject-icon ${tone}`} aria-hidden="true">
+                <Icon size={32} />
+              </span>
+              <h2>{subject.title}</h2>
+              <span className="subject-tile-meta">
+                {grade ? `${grade}-sinf · ` : ''}
+                {lessons.length} ta dars
+              </span>
+              <div className="subject-tile-progress">
+                <div className="subject-tile-progress-label">
+                  <span>{p?.completed || 0} ta yakunlangan</span>
                   <strong>{p?.progress || 0}%</strong>
                 </div>
                 <ProgressBar value={p?.progress || 0} tone={tone} />
-                <Link to={`/subjects/${subject.id}`} className="btn btn-secondary">
-                  Darslarni ko‘rish
-                  <ArrowRight size={17} />
-                </Link>
               </div>
-            </Card>
+            </Link>
           );
         })}
       </div>
       {!query.data.length && <EmptyState title="Fanlar tayyorlanmoqda" />}
-    </>
+    </div>
   );
 }

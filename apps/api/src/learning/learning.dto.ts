@@ -12,3 +12,6 @@ export class AnswerDto {
   @Optional() @IsString() @MinLength(1) @MaxLength(2000) value?: string;
   @Optional() @ValidateNested() @Type(() => ExercisePayloadDto) payload?: ExercisePayloadDto;
 }
+export class ContinueFeedbackDto {
+  @ApiProperty({ format: 'uuid' }) @IsUUID('4') questionId!: string;
+}

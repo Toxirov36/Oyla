@@ -1,0 +1,74 @@
+[
+  {
+    "id": "a7010000-0000-4000-8000-000000000001",
+    "name": "Tulki",
+    "imageUrl": "/avatars/fox.svg",
+    "position": 0
+  },
+  {
+    "id": "a7010000-0000-4000-8000-000000000002",
+    "name": "Mushuk",
+    "imageUrl": "/avatars/cat.svg",
+    "position": 1
+  },
+  {
+    "id": "a7010000-0000-4000-8000-000000000003",
+    "name": "Panda",
+    "imageUrl": "/avatars/panda.svg",
+    "position": 2
+  },
+  {
+    "id": "a7010000-0000-4000-8000-000000000004",
+    "name": "Ayiq",
+    "imageUrl": "/avatars/bear.svg",
+    "position": 3
+  },
+  {
+    "id": "a7010000-0000-4000-8000-000000000005",
+    "name": "Quyon",
+    "imageUrl": "/avatars/rabbit.svg",
+    "position": 4
+  },
+  {
+    "id": "a7010000-0000-4000-8000-000000000006",
+    "name": "Kuchuk",
+    "imageUrl": "/avatars/dog.svg",
+    "position": 5
+  },
+  {
+    "id": "a7010000-0000-4000-8000-000000000007",
+    "name": "Boyqush",
+    "imageUrl": "/avatars/owl.svg",
+    "position": 6
+  },
+  {
+    "id": "a7010000-0000-4000-8000-000000000008",
+    "name": "Koala",
+    "imageUrl": "/avatars/koala.svg",
+    "position": 7
+  },
+  {
+    "id": "a7010000-0000-4000-8000-000000000009",
+    "name": "Yo‘lbars",
+    "imageUrl": "/avatars/tiger.svg",
+    "position": 8
+  },
+  {
+    "id": "a7010000-0000-4000-8000-000000000010",
+    "name": "Pingvin",
+    "imageUrl": "/avatars/penguin.svg",
+    "position": 9
+  },
+  {
+    "id": "a7010000-0000-4000-8000-000000000011",
+    "name": "Robot",
+    "imageUrl": "/avatars/robot.svg",
+    "position": 10
+  },
+  {
+    "id": "a7010000-0000-4000-8000-000000000012",
+    "name": "Fazogir",
+    "imageUrl": "/avatars/astronaut.svg",
+    "position": 11
+  }
+]

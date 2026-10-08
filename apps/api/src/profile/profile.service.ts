@@ -1,20 +1,25 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
 import { Actor } from '../common/security';
 import { visibleLesson } from '../content/content.service';
 import { localDay } from '../learning/rules';
 import { UpdateProfileDto } from './profile.dto';
+import { avatarSelect } from './avatars';
+import { photoSelect, publicMedia } from './public-media';
 
 @Injectable()
 export class ProfileService {
   constructor(private readonly db: PrismaService) {}
 
   async get(actor: Actor) {
-    const user = await this.db.user.findUniqueOrThrow({
+    const stored = await this.db.user.findUniqueOrThrow({
       where: { id: actor.id },
       select: {
         id: true,
         name: true,
+        avatarId: true,
+        avatar: { select: avatarSelect },
+        photo: { select: photoSelect },
         email: true,
         role: true,
         teacherAccess: true,
@@ -22,6 +27,7 @@ export class ProfileService {
         student: { select: { grade: true } },
       },
     });
+    const user = publicMedia(stored);
     if (user.role === 'STUDENT') {
       const [xp, levels, streak, completedLessons, badges, memberships] = await Promise.all([
         this.db.xpTransaction.aggregate({ where: { userId: user.id }, _sum: { amount: true } }),
@@ -95,7 +101,16 @@ export class ProfileService {
 
   async update(actor: Actor, dto: UpdateProfileDto) {
     // Identity comes only from the authenticated session; role/grade/email are not editable here.
-    await this.db.user.update({ where: { id: actor.id }, data: { name: dto.name } });
+    if (dto.name === undefined && dto.avatarId === undefined)
+      throw new BadRequestException('Ism yoki avatar tanlang.');
+    await this.db.withUserLock(actor.id, async (tx) => {
+      if (dto.avatarId) {
+        if (!(await tx.avatar.findFirst({ where: { id: dto.avatarId, active: true } })))
+          throw new BadRequestException('Bu avatar tanlash uchun mavjud emas.');
+        await tx.profilePhoto.deleteMany({ where: { userId: actor.id } });
+      }
+      await tx.user.update({ where: { id: actor.id }, data: dto });
+    });
     return this.get(actor);
   }
 }

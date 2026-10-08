@@ -3,7 +3,26 @@
     "text": "8 × 7 = ?",
     "answer": "56",
     "options": ["54", "56", "64", "48"],
-    "explanation": "8 ni 7 marta qo‘shsak 56 bo‘ladi."
+    "explanation": "8 ni 7 marta qo‘shsak 56 bo‘ladi.",
+    "feedback": {
+      "rule": "Ko‘paytirish bir xil sonni takror qo‘shishdir: 8 × 7 — 8 ni yetti marta qo‘shish.",
+      "steps": ["8 + 8 + 8 + 8 + 8 + 8 + 8 = 56."],
+      "example": "6 × 4 = 6 + 6 + 6 + 6 = 24.",
+      "wrongAnswers": [
+        {
+          "value": "54",
+          "reason": "54 bu ko‘paytmaning qiymati emas. 8 ni yetti marta qo‘shish natijasi 56 bo‘ladi."
+        },
+        {
+          "value": "64",
+          "reason": "64 — 8 × 8 ning qiymati. Bu savolda esa 8 × 7 so‘ralgan, shuning uchun bitta 8 ni ayiramiz: 64 − 8 = 56."
+        },
+        {
+          "value": "48",
+          "reason": "48 — 8 × 6 ning qiymati. Yana bitta 8 qo‘shsak, 8 × 7 = 56 bo‘ladi."
+        }
+      ]
+    }
   },
   "TRUE_FALSE": {
     "text": "RAM ma’lumotlarni doimiy saqlaydi.",
@@ -18,7 +37,12 @@
   "NUMERICAL": {
     "text": "3x + 5 = 20. x ni toping.",
     "answer": "5",
-    "explanation": "20 − 5 = 15, 15 ÷ 3 = 5."
+    "explanation": "20 − 5 = 15, 15 ÷ 3 = 5.",
+    "feedback": {
+      "rule": "Tenglamaning ikkala tomoniga bir xil amal bajariladi. Avval qo‘shilgan 5 ni ayiramiz, so‘ng x ning oldidagi 3 ga bo‘lamiz.",
+      "steps": ["3x = 20 − 5 = 15.", "x = 15 ÷ 3 = 5.", "Tekshirish: 3 × 5 + 5 = 20."],
+      "example": "2x + 4 = 12 → 2x = 8 → x = 4."
+    }
   },
   "FILL_GAP": {
     "text": "I ___ to school every day.",
@@ -33,7 +57,15 @@
     "grading": {
       "values": ["go"]
     },
-    "explanation": "I bilan Present Simple zamonida go ishlatiladi."
+    "explanation": "I bilan Present Simple zamonida go ishlatiladi.",
+    "feedback": {
+      "rule": "Present Simple’da I, you, we, they bilan fe’lning asosiy shakli ishlatiladi. He, she, it bilan odatda -s yoki -es qo‘shiladi: go → goes.",
+      "steps": [
+        "Gapning egasi I ekanini topamiz.",
+        "I bilan go ni ishlatamiz: I go to school every day."
+      ],
+      "example": "She goes to school every day. Bu gapda ega She bo‘lgani uchun goes ishlatiladi."
+    }
   },
   "MATCH_PAIRS": {
     "text": "Qurilma va vazifasini juftlang.",

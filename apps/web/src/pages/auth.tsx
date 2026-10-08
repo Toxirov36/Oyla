@@ -99,12 +99,14 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
             <span>03 Informatika</span>
           </div>
         </div>
-        <small>OYLA — O‘rgan. O‘yla. Yarat.</small>
+        <small>{brandTitle}</small>
       </section>
       <section className="auth-form-side">
         <div className="auth-form">
           <span className="eyebrow">SIZNING YANGI BOSHLANISHINGIZ</span>
-          <h2>{register ? 'OYLAga xush kelibsiz!' : 'Yana ko‘rishganimizdan xursandmiz.'}</h2>
+          <h2>
+            {register ? `${brand.name}ga xush kelibsiz!` : 'Yana ko‘rishganimizdan xursandmiz.'}
+          </h2>
           <p>
             {register
               ? 'Bilim sayohatingiz uchun hisob yarating.'
@@ -201,3 +203,4 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
     </div>
   );
 }
+import { brand, brandTitle } from '../lib/brand';

@@ -5,6 +5,8 @@ import { Actor } from '../common/security';
 import { visibleLesson } from '../content/content.service';
 import { localDay, mean, weekStart } from '../learning/rules';
 import { FriendsService } from '../friends/friends.service';
+import { avatarSelect } from '../profile/avatars';
+import { mediaAvatar, photoSelect } from '../profile/public-media';
 
 @Injectable()
 export class ProgressService {
@@ -213,7 +215,12 @@ export class ProgressService {
       const [users, xp] = await Promise.all([
         this.db.user.findMany({
           where: { id: { in: ids }, role: 'STUDENT', active: true },
-          select: { id: true, name: true },
+          select: {
+            id: true,
+            name: true,
+            avatar: { select: avatarSelect },
+            photo: { select: photoSelect },
+          },
         }),
         this.db.xpTransaction.groupBy({
           by: ['userId'],
@@ -226,6 +233,7 @@ export class ProgressService {
         .map((user) => ({
           userId: user.id,
           name: user.name,
+          avatar: mediaAvatar(user),
           xp: totals.get(user.id) || 0,
           isMe: user.id === actor.id,
         }))
@@ -271,12 +279,18 @@ export class ProgressService {
     });
     const users = await this.db.user.findMany({
       where: { id: { in: rows.map((r) => r.userId) } },
-      select: { id: true, name: true },
+      select: {
+        id: true,
+        name: true,
+        avatar: { select: avatarSelect },
+        photo: { select: photoSelect },
+      },
     });
     return rows.map((row, i) => ({
       rank: i + 1,
       userId: row.userId,
       name: users.find((u) => u.id === row.userId)?.name || 'O‘quvchi',
+      avatar: mediaAvatar(users.find((u) => u.id === row.userId) ?? {}),
       xp: row._sum.amount || 0,
       isMe: row.userId === actor.id,
     }));

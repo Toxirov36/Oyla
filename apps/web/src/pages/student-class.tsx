@@ -154,7 +154,7 @@ export default function StudentClassPage() {
                 <Card className="classmate-list">
                   {detail.data.members.map((member) => (
                     <div className="friend-row" key={member.id}>
-                      <span className="avatar">{member.name[0]}</span>
+                      <UserAvatar name={member.name} avatar={member.avatar} />
                       <div className="friend-person">
                         <strong>
                           {member.name}
@@ -211,3 +211,4 @@ export default function StudentClassPage() {
     </>
   );
 }
+import { UserAvatar } from '../components/user-avatar';

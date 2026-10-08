@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './lib/auth';
 import App from './app';
+import { applyBrand } from './lib/brand';
 import '@fontsource/inter/400.css';
 import '@fontsource/inter/500.css';
 import '@fontsource/inter/600.css';
@@ -11,9 +12,11 @@ import '@fontsource/inter/700.css';
 import '@fontsource/inter/800.css';
 import './styles.css';
 import './styles/exercises.css';
+import './styles/play.css';
 const cache = new QueryClient({
   defaultOptions: { queries: { staleTime: 30000, retry: 1, refetchOnWindowFocus: true } },
 });
+applyBrand();
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={cache}>

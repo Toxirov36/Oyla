@@ -43,6 +43,10 @@ function fromDefinition(q: PreviewDefinition) {
     text: q.text,
     answer: answer ?? '',
     explanation: q.explanation,
+    feedbackReason: q.feedback?.reason ?? '',
+    feedbackRule: q.feedback?.rule ?? '',
+    feedbackSteps: q.feedback?.steps?.join('\n') ?? '',
+    feedbackExample: q.feedback?.example ?? '',
     items: c.items?.map((i) => i.text).join('\n') ?? '',
     targets: c.targets?.map((i) => i.text).join('\n') ?? '',
     slots: c.slots?.map((i) => i.text).join('\n') ?? '',
@@ -77,6 +81,7 @@ export function QuestionEditor({
             ...question,
             config: question.config ?? undefined,
             grading: question.grading ?? undefined,
+            feedback: question.feedback ?? undefined,
           }
         : exampleQuestion('MULTIPLE_CHOICE'),
     ),
@@ -93,6 +98,11 @@ export function QuestionEditor({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [preview, setPreview] = useState<PreviewDefinition | null>(null);
+  const [wrongReasons, setWrongReasons] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      (question?.feedback?.wrongAnswers ?? []).map((item) => [item.value, item.reason]),
+    ),
+  );
   const set = (key: keyof typeof fields, value: string) => {
     setFields((f) => ({ ...f, [key]: value }));
     setPreview(null);
@@ -140,22 +150,32 @@ export function QuestionEditor({
       c.imageAlt = fields.imageAlt;
     }
     const structured = Object.keys(g).length > 0;
+    const options =
+      type === 'MULTIPLE_CHOICE'
+        ? lines(fields.optionsText).map((text) => ({
+            text,
+            value: question?.options.find((o) => o.text === text)?.value ?? text,
+          }))
+        : [];
     return {
       lessonId: selectedLesson,
       type,
       text: fields.text,
       answer: structured ? 'structured' : fields.answer,
       explanation: fields.explanation,
-      options:
-        type === 'MULTIPLE_CHOICE'
-          ? lines(fields.optionsText).map((text) => ({
-              text,
-              value: question?.options.find((o) => o.text === text)?.value ?? text,
-            }))
-          : [],
+      options,
       tolerance,
       config: structured ? c : undefined,
       grading: structured ? g : undefined,
+      feedback: {
+        reason: fields.feedbackReason.trim(),
+        rule: fields.feedbackRule.trim(),
+        steps: lines(fields.feedbackSteps),
+        example: fields.feedbackExample.trim(),
+        wrongAnswers: options
+          .filter((o) => o.value !== fields.answer.trim() && wrongReasons[o.value]?.trim())
+          .map((o) => ({ value: o.value, reason: wrongReasons[o.value]!.trim() })),
+      },
     };
   };
   const field = (key: keyof typeof fields, label: string, help?: string, rows = 3) => (
@@ -165,7 +185,17 @@ export function QuestionEditor({
         rows={rows}
         value={fields[key]}
         onChange={(e) => set(key, e.target.value)}
-        maxLength={key === 'code' || key === 'explanation' || key === 'text' ? 5000 : 2000}
+        maxLength={
+          key === 'feedbackSteps'
+            ? 15000
+            : key === 'feedbackReason'
+              ? 1500
+              : key === 'feedbackExample'
+                ? 3000
+                : ['code', 'explanation', 'text', 'feedbackRule'].includes(key)
+                  ? 5000
+                  : 2000
+        }
       />
       {help && <small className="field-help">{help}</small>}
     </label>
@@ -222,6 +252,7 @@ export function QuestionEditor({
           onChange={(v) => {
             setType(v as ExerciseType);
             setFields(fromDefinition(exampleQuestion(v as ExerciseType)));
+            setWrongReasons({});
             setPreview(null);
           }}
         />
@@ -312,6 +343,50 @@ export function QuestionEditor({
                     : 'Qabul qilinadigan muqobillarni | bilan ajrating.',
       )}
       {field('explanation', 'Javob izohi')}
+      <fieldset className="feedback-editor">
+        <legend>Xato javobdan keyingi tushuntirish</legend>
+        <p className="field-help">
+          Izohlar javob yuborilgandan keyin ko‘rsatiladi. Faqat tekshirilgan qoida va misollarni
+          kiriting. Bo‘sh qolsa, mavjud javob izohi ishlatiladi.
+        </p>
+        {field(
+          'feedbackReason',
+          'Nima uchun xato? (umumiy sabab)',
+          'Sababni aniq bilmasangiz, taxminiy tashxis yozmang.',
+          2,
+        )}
+        {field('feedbackRule', 'Qoida', 'Tegishli qoida yoki hisoblash usuli.')}
+        {field(
+          'feedbackSteps',
+          'Yechim qadamlari',
+          'Har qatorda bitta qadam. Ko‘pi bilan 10 ta.',
+          4,
+        )}
+        {field(
+          'feedbackExample',
+          'Qo‘shimcha misol',
+          'Shu qoidani qo‘llaydigan boshqa kichik misol.',
+        )}
+        {type === 'MULTIPLE_CHOICE' &&
+          lines(fields.optionsText).map((text, i) => {
+            const value = question?.options.find((o) => o.text === text)?.value ?? text;
+            if (value === fields.answer.trim()) return null;
+            return (
+              <label key={i}>
+                {`“${text}” tanlansa, nima uchun xato?`}
+                <textarea
+                  rows={2}
+                  maxLength={1500}
+                  value={wrongReasons[value] ?? ''}
+                  onChange={(e) => {
+                    setWrongReasons((prev) => ({ ...prev, [value]: e.target.value }));
+                    setPreview(null);
+                  }}
+                />
+              </label>
+            );
+          })}
+      </fieldset>
       <label>
         Maslahat
         <input value={hint} maxLength={2000} onChange={(e) => setHint(e.target.value)} />

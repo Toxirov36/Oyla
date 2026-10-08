@@ -10,10 +10,14 @@ import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../common/prisma.service';
 import { RedisService } from '../common/redis.service';
 import { Actor } from '../common/security';
+import { avatarSelect } from '../profile/avatars';
+import { mediaAvatar, photoSelect } from '../profile/public-media';
 
 const memberSelect = {
   id: true,
   name: true,
+  avatar: { select: avatarSelect },
+  photo: { select: photoSelect },
   role: true,
   active: true,
   student: { select: { grade: true } },
@@ -59,6 +63,7 @@ export class FriendsService {
         user: {
           id: peer.id,
           name: peer.name,
+          avatar: mediaAvatar(peer),
           grade: peer.student?.grade ?? null,
           active: peer.active,
         },

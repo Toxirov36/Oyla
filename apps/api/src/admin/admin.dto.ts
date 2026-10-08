@@ -28,6 +28,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { ExerciseConfigDto, ExerciseGradingDto } from '../learning/exercise.dto';
+import { QuestionFeedbackDto } from '../learning/feedback.dto';
 import { LoginDto } from '../auth/auth.dto';
 import { Optional, Trim, PaginationDto, QueryNumber } from '../common/dto';
 
@@ -92,6 +93,7 @@ export class OptionDto {
   @ApiProperty() @Trim() @IsString() @MinLength(1) @MaxLength(100) value!: string;
 }
 export class QuestionDto {
+  @Optional() @ValidateNested() @Type(() => QuestionFeedbackDto) feedback?: QuestionFeedbackDto;
   @Optional() @ValidateNested() @Type(() => ExerciseConfigDto) config?: ExerciseConfigDto;
   @Optional() @ValidateNested() @Type(() => ExerciseGradingDto) grading?: ExerciseGradingDto;
   @ApiProperty() @IsUUID('4') lessonId!: string;

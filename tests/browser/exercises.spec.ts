@@ -363,8 +363,22 @@ test('admin creates and previews structured content without an accidental form s
     await expect(dialog.getByRole('textbox', { name: 'Savol matni', exact: true })).toHaveValue(
       'I ___ to school every day.',
     );
+    await dialog
+      .getByRole('textbox', { name: /^Qoida/ })
+      .fill('I bilan Present Simple’da fe’lning asosiy shakli ishlatiladi.');
+    await dialog
+      .getByRole('textbox', { name: /^Yechim qadamlari/ })
+      .fill('Egani toping: I.\nAsosiy shaklni yozing: go.');
+    await dialog.getByRole('textbox', { name: /^Qo‘shimcha misol/ }).fill('We go home at five.');
     await dialog.getByRole('button', { name: 'O‘quvchi ko‘rinishida sinash', exact: true }).click();
     const preview = dialog.locator('.exercise-preview');
+    await preview.getByLabel('Mos fe’lni yozing', { exact: true }).fill('goes');
+    await preview.getByRole('button', { name: 'Tekshirish', exact: true }).click();
+    await expect(
+      preview.getByRole('heading', { name: 'Nima uchun xato?', exact: true }),
+    ).toBeVisible();
+    await expect(preview.getByText('We go home at five.', { exact: true })).toBeVisible();
+    await preview.getByRole('button', { name: 'Yana urinib ko‘rish', exact: true }).click();
     await preview.getByLabel('Mos fe’lni yozing', { exact: true }).fill('go');
     await preview.getByRole('button', { name: 'Tekshirish', exact: true }).click();
     await expect(preview.getByText('To‘g‘ri!', { exact: true })).toBeVisible();
@@ -375,6 +389,11 @@ test('admin creates and previews structured content without an accidental form s
     expect(q.type).toBe('FILL_GAP');
     expect(q.grading).toEqual({ values: ['go'] });
     expect(q.version).toBe(1);
+    expect(q.feedback).toMatchObject({
+      rule: 'I bilan Present Simple’da fe’lning asosiy shakli ishlatiladi.',
+      steps: ['Egani toping: I.', 'Asosiy shaklni yozing: go.'],
+      example: 'We go home at five.',
+    });
     const session = await page.request.post('/api/v1/auth/login', {
       headers: { Origin: origin },
       data: { email: learner.user.email, password: learner.password },

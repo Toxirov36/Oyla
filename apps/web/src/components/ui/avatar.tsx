@@ -1,12 +1,12 @@
 import * as React from 'react';
 import * as AvatarPrimitive from '@radix-ui/react-avatar';
 import { cn } from '@/lib/utils';
+import { PrivateAvatarImage } from './private-avatar-image';
 
 export type AvatarSize = 'xs' | 'sm' | 'default' | 'md' | 'lg' | 'xl' | '2xl';
 export type AvatarShape = 'circle' | 'square';
 
-export interface AvatarProps
-  extends React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root> {
+export interface AvatarProps extends React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root> {
   size?: AvatarSize;
   shape?: AvatarShape;
 }
@@ -21,32 +21,40 @@ const sizeClasses: Record<AvatarSize, string> = {
   '2xl': 'size-20 text-2xl',
 };
 
-export const Avatar = React.forwardRef<
-  React.ElementRef<typeof AvatarPrimitive.Root>,
-  AvatarProps
->(({ className, size = 'default', shape = 'circle', ...props }, ref) => {
-  return (
-    <AvatarPrimitive.Root
-      ref={ref}
-      data-slot="avatar"
-      data-size={size}
-      className={cn(
-        'group/avatar relative inline-flex shrink-0 select-none overflow-hidden transition-all duration-200',
-        shape === 'circle' ? 'rounded-full' : 'rounded-2xl',
-        sizeClasses[size] || sizeClasses.default,
-        'ring-1 ring-black/5 dark:ring-white/10 shadow-xs',
-        className,
-      )}
-      {...props}
-    />
-  );
-});
+export const Avatar = React.forwardRef<React.ElementRef<typeof AvatarPrimitive.Root>, AvatarProps>(
+  ({ className, size = 'default', shape = 'circle', ...props }, ref) => {
+    return (
+      <AvatarPrimitive.Root
+        ref={ref}
+        data-slot="avatar"
+        data-size={size}
+        className={cn(
+          'group/avatar relative inline-flex shrink-0 select-none overflow-hidden transition-all duration-200',
+          shape === 'circle' ? 'rounded-full' : 'rounded-2xl',
+          sizeClasses[size] || sizeClasses.default,
+          'ring-1 ring-black/5 dark:ring-white/10 shadow-xs',
+          className,
+        )}
+        {...props}
+      />
+    );
+  },
+);
 Avatar.displayName = AvatarPrimitive.Root.displayName;
 
 export const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
 >(({ className, ...props }, ref) => {
+  if (props.src?.startsWith('/api/v1/profile-photos/'))
+    return (
+      <PrivateAvatarImage
+        {...props}
+        ref={ref}
+        data-slot="avatar-image"
+        className={cn('aspect-square size-full object-cover', className)}
+      />
+    );
   return (
     <AvatarPrimitive.Image
       ref={ref}
@@ -58,8 +66,9 @@ export const AvatarImage = React.forwardRef<
 });
 AvatarImage.displayName = AvatarPrimitive.Image.displayName;
 
-export interface AvatarFallbackProps
-  extends React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback> {
+export interface AvatarFallbackProps extends React.ComponentPropsWithoutRef<
+  typeof AvatarPrimitive.Fallback
+> {
   variant?: 'gradient' | 'subtle' | 'primary';
 }
 
@@ -75,10 +84,8 @@ export const AvatarFallback = React.forwardRef<
         'flex size-full items-center justify-center font-bold select-none transition-colors',
         variant === 'gradient' &&
           'bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-500 text-white shadow-inner',
-        variant === 'subtle' &&
-          'bg-[var(--blue-soft)] text-[var(--primary)] font-semibold',
-        variant === 'primary' &&
-          'bg-[var(--primary)] text-white font-semibold',
+        variant === 'subtle' && 'bg-[var(--blue-soft)] text-[var(--primary)] font-semibold',
+        variant === 'primary' && 'bg-[var(--primary)] text-white font-semibold',
         className,
       )}
       {...props}

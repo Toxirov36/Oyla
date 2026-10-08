@@ -6,6 +6,8 @@ import * as argon2 from 'argon2';
 import { PrismaService } from '../common/prisma.service';
 import { config } from '../common/config';
 import { LoginDto, RegisterDto } from './auth.dto';
+import { avatarSelect } from '../profile/avatars';
+import { photoSelect, publicMedia } from '../profile/public-media';
 
 const digest = (token: string) => createHash('sha256').update(token).digest('hex');
 @Injectable()
@@ -101,16 +103,20 @@ export class AuthService implements OnModuleInit {
     return { success: true };
   }
   async publicUser(id: string) {
-    return this.db.user.findUniqueOrThrow({
+    const user = await this.db.user.findUniqueOrThrow({
       where: { id },
       select: {
         id: true,
         name: true,
+        avatarId: true,
+        avatar: { select: avatarSelect },
+        photo: { select: photoSelect },
         email: true,
         role: true,
         teacherAccess: true,
         student: { select: { grade: true } },
       },
     });
+    return publicMedia(user);
   }
 }

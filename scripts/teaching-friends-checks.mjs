@@ -282,6 +282,11 @@ export async function verifyTeachingAndFriends({
   await outside.client.request(`/students/me/classes/${group.id}`, { expected: 404 });
   assert.equal((await outside.client.request('/users/me/profile')).student.classes.length, 0);
   await a.client.request('/students/me/classes/not-a-uuid', { expected: 400 });
+  const avatarCatalog = await b.client.request('/avatars');
+  await b.client.request('/users/me/profile', {
+    method: 'PATCH',
+    body: { avatarId: avatarCatalog[0].id },
+  });
   const studentClass = await a.client.request(`/students/me/classes/${group.id}`);
   assert.equal(studentClass.studentCount, 3);
   assert.deepEqual(
@@ -289,8 +294,15 @@ export async function verifyTeachingAndFriends({
     new Set([a.user.id, b.user.id, c.user.id]),
   );
   assert.deepEqual(Object.keys(studentClass.teacher), ['name']);
-  for (const member of studentClass.members)
-    assert.deepEqual(Object.keys(member).sort(), ['friendship', 'id', 'isMe', 'name']);
+  for (const member of studentClass.members) {
+    assert.deepEqual(Object.keys(member).sort(), ['avatar', 'friendship', 'id', 'isMe', 'name']);
+    if (member.avatar)
+      assert.deepEqual(Object.keys(member.avatar).sort(), ['id', 'imageUrl', 'name']);
+  }
+  assert.equal(
+    studentClass.members.find((member) => member.id === b.user.id).avatar.id,
+    avatarCatalog[0].id,
+  );
   const serialized = JSON.stringify(studentClass);
   assert.ok(!serialized.includes(b.user.email));
   assert.ok(!serialized.includes('passwordHash'));

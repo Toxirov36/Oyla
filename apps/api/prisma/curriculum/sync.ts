@@ -33,6 +33,7 @@ export function isUntouchedStarter(stored: StoredLesson, original: SeedLesson, p
       row.version === 1 &&
       row.config === null &&
       row.grading === null &&
+      row.feedback === null &&
       row.xp === null &&
       row.hint === null &&
       row.tolerance === 0.0001 &&

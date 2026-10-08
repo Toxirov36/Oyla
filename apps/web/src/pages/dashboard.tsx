@@ -45,7 +45,7 @@ export function LeaderboardPreview({ rows }: { rows: Ranking[] }) {
           <span className={`rank rank-${row.rank}`}>
             {row.rank <= 3 ? <Trophy size={17} /> : row.rank}
           </span>
-          <span className="avatar small">{row.name[0]}</span>
+          <UserAvatar name={row.name} avatar={row.avatar} size="sm" />
           <strong>
             {row.name}
             {row.isMe && <small> (siz)</small>}
@@ -351,3 +351,4 @@ export default function DashboardPage() {
     </>
   );
 }
+import { UserAvatar } from '../components/user-avatar';

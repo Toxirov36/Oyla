@@ -11,6 +11,7 @@ import { TeacherModule } from './teacher/teacher.module';
 import { AdminModule } from './admin/admin.module';
 import { ProfileModule } from './profile/profile.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { PlayModule } from './play/play.module';
 @Controller('health')
 class HealthController {
   constructor(
@@ -34,6 +35,7 @@ class HealthController {
     AdminModule,
     ProfileModule,
     NotificationsModule,
+    PlayModule,
   ],
   controllers: [HealthController],
   providers: [
