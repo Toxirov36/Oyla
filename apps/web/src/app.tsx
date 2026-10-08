@@ -10,6 +10,7 @@ const Subjects = lazy(() => import('./pages/subjects'));
 const Lesson = lazy(() => import('./pages/lesson'));
 const StudentData = lazy(() => import('./pages/student-data'));
 const Teacher = lazy(() => import('./pages/teacher'));
+const ExerciseCatalog = lazy(() => import('./pages/admin/exercise-catalog'));
 const Admin = lazy(() => import('./pages/admin'));
 const Profile = lazy(() => import('./pages/profile'));
 const Friends = lazy(() => import('./pages/friends'));
@@ -72,6 +73,7 @@ export default function App() {
             </Route>
             <Route element={<Protected role="ADMIN" />}>
               <Route path="/admin" element={<Admin />} />
+              <Route path="/admin/exercises" element={<ExerciseCatalog />} />
               {(['users', 'content', 'gamification', 'classes'] as const).map((mode) => (
                 <Route key={mode} path={`/admin/${mode}`} element={<Admin mode={mode} />} />
               ))}

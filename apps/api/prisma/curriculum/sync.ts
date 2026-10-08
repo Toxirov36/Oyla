@@ -13,6 +13,8 @@ export function isUntouchedStarter(stored: StoredLesson, original: SeedLesson, p
     stored.explanation !== original.explanation ||
     stored.example !== original.example ||
     stored.status !== 'PUBLISHED' ||
+    stored.prerequisiteId !== null ||
+    stored.unlockScore !== 70 ||
     stored.position !== position ||
     stored.duration !== 8 + position * 2 ||
     stored.questions.length !== original.questions.length
@@ -27,6 +29,9 @@ export function isUntouchedStarter(stored: StoredLesson, original: SeedLesson, p
       row.answer === question.answer &&
       row.explanation === question.explanation &&
       row.status === 'PUBLISHED' &&
+      row.version === 1 &&
+      row.config === null &&
+      row.grading === null &&
       row.xp === null &&
       row.hint === null &&
       row.tolerance === 0.0001 &&

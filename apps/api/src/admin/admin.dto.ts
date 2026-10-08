@@ -16,6 +16,7 @@ import {
   IsEmail,
   IsEnum,
   IsInt,
+  IsDefined,
   IsNumber,
   IsString,
   IsUUID,
@@ -26,6 +27,7 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
+import { ExerciseConfigDto, ExerciseGradingDto } from '../learning/exercise.dto';
 import { LoginDto } from '../auth/auth.dto';
 import { Optional, Trim, PaginationDto, QueryNumber } from '../common/dto';
 
@@ -67,6 +69,11 @@ export class TopicDto {
 }
 export class UpdateTopicDto extends PartialType(TopicDto, { skipNullProperties: false }) {}
 export class LessonDto {
+  @Optional()
+  @IsString()
+  @Matches(/^(?:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})?$/i)
+  prerequisiteId?: string;
+  @Optional() @IsInt() @Min(0) @Max(100) unlockScore?: number;
   @ApiProperty() @IsUUID('4') topicId!: string;
   @ApiProperty() @Trim() @IsString() @MinLength(2) @MaxLength(150) title!: string;
   @ApiProperty() @Trim() @IsString() @MinLength(20) @MaxLength(30000) explanation!: string;
@@ -84,6 +91,8 @@ export class OptionDto {
   @ApiProperty() @Trim() @IsString() @MinLength(1) @MaxLength(100) value!: string;
 }
 export class QuestionDto {
+  @Optional() @ValidateNested() @Type(() => ExerciseConfigDto) config?: ExerciseConfigDto;
+  @Optional() @ValidateNested() @Type(() => ExerciseGradingDto) grading?: ExerciseGradingDto;
   @ApiProperty() @IsUUID('4') lessonId!: string;
   @ApiProperty() @Trim() @IsString() @MinLength(3) @MaxLength(5000) text!: string;
   @ApiProperty({ enum: QuestionType }) @IsEnum(QuestionType) type!: QuestionType;
@@ -115,6 +124,10 @@ export class QuestionDto {
   options?: OptionDto[];
 }
 export class UpdateQuestionDto extends PartialType(QuestionDto, { skipNullProperties: false }) {}
+export class PreviewExerciseDto {
+  @IsDefined() @ValidateNested() @Type(() => QuestionDto) question!: QuestionDto;
+  @IsString() @MinLength(1) @MaxLength(20000) value!: string;
+}
 export class CreateUserDto extends LoginDto {
   @ApiProperty() @Trim() @IsString() @MinLength(2) @MaxLength(80) name!: string;
   @ApiProperty({ enum: Role }) @IsEnum(Role) role!: Role;

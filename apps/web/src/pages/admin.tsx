@@ -1,3 +1,4 @@
+import { QuestionEditor } from '../components/exercises/question-editor';
 import { AdminClasses } from './admin/classes';
 import { AdminGamification } from './admin/gamification';
 import { AdminContent } from './admin/content';
@@ -5,7 +6,7 @@ import { AdminUsers } from './admin/users';
 import { AdminOverview } from './admin/overview';
 import { UserEditor } from './admin/user-editor';
 import { AdminPasswordReset } from './admin/password-reset';
-import { grades, criterions, typeOptions } from './admin/config';
+import { grades, criterions } from './admin/config';
 import { useSearchParams } from 'react-router-dom';
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -60,6 +61,11 @@ export default function AdminPage({
   const [params] = useSearchParams();
   const [userEditor, setUserEditor] = useState<{ user?: User } | null>(null);
   const [resetUser, setResetUser] = useState<User | null>(null);
+  const [questionEditor, setQuestionEditor] = useState<{
+    question?: AdminQuestion;
+    lessonId?: string;
+    lessons: { id: string; title: string }[];
+  } | null>(null);
   const [editor, setEditor] = useState<EditorSpec | null>(null);
   const [deletion, setDeletion] = useState<{ endpoint: string; title: string } | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
@@ -134,6 +140,14 @@ export default function AdminPage({
     const lessons = topics.flatMap((t) =>
       t.lessons.map((l) => ({ ...l, label: `${t.label} / ${l.title}` })),
     );
+    if (kind === 'questions') {
+      setQuestionEditor({
+        question: item as AdminQuestion | undefined,
+        lessonId: parentId,
+        lessons: lessons.map((l) => ({ id: l.id, title: l.label })),
+      });
+      return;
+    }
     const select = (
       key: string,
       label: string,
@@ -198,65 +212,37 @@ export default function AdminPage({
         },
         { key: 'example', label: 'Yechilgan misol', kind: 'textarea', min: 10, max: 10000 },
         { key: 'duration', label: 'Davomiylik (daqiqa)', kind: 'number', min: 1, max: 180 },
-        ...(item ? [statusField] : []),
-        positionField,
-      ];
-      values = { topicId: parentId, duration: 10, ...values };
-    } else {
-      fields = [
-        select('lessonId', 'Dars', lessons),
-        { key: 'text', label: 'Savol matni', kind: 'textarea', min: 3, max: 5000 },
-        { key: 'type', label: 'Savol turi', kind: 'select', options: typeOptions },
         {
-          key: 'difficulty',
-          label: 'Murakkablik',
+          key: 'prerequisiteId',
+          label: 'Avval bajariladigan dars',
           kind: 'select',
+          optional: true,
           options: [
-            { value: 'EASY', label: 'Oson' },
-            { value: 'MEDIUM', label: 'O‘rta' },
-            { value: 'HARD', label: 'Murakkab' },
+            { value: '', label: 'Shartsiz ochiq' },
+            ...lessons
+              .filter((l) => l.id !== item?.id)
+              .map((l) => ({ value: l.id, label: l.label })),
           ],
         },
         {
-          key: 'optionsText',
-          label: 'Variantlar (faqat variantli savolda)',
-          kind: 'textarea',
-          optional: true,
-          help: 'Har bir variantni alohida satrga yozing. 2–8 ta variant.',
-        },
-        {
-          key: 'answer',
-          label: 'To‘g‘ri javob',
-          max: 2000,
-          help: 'Variantli: variant matni. To‘g‘ri/noto‘g‘ri: true yoki false. Matnli muqobillarni | bilan ajrating.',
-        },
-        { key: 'explanation', label: 'Javob izohi', kind: 'textarea', min: 3, max: 5000 },
-        { key: 'hint', label: 'Maslahat (ixtiyoriy)', optional: true, max: 2000 },
-        {
-          key: 'xp',
-          label: 'Savol uchun XP (ixtiyoriy)',
+          key: 'unlockScore',
+          label: 'Oldingi darsdagi minimal natija (%)',
           kind: 'number',
-          optional: true,
           min: 0,
-          max: 1000,
-          help: 'Bo‘sh qoldirilsa umumiy XP qoidasi ishlatiladi.',
+          max: 100,
         },
-        {
-          key: 'tolerance',
-          label: 'Sonli javob xatolik chegarasi',
-          kind: 'number',
-          schema: z.number().min(0).max(100),
-        },
-        statusField,
+        ...(item ? [statusField] : []),
         positionField,
       ];
-      const question = item as AdminQuestion | undefined;
       values = {
-        lessonId: parentId,
-        tolerance: 0.0001,
+        topicId: parentId,
+        duration: 10,
+        unlockScore: 70,
         ...values,
-        optionsText: question?.options.map((o) => o.text).join('\n') || '',
+        prerequisiteId: values.prerequisiteId ?? '',
       };
+    } else {
+      return;
     }
     setEditor({
       title: `${names[kind]} ${item ? 'tahrirlash' : 'yaratish'}`,
@@ -267,17 +253,6 @@ export default function AdminPage({
       serialize: (input) => {
         const body = { ...input };
         if (kind === 'courses') body.grade = Number(body.grade);
-        if (kind === 'questions') {
-          body.options =
-            body.type === 'MULTIPLE_CHOICE'
-              ? String(body.optionsText || '')
-                  .split('\n')
-                  .map((s) => s.trim())
-                  .filter(Boolean)
-                  .map((text) => ({ text, value: text }))
-              : [];
-          delete body.optionsText;
-        }
         return body;
       },
     });
@@ -469,6 +444,18 @@ export default function AdminPage({
         title="Parolni tiklash"
       >
         {resetUser && <AdminPasswordReset key={resetUser.id} user={resetUser} />}
+      </Modal>
+      <Modal
+        open={!!questionEditor}
+        onOpenChange={(open) => {
+          if (!open) setQuestionEditor(null);
+        }}
+        title={questionEditor?.question ? 'Savol tahrirlash' : 'Savol yaratish'}
+        wide
+      >
+        {questionEditor && (
+          <QuestionEditor {...questionEditor} close={() => setQuestionEditor(null)} />
+        )}
       </Modal>
       <Modal
         open={!!editor}

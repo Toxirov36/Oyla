@@ -36,6 +36,9 @@ test('reviewed corrections match the current catalog and never invalidate an ear
         position: patch.position,
         status: 'PUBLISHED',
         xp: null,
+        version: 1,
+        config: null,
+        grading: null,
         hint: patch.before.hint ?? null,
         tolerance: patch.before.tolerance ?? 0.0001,
         difficulty:

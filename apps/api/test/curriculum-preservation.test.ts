@@ -10,6 +10,8 @@ function stored(): Parameters<typeof canArchiveStarter>[0] {
   const lessonId = seedId('mathematics:5:lesson:0');
   return {
     id: lessonId,
+    prerequisiteId: null,
+    unlockScore: 70,
     topicId: seedId('mathematics:5:topic:0'),
     title: original.title,
     explanation: original.explanation,
@@ -32,6 +34,9 @@ function stored(): Parameters<typeof canArchiveStarter>[0] {
         hint: null,
         tolerance: 0.0001,
         xp: null,
+        version: 1,
+        config: null,
+        grading: null,
         position: i,
         status: 'PUBLISHED',
         createdAt: date,
@@ -72,6 +77,12 @@ test('administrator changes to lesson state, text, answer keys, or XP prevent ar
   answer.questions[0]!.answer = 'custom answer';
   const reward = stored();
   reward.questions[0]!.xp = 30;
-  for (const row of [draft, edited, answer, reward])
+  const prerequisite = stored();
+  prerequisite.prerequisiteId = seedId('custom prerequisite');
+  const version = stored();
+  version.questions[0]!.version = 2;
+  const definition = stored();
+  definition.questions[0]!.config = { code: 'teacher-authored' };
+  for (const row of [draft, edited, answer, reward, prerequisite, version, definition])
     assert.equal(canArchiveStarter(row, original, 0, references), false);
 });

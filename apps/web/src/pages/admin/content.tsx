@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+import { isStructured } from '../../lib/exercises';
 import type { ReactNode } from 'react';
 import { Layers, BookOpen, CirclePlus, Plus } from 'lucide-react';
 import type {
@@ -26,6 +28,9 @@ export function AdminContent({
 }) {
   return (
     <>
+      <Link className="btn btn-secondary" to="/admin/exercises">
+        Mashqlar katalogi · 20 ko‘rinish
+      </Link>
       <div className="filter-bar">
         <div className="segmented">
           {grades.map((g) => (
@@ -112,7 +117,9 @@ export function AdminContent({
                                 <strong>{question.text}</strong>
                                 <small>
                                   {typeOptions.find((t) => t.value === question.type)?.label} ·
-                                  Javob: {question.answer}
+                                  {isStructured(question.type)
+                                    ? `Tuzilmali baholash · v${question.version ?? 1}`
+                                    : `Javob: ${question.answer}`}
                                 </small>
                               </div>
                               {actions('questions', question)}

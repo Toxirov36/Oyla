@@ -1,6 +1,7 @@
+import { LessonPath } from '../components/lesson-path';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, Clock3 } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { api } from '../lib/api';
 import type { Dashboard, Subject } from '../lib/types';
 import { Card, EmptyState, ErrorState, Loading, PageHeader, ProgressBar } from '../components/ui';
@@ -44,58 +45,7 @@ export default function SubjectsPage() {
             </span>
           }
         />
-        {subject.courses.length ? (
-          subject.courses.map((course) => (
-            <section key={course.id} className="course-section">
-              <div className="section-title">
-                <h2>{course.title}</h2>
-                <span className="pill">{course.topics.length} ta mavzu</span>
-              </div>
-              {course.topics.map((topic, ti) => (
-                <Card className="topic-card" key={topic.id}>
-                  <header>
-                    <span className={`topic-number ${tone}`}>
-                      {String(ti + 1).padStart(2, '0')}
-                    </span>
-                    <div>
-                      <span className="eyebrow">MAVZU</span>
-                      <h3>{topic.title}</h3>
-                    </div>
-                  </header>
-                  <div className="lesson-list">
-                    {topic.lessons.length ? (
-                      topic.lessons.map((lesson) => {
-                        const mastered = progress.data?.completedLessonIds.includes(lesson.id);
-                        return (
-                          <Link to={`/lessons/${lesson.id}`} className="lesson-row" key={lesson.id}>
-                            <span className={`lesson-row-icon ${mastered ? 'mint' : tone}`}>
-                              {mastered ? <CheckCircle2 size={22} /> : <BookOpen size={22} />}
-                            </span>
-                            <div>
-                              <h4>{lesson.title}</h4>
-                              <span>
-                                <Clock3 size={13} />
-                                {lesson.duration} daqiqa · Tushuntirish, mashq va challenge
-                              </span>
-                            </div>
-                            <ArrowRight size={19} />
-                          </Link>
-                        );
-                      })
-                    ) : (
-                      <EmptyState title="Bu mavzuda hali darslar yo‘q" />
-                    )}
-                  </div>
-                </Card>
-              ))}
-            </section>
-          ))
-        ) : (
-          <EmptyState
-            title="Kurslar tayyorlanmoqda"
-            description="Yangi darslar chop etilganda shu yerda ko‘rinadi."
-          />
-        )}
+        <LessonPath subject={subject} dashboard={progress.data} />
       </>
     );
   }

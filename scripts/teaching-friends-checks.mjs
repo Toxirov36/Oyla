@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { weekStart } from '../apps/api/src/learning/rules.ts';
+import { weekStart } from '../apps/api/src/learning/calendar.ts';
 
 export async function verifyTeachingAndFriends({
   db,

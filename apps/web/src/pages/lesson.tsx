@@ -1,3 +1,4 @@
+import { ExercisePlayer } from '../components/exercises/exercise-player';
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
@@ -7,7 +8,6 @@ import {
   Award,
   BookOpen,
   CheckCircle2,
-  CircleCheck,
   Clock3,
   Flame,
   Lightbulb,
@@ -18,16 +18,8 @@ import {
   Zap,
 } from 'lucide-react';
 import { api, errorText } from '../lib/api';
-import type { Attempt, Daily, Feedback, Lesson, Question, Result } from '../lib/types';
-import {
-  Button,
-  Card,
-  EmptyState,
-  ErrorState,
-  Loading,
-  PageHeader,
-  ProgressBar,
-} from '../components/ui';
+import type { Attempt, Daily, Lesson, Result } from '../lib/types';
+import { Button, Card, EmptyState, ErrorState, Loading, PageHeader } from '../components/ui';
 
 export function ResultSummary({
   result,
@@ -124,232 +116,6 @@ export function ResultSummary({
     </div>
   );
 }
-function QuestionRenderer({
-  question,
-  value,
-  setValue,
-  disabled,
-}: {
-  question: Question;
-  value: string;
-  setValue: (value: string) => void;
-  disabled: boolean;
-}) {
-  if (question.type === 'MULTIPLE_CHOICE' || question.type === 'TRUE_FALSE') {
-    const options =
-      question.type === 'TRUE_FALSE'
-        ? [
-            { value: 'true', text: 'To‘g‘ri' },
-            { value: 'false', text: 'Noto‘g‘ri' },
-          ]
-        : question.options;
-    return (
-      <fieldset className="question-options">
-        <legend className="sr-only">Javob variantlari</legend>
-        {options.map((option, i) => (
-          <label
-            key={option.value}
-            className={`answer-option ${value === option.value ? 'selected' : ''} ${disabled ? 'locked' : ''}`}
-          >
-            <input
-              type="radio"
-              name={`answer-${question.id}`}
-              value={option.value}
-              checked={value === option.value}
-              onChange={() => setValue(option.value)}
-              disabled={disabled}
-            />
-            <span className="option-letter">{String.fromCharCode(65 + i)}</span>
-            <span>{option.text}</span>
-            <CircleCheck size={19} />
-          </label>
-        ))}
-      </fieldset>
-    );
-  }
-  return (
-    <label className="text-answer">
-      Javobingiz
-      <input
-        type="text"
-        inputMode="text"
-        maxLength={2000}
-        placeholder={question.type === 'NUMERICAL' ? 'Sonni kiriting...' : 'Javobingizni yozing...'}
-        value={value}
-        onChange={(event) => setValue(event.target.value)}
-        disabled={disabled}
-        autoComplete="off"
-      />
-    </label>
-  );
-}
-function Practice({
-  attempt,
-  setAttempt,
-  onComplete,
-}: {
-  attempt: Attempt;
-  setAttempt: (attempt: Attempt) => void;
-  onComplete: (result: Result) => void;
-}) {
-  const [index, setIndex] = useState(() => {
-    const n = attempt.questions.findIndex(
-      (q) => !attempt.answers.some((a) => a.questionId === q.id),
-    );
-    return n === -1 ? attempt.questions.length - 1 : n;
-  });
-  const [value, setValue] = useState('');
-  const [feedback, setFeedback] = useState<Feedback | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [showHint, setShowHint] = useState(false);
-  const question = attempt.questions[index]!;
-  const existing = attempt.answers.find((a) => a.questionId === question.id);
-  useEffect(() => {
-    setValue('');
-    setFeedback(null);
-    setShowHint(false);
-    setError('');
-  }, [index]);
-  const answered = !!existing;
-  const submit = async () => {
-    if (!value.trim()) return;
-    setBusy(true);
-    setError('');
-    try {
-      const response = await api<Feedback>(`/attempts/${attempt.id}/answers`, {
-        method: 'POST',
-        body: { questionId: question.id, value },
-      });
-      setFeedback(response);
-      if (!existing)
-        setAttempt({
-          ...attempt,
-          answers: [
-            ...attempt.answers,
-            { questionId: question.id, value, correct: response.correct },
-          ],
-        });
-    } catch (e) {
-      setError(errorText(e));
-    } finally {
-      setBusy(false);
-    }
-  };
-  const next = async () => {
-    if (index < attempt.questions.length - 1) {
-      setIndex(index + 1);
-      return;
-    }
-    setBusy(true);
-    setError('');
-    try {
-      onComplete(await api<Result>(`/attempts/${attempt.id}/complete`, { method: 'POST' }));
-    } catch (e) {
-      setError(errorText(e));
-    } finally {
-      setBusy(false);
-    }
-  };
-  return (
-    <div className="practice-layout">
-      <div className="practice-header">
-        <span className="eyebrow">
-          {question.difficulty === 'HARD' ? 'CHALLENGE' : 'MASHQ VAQTI'}
-        </span>
-        <span className="subtle">
-          {index + 1} / {attempt.questions.length} savol
-        </span>
-      </div>
-      <ProgressBar value={(attempt.answers.length / attempt.questions.length) * 100} tone="mint" />
-      <Card className="question-card">
-        <div className="question-card-meta">
-          <span className={`pill ${question.difficulty === 'HARD' ? 'warm' : ''}`}>
-            {{ EASY: 'Oson', MEDIUM: 'O‘rta', HARD: 'Murakkab' }[question.difficulty]}
-          </span>
-          <span>
-            <Target size={16} />
-            {question.type === 'NUMERICAL'
-              ? 'Sonli javob'
-              : question.type === 'TEXT'
-                ? 'Matnli javob'
-                : 'Javobni tanlang'}
-          </span>
-        </div>
-        <h2>{question.text}</h2>
-        <QuestionRenderer
-          question={question}
-          value={value}
-          setValue={setValue}
-          disabled={busy || !!feedback}
-        />
-        {question.hint && !feedback && (
-          <Button variant="ghost" onClick={() => setShowHint(!showHint)}>
-            <Lightbulb size={17} />
-            Maslahat olish
-          </Button>
-        )}
-        {showHint && <p className="question-hint">{question.hint}</p>}
-        {feedback && (
-          <div
-            className={`question-feedback ${feedback.correct ? 'correct' : 'incorrect'}`}
-            role="status"
-          >
-            <div>
-              {feedback.correct ? <CheckCircle2 size={23} /> : <Lightbulb size={23} />}
-              <strong>{feedback.message}</strong>
-            </div>
-            <p>{feedback.explanation}</p>
-            {!feedback.correct && (
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  setFeedback(null);
-                  setValue('');
-                }}
-              >
-                <RotateCcw size={16} />
-                Yana sinab ko‘rish
-              </Button>
-            )}
-          </div>
-        )}
-        {existing && !feedback && (
-          <p className="subtle">
-            Birinchi javobingiz saqlangan. Mustahkamlash uchun yana urinishingiz mumkin.
-          </p>
-        )}
-        {error && (
-          <div className="form-error" role="alert">
-            {error}
-          </div>
-        )}
-        <div className="question-actions">
-          {!feedback && (
-            <Button onClick={() => void submit()} busy={busy} disabled={!value.trim()}>
-              Javobni tekshirish
-              <ArrowRight size={17} />
-            </Button>
-          )}
-          {answered && (
-            <Button
-              variant={feedback ? 'primary' : 'secondary'}
-              onClick={() => void next()}
-              busy={busy}
-            >
-              {index === attempt.questions.length - 1 ? 'Natijani ko‘rish' : 'Keyingi savol'}
-              <ArrowRight size={17} />
-            </Button>
-          )}
-        </div>
-      </Card>
-      <p className="practice-note">
-        Natija birinchi javobingiz asosida hisoblanadi. Qayta urinishlar — bilimni mustahkamlash
-        uchun.
-      </p>
-    </div>
-  );
-}
 export default function LessonPage({ daily = false }: { daily?: boolean }) {
   const { id } = useParams();
   const cache = useQueryClient();
@@ -363,6 +129,7 @@ export default function LessonPage({ daily = false }: { daily?: boolean }) {
     queryFn: () => api<Daily>('/daily-challenge'),
     enabled: daily,
   });
+  const [mode, setMode] = useState<'STANDARD' | 'MINI_GAME' | 'BOSS_BATTLE'>('STANDARD');
   const [step, setStep] = useState(0);
   const [attempt, setAttempt] = useState<Attempt | null>(null);
   const [result, setResult] = useState<Result | null>(null);
@@ -374,13 +141,32 @@ export default function LessonPage({ daily = false }: { daily?: boolean }) {
     setResult(null);
     setError('');
   }, [id, daily]);
+  useEffect(() => {
+    const attemptId = daily ? challenge.data?.attemptId : query.data?.attemptId;
+    if (!attemptId) return;
+    let cancelled = false;
+    void api<Attempt>(`/attempts/${attemptId}`)
+      .then((a) => {
+        if (!cancelled) {
+          setAttempt(a);
+          setStep(2);
+          if (a.result) setResult(a.result);
+        }
+      })
+      .catch((e) => {
+        if (!cancelled) setError(errorText(e));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [daily, challenge.data?.attemptId, query.data?.attemptId]);
   const start = async () => {
     setBusy(true);
     setError('');
     try {
       const a = await api<Attempt>('/attempts', {
         method: 'POST',
-        body: daily ? {} : { lessonId: id },
+        body: daily ? { mode } : { lessonId: id, mode },
       });
       if (a.result) setResult(a.result);
       else {
@@ -425,7 +211,7 @@ export default function LessonPage({ daily = false }: { daily?: boolean }) {
             title="Bugungi bilim sinovi"
             description="Har bir savol — o‘zingizni sinash imkoniyati."
           />
-          <Practice attempt={attempt} setAttempt={setAttempt} onComplete={complete} />
+          <ExercisePlayer attempt={attempt} setAttempt={setAttempt} onComplete={complete} />
         </>
       );
     if (challenge.data.result) return <ResultSummary result={challenge.data.result} daily />;
@@ -505,7 +291,7 @@ export default function LessonPage({ daily = false }: { daily?: boolean }) {
         ))}
       </div>
       {step === 2 && attempt ? (
-        <Practice attempt={attempt} setAttempt={setAttempt} onComplete={complete} />
+        <ExercisePlayer attempt={attempt} setAttempt={setAttempt} onComplete={complete} />
       ) : (
         <Card className="lesson-reading">
           <span className="eyebrow">{step === 0 ? 'KELING, TUSHUNAMIZ' : 'AMALDA KO‘RAMIZ'}</span>
@@ -519,6 +305,29 @@ export default function LessonPage({ daily = false }: { daily?: boolean }) {
             <div className="form-error" role="alert">
               {error}
             </div>
+          )}
+          {step === 1 && (
+            <fieldset className="practice-modes">
+              <legend>Mashq usuli</legend>
+              {(
+                [
+                  ['STANDARD', 'Oddiy mashq'],
+                  ['MINI_GAME', 'Bilim parvozi'],
+                  ['BOSS_BATTLE', 'Mavzu sinovi'],
+                ] as const
+              ).map(([value, label]) => (
+                <label key={value} className={mode === value ? 'selected' : ''}>
+                  <input
+                    type="radio"
+                    name="practice-mode"
+                    value={value}
+                    checked={mode === value}
+                    onChange={() => setMode(value)}
+                  />
+                  {label}
+                </label>
+              ))}
+            </fieldset>
           )}
           <div className="reading-actions">
             {step === 1 && (

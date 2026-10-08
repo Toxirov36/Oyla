@@ -1,3 +1,5 @@
+import { validateExercise } from '../learning/exercises';
+import { checkAnswer } from '../learning/rules';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '../../generated/prisma/client';
 import * as argon2 from 'argon2';
@@ -24,6 +26,7 @@ import {
   UpdateSubjectDto,
   UpdateTopicDto,
   UpdateUserDto,
+  PreviewExerciseDto,
 } from './admin.dto';
 
 const safeUser = {
@@ -266,12 +269,14 @@ export class AdminService {
   deleteTopic(id: string) {
     return this.db.topic.delete({ where: { id } });
   }
-  createLesson(dto: LessonDto) {
+  async createLesson(dto: LessonDto) {
+    await this.validatePrerequisite(undefined, dto);
     if (dto.status === 'PUBLISHED')
       throw new BadRequestException('Avval darsni qoralama sifatida yarating va savol qo‘shing.');
-    return this.db.lesson.create({ data: dto });
+    return this.db.lesson.create({ data: { ...dto, prerequisiteId: dto.prerequisiteId || null } });
   }
   async updateLesson(id: string, dto: UpdateLessonDto) {
+    await this.validatePrerequisite(id, dto);
     if (
       dto.status === 'PUBLISHED' &&
       !(await this.db.question.count({ where: { lessonId: id, status: 'PUBLISHED' } }))
@@ -279,12 +284,70 @@ export class AdminService {
       throw new BadRequestException(
         'Darsni chop etish uchun kamida bitta chop etilgan savol kerak.',
       );
-    return this.db.lesson.update({ where: { id }, data: dto });
+    return this.db.lesson.update({
+      where: { id },
+      data: {
+        ...dto,
+        ...(dto.prerequisiteId !== undefined ? { prerequisiteId: dto.prerequisiteId || null } : {}),
+      },
+    });
+  }
+  private async validatePrerequisite(id: string | undefined, dto: UpdateLessonDto) {
+    const current = id ? await this.db.lesson.findUniqueOrThrow({ where: { id } }) : null;
+    const prerequisiteId = dto.prerequisiteId ?? current?.prerequisiteId;
+    if (!prerequisiteId) return;
+    const visited = new Set<string>();
+    let cursor: string | null = prerequisiteId;
+    while (cursor) {
+      if (cursor === id || visited.has(cursor) || visited.size > 500)
+        throw new BadRequestException('Darslar bog‘lanishida yopiq aylana bo‘lmasligi kerak.');
+      visited.add(cursor);
+      const node: { prerequisiteId: string | null } | null = await this.db.lesson.findUnique({
+        where: { id: cursor },
+        select: { prerequisiteId: true },
+      });
+      cursor = node?.prerequisiteId ?? null;
+    }
+    const topicId = dto.topicId ?? current?.topicId;
+    const target = await this.db.topic.findUniqueOrThrow({ where: { id: topicId } });
+    const previous = await this.db.lesson.findFirst({
+      where: { id: prerequisiteId },
+      include: { topic: true },
+    });
+    if (
+      !previous ||
+      previous.id === id ||
+      previous.topic.courseId !== target.courseId ||
+      !(
+        previous.topic.position < target.position ||
+        (previous.topicId === target.id &&
+          previous.position < (dto.position ?? current?.position ?? 0))
+      )
+    )
+      throw new BadRequestException(
+        'Oldingi dars shu kursda, tartib bo‘yicha avval joylashgan bo‘lishi kerak.',
+      );
+    if (
+      id &&
+      dto.topicId &&
+      dto.topicId !== current?.topicId &&
+      (await this.db.lesson.count({ where: { prerequisiteId: id } }))
+    )
+      throw new BadRequestException(
+        'Bu darsga bog‘liq darslar bor. Avval bog‘lanishlarni yangilang.',
+      );
   }
   deleteLesson(id: string) {
     return this.db.lesson.delete({ where: { id } });
   }
-  private validateQuestion(dto: { type: string; answer: string; options: { value: string }[] }) {
+  private validateQuestion(dto: {
+    type: string;
+    answer: string;
+    options: { value: string }[];
+    config?: unknown;
+    grading?: unknown;
+  }) {
+    validateExercise(dto);
     if (
       dto.type === 'MULTIPLE_CHOICE' &&
       (dto.options.length < 2 ||
@@ -308,38 +371,48 @@ export class AdminService {
   }
   createQuestion(dto: QuestionDto) {
     this.validateQuestion({ ...dto, options: dto.options || [] });
-    const { options = [], ...data } = dto;
+    const { options = [], config, grading, ...data } = dto;
     return this.db.question.create({
-      data: { ...data, options: { create: options.map((o, i) => ({ ...o, position: i })) } },
-    });
-  }
-  async updateQuestion(id: string, dto: UpdateQuestionDto) {
-    if (
-      await this.db.attempt.count({
-        where: {
-          status: 'IN_PROGRESS',
-          createdAt: { gte: new Date(Date.now() - 86400000) },
-          questionIds: { has: id },
-        },
-      })
-    )
-      throw new BadRequestException(
-        'Savol hozir faol mashqda ishlatilmoqda. Mashq yakunlangach tahrirlang.',
-      );
-    const question = await this.db.question.findUniqueOrThrow({
-      where: { id },
-      include: { options: true },
-    });
-    this.validateQuestion({ ...question, ...dto, options: dto.options || question.options });
-    const { options, ...data } = dto;
-    return this.db.question.update({
-      where: { id },
       data: {
         ...data,
-        ...(options
-          ? { options: { deleteMany: {}, create: options.map((o, i) => ({ ...o, position: i })) } }
-          : {}),
+        ...(config ? { config: config as unknown as Prisma.InputJsonValue } : {}),
+        ...(grading ? { grading: grading as unknown as Prisma.InputJsonValue } : {}),
+        options: { create: options.map((o, i) => ({ ...o, position: i })) },
       },
+    });
+  }
+  previewExercise(dto: PreviewExerciseDto) {
+    const question = {
+      ...dto.question,
+      tolerance: dto.question.tolerance ?? 0.0001,
+      options: dto.question.options ?? [],
+    };
+    this.validateQuestion(question);
+    return { correct: checkAnswer(question, dto.value), explanation: question.explanation };
+  }
+  async updateQuestion(id: string, dto: UpdateQuestionDto) {
+    return this.db.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM "Question" WHERE id = ${id}::uuid FOR UPDATE`;
+      const question = await tx.question.findUniqueOrThrow({
+        where: { id },
+        include: { options: true },
+      });
+      this.validateQuestion({ ...question, ...dto, options: dto.options || question.options });
+      const { options, config, grading, ...data } = dto;
+      return tx.question.update({
+        where: { id },
+        data: {
+          ...data,
+          version: { increment: 1 },
+          ...(config ? { config: config as unknown as Prisma.InputJsonValue } : {}),
+          ...(grading ? { grading: grading as unknown as Prisma.InputJsonValue } : {}),
+          ...(options
+            ? {
+                options: { deleteMany: {}, create: options.map((o, i) => ({ ...o, position: i })) },
+              }
+            : {}),
+        },
+      });
     });
   }
   async deleteQuestion(id: string) {

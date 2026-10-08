@@ -1,6 +1,7 @@
+import type { ExerciseType, ExerciseConfig, ExerciseGrading } from './exercises';
 export type Role = 'STUDENT' | 'TEACHER' | 'ADMIN';
 export type Status = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
-export type QuestionType = 'MULTIPLE_CHOICE' | 'TRUE_FALSE' | 'NUMERICAL' | 'TEXT';
+export type QuestionType = ExerciseType;
 export interface User {
   id: string;
   name: string;
@@ -50,6 +51,11 @@ export interface NotificationList {
   limit: number;
 }
 export interface LessonSummary {
+  prerequisiteId?: string | null;
+  unlockScore?: number;
+  state?: 'LOCKED' | 'COMPLETED' | 'IN_PROGRESS' | 'AVAILABLE';
+  bestScore?: number | null;
+  attemptId?: string | null;
   id: string;
   title: string;
   duration: number;
@@ -82,6 +88,8 @@ export interface Subject {
   position?: number;
 }
 export interface Question {
+  version?: number;
+  config?: ExerciseConfig | null;
   id: string;
   lessonId: string;
   text: string;
@@ -118,6 +126,7 @@ export interface Result {
   nextLesson: LessonSummary | null;
 }
 export interface Attempt {
+  mode?: 'STANDARD' | 'MINI_GAME' | 'BOSS_BATTLE';
   id: string;
   lessonId: string | null;
   status: 'IN_PROGRESS' | 'COMPLETED';
@@ -323,6 +332,7 @@ export interface GameConfig {
   badges: Badge[];
 }
 export interface AdminQuestion extends Question {
+  grading?: ExerciseGrading | null;
   answer: string;
   explanation: string;
   status: Status;

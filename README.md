@@ -1,6 +1,6 @@
 # OYLA — O‘rgan O‘yla Yarat
 
-OYLA is an Uzbek learning platform for grades 5–7. Students study lessons, answer four question types, receive educational feedback, and see server-calculated results, XP, mastery, streaks, badges, and a next lesson. Teachers manage their assigned classes and lesson assignments. Administrators manage users, classes, the full content hierarchy, publishing, XP rules, levels, and badges.
+OYLA is an Uzbek learning platform for grades 5–7. Students study lessons, complete 18 question types in standard, mini-game, or boss-battle lesson modes, receive educational feedback, and see server-calculated results, XP, mastery, streaks, badges, and a next lesson. Teachers manage their assigned classes and lesson assignments. Administrators manage users, classes, the full content hierarchy, publishing, XP rules, levels, and badges.
 
 All roles have a dedicated `/profile` page with account details and name editing. Students see server-calculated learning metrics and their class; teachers see their classes and student/assignment counts. Grade and email remain under administrator control. The grade-specific catalog supplies 54 original lessons and 324 questions.
 
@@ -11,6 +11,12 @@ Students have **Mening sinfim** in the sidebar (`/my-class`). It shows the assig
 Students can open **Do‘stlarim** (`/friends`), share a private invite code, send a request, accept/reject incoming requests, cancel outgoing requests, or end a friendship. **Leaderboard → Do‘stlar** shows the current student and accepted active friends, including zero-XP users, ordered by this week's server-recorded XP from Monday 00:00 in Tashkent. Moving a student to staff removes friendship links while preserving learning history.
 
 The [content review](docs/CONTENT_REVIEW.md) records the 7 October 2026 review, 13 precise corrections, independent answer checks, and safe database application rules. Run `npm run db:seed` after migrations to install the catalog and apply only corrections that still match their original fingerprints.
+
+## Interactive learning
+
+Subjects now show a vertical lesson path with completed scores, resume actions, available lessons, and server-enforced prerequisites. Desktop shows XP/streak/challenge cards; mobile uses a single column.
+
+Administrators open **O‘quv kontenti → Mashqlar katalogi** (`/admin/exercises`) to try 18 exercise types and two game modes. The type-specific question editor supports structured definitions and a student preview. Started attempts keep immutable private snapshots; browser drafts and server answers resume after refresh. Speech supports local recording, playback and transcript matching. See [interactive exercise documentation](docs/INTERACTIVE_EXERCISES.md) for authoring, formats, grading, prerequisites, and migration details.
 
 ## Stack and layout
 

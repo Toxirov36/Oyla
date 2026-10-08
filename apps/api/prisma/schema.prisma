@@ -20,6 +20,20 @@ enum QuestionType {
   TRUE_FALSE
   NUMERICAL
   TEXT
+  FILL_GAP
+  MATCH_PAIRS
+  SORT_ORDER
+  DRAG_DROP
+  FIND_MISTAKE
+  CODE_COMPLETION
+  DEBUG_CODE
+  CONNECT_CONCEPT
+  LISTEN_ANSWER
+  INTERACTIVE_IMAGE
+  MEMORY_CARDS
+  SPEAK
+  DRAW
+  GEOMETRY
 }
 enum Difficulty {
   EASY
@@ -171,6 +185,10 @@ model Topic {
   @@index([courseId, status])
 }
 model Lesson {
+  prerequisiteId String? @db.Uuid
+  prerequisite Lesson? @relation("LessonPrerequisite", fields: [prerequisiteId], references: [id], onDelete: Restrict)
+  dependents Lesson[] @relation("LessonPrerequisite")
+  unlockScore Int @default(70)
   id String @id @default(uuid()) @db.Uuid
   topicId String @db.Uuid
   title String
@@ -189,6 +207,9 @@ model Lesson {
   @@index([topicId, status, position])
 }
 model Question {
+  version Int @default(1)
+  config Json?
+  grading Json?
   id String @id @default(uuid()) @db.Uuid
   lessonId String @db.Uuid
   text String
@@ -220,6 +241,8 @@ model QuestionOption {
   @@unique([questionId, value])
 }
 model Attempt {
+  questionsSnapshot Json?
+  mode String @default("STANDARD")
   id String @id @default(uuid()) @db.Uuid
   userId String @db.Uuid
   lessonId String? @db.Uuid
@@ -239,6 +262,7 @@ model Attempt {
   @@index([userId, status, createdAt])
 }
 model AttemptAnswer {
+  payload Json?
   id String @id @default(uuid()) @db.Uuid
   attemptId String @db.Uuid
   questionId String @db.Uuid

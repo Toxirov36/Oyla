@@ -2,6 +2,8 @@ import { BadRequestException, Injectable, NotFoundException, Logger } from '@nes
 import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../common/prisma.service';
 import { Actor } from '../common/security';
+import { publicSnapshot, legacyTypes } from './exercises';
+import { assertLessonAccess, lessonAccess } from './lesson-access';
 import { questionSelect, visibleLesson, visibleQuestion } from '../content/content.service';
 import { GamificationService } from '../gamification/gamification.service';
 import { checkAnswer, localDay, mean, scoreAnswers } from './rules';
@@ -57,6 +59,7 @@ export class LearningService {
           },
         });
         if (!lesson) throw new NotFoundException('Dars topilmadi.');
+        await assertLessonAccess(tx, actor, lesson);
         questionIds = lesson.questions.map((q) => q.id);
         await tx.attempt.updateMany({
           where: {
@@ -87,12 +90,24 @@ export class LearningService {
         questionIds = Array.from({ length: 5 }, (_, i) => pool[(offset + i) % pool.length]!.id);
       }
       if (!questionIds.length) throw new BadRequestException('Darsda chop etilgan savollar yo‘q.');
+      // Hold definitions while their option rows and grading rules are copied together.
+      await tx.$queryRaw`SELECT id FROM "Question" WHERE id::text IN (${Prisma.join(questionIds)}) FOR SHARE`;
+      const snapshot = await tx.question.findMany({
+        where: { id: { in: questionIds } },
+        include: { options: { orderBy: { position: 'asc' } } },
+      });
+      if (snapshot.length !== questionIds.length)
+        throw new BadRequestException('Dars yangilandi. Mashqni qayta boshlang.');
       return (
         await tx.attempt.create({
           data: {
             userId: actor.id,
             lessonId: dto.lessonId,
             questionIds,
+            mode: dto.mode ?? 'STANDARD',
+            questionsSnapshot: JSON.parse(
+              JSON.stringify(questionIds.map((qid) => snapshot.find((q) => q.id === qid))),
+            ) as Prisma.InputJsonValue,
             ...(dto.lessonId ? {} : { dailyKey: `${actor.id}:${localDay()}` }),
           },
         })
@@ -110,9 +125,14 @@ export class LearningService {
       where: { id: { in: attempt.questionIds } },
       select: questionSelect,
     });
+    const { questionsSnapshot, ...safe } = attempt;
+    if (attempt.status === 'IN_PROGRESS') await this.ensureAccessible(this.db, actor, attempt);
+    const snapshots = questionsSnapshot as unknown as Record<string, unknown>[] | null;
     return {
-      ...attempt,
-      questions: attempt.questionIds.map((qid) => questions.find((q) => q.id === qid)),
+      ...safe,
+      questions: snapshots
+        ? snapshots.map(publicSnapshot)
+        : attempt.questionIds.map((qid) => questions.find((q) => q.id === qid)),
     };
   }
   async answer(actor: Actor, id: string, dto: AnswerDto) {
@@ -126,15 +146,30 @@ export class LearningService {
       const existing = await tx.attemptAnswer.findUnique({
         where: { attemptId_questionId: { attemptId: id, questionId: dto.questionId } },
       });
-      const question = await tx.question.findUniqueOrThrow({
+      const live = await tx.question.findUniqueOrThrow({
         where: { id: dto.questionId },
         include: { options: true },
       });
-      // The first answer is graded; repeat requests return the original feedback.
-      const correct = checkAnswer(question, dto.value);
+      const snapshots = attempt.questionsSnapshot as unknown as (typeof live)[] | null;
+      const question = snapshots?.find((q) => q.id === dto.questionId) ?? live;
+      const structured = !legacyTypes.includes(question.type);
+      if (
+        structured
+          ? !dto.payload || dto.value !== undefined
+          : dto.value === undefined || dto.payload !== undefined
+      )
+        throw new BadRequestException('Javob formati savolga mos emas.');
+      const value = structured ? JSON.stringify(dto.payload) : dto.value!;
+      const correct = checkAnswer(question, value);
       if (!existing)
         await tx.attemptAnswer.create({
-          data: { attemptId: id, questionId: dto.questionId, value: dto.value, correct },
+          data: {
+            attemptId: id,
+            questionId: dto.questionId,
+            value,
+            correct,
+            ...(dto.payload ? { payload: dto.payload as unknown as Prisma.InputJsonValue } : {}),
+          },
         });
       return {
         questionId: question.id,
@@ -166,7 +201,16 @@ export class LearningService {
       const rule = (key: string) => rules.find((r) => r.key === key)?.amount || 0;
       const questionXp = attempt.answers
         .filter((a) => a.correct)
-        .reduce((sum, a) => sum + (a.question.xp ?? rule('CORRECT_ANSWER')), 0);
+        .reduce(
+          (sum, a) =>
+            sum +
+            ((attempt.questionsSnapshot
+              ? (attempt.questionsSnapshot as unknown as { id: string; xp: number | null }[]).find(
+                  (q) => q.id === a.questionId,
+                )?.xp
+              : a.question.xp) ?? rule('CORRECT_ANSWER')),
+          0,
+        );
       let earnedXp = 0;
       let masteryBefore = 0;
       let masteryAfter = 0;
@@ -248,7 +292,13 @@ export class LearningService {
         where: { threshold: { lte: totalXp } },
         orderBy: { threshold: 'desc' },
       });
-      const nextLesson = await tx.lesson.findFirst({
+      const currentLesson = attempt.lessonId
+        ? await tx.lesson.findUnique({
+            where: { id: attempt.lessonId },
+            select: { topic: { select: { courseId: true } } },
+          })
+        : null;
+      const candidates = await tx.lesson.findMany({
         where: { ...visibleLesson(actor.grade), progress: { none: { userId: actor.id } } },
         orderBy: [
           { topic: { course: { subject: { position: 'asc' } } } },
@@ -256,8 +306,19 @@ export class LearningService {
           { position: 'asc' },
           { id: 'asc' },
         ],
-        select: { id: true, title: true },
+        select: {
+          id: true,
+          title: true,
+          prerequisiteId: true,
+          unlockScore: true,
+          topic: { select: { courseId: true } },
+        },
       });
+      const access = await lessonAccess(tx, actor);
+      const available = candidates.filter((l) => access(l).state !== 'LOCKED');
+      const next =
+        available.find((l) => l.topic.courseId === currentLesson?.topic.courseId) ?? available[0];
+      const nextLesson = next ? { id: next.id, title: next.title } : null;
       const result = {
         attemptId: id,
         score,

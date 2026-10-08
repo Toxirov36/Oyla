@@ -14,6 +14,7 @@ import {
   UpdateLessonDto,
   QuestionDto,
   UpdateQuestionDto,
+  PreviewExerciseDto,
 } from './admin.dto';
 import { AdminService } from './admin.service';
 @ApiTags('Admin')
@@ -24,6 +25,9 @@ export class AdminContentController {
   constructor(private readonly admin: AdminService) {}
   @Get('content') content() {
     return this.admin.content();
+  }
+  @Post('exercise-preview') previewExercise(@Body() dto: PreviewExerciseDto) {
+    return this.admin.previewExercise(dto);
   }
   @Post('subjects') createSubject(@Body() dto: SubjectDto) {
     return this.admin.createSubject(dto);

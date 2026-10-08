@@ -1,9 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../common/prisma.service';
+import { assertLessonAccess, lessonAccess } from '../learning/lesson-access';
 import { Actor } from '../common/security';
 
 export const questionSelect = {
+  version: true,
+  config: true,
   id: true,
   lessonId: true,
   text: true,
@@ -37,7 +40,7 @@ export class ContentService {
   constructor(private readonly db: PrismaService) {}
   async subjects(actor: Actor, grade?: number) {
     const selectedGrade = actor.role === 'STUDENT' ? actor.grade! : grade;
-    return this.db.subject.findMany({
+    const subjects = await this.db.subject.findMany({
       where: { status: 'PUBLISHED' },
       orderBy: { position: 'asc' },
       include: {
@@ -52,7 +55,14 @@ export class ContentService {
                 lessons: {
                   where: { status: 'PUBLISHED' },
                   orderBy: { position: 'asc' },
-                  select: { id: true, title: true, duration: true, position: true },
+                  select: {
+                    id: true,
+                    title: true,
+                    duration: true,
+                    position: true,
+                    prerequisiteId: true,
+                    unlockScore: true,
+                  },
                 },
               },
             },
@@ -60,6 +70,17 @@ export class ContentService {
         },
       },
     });
+    const access = await lessonAccess(this.db, actor);
+    return subjects.map((s) => ({
+      ...s,
+      courses: s.courses.map((c) => ({
+        ...c,
+        topics: c.topics.map((t) => ({
+          ...t,
+          lessons: t.lessons.map((l) => ({ ...l, ...access(l) })),
+        })),
+      })),
+    }));
   }
   async course(id: string, actor: Actor) {
     const course = await this.db.course.findFirst({
@@ -123,6 +144,7 @@ export class ContentService {
       },
     });
     if (!lesson) throw new NotFoundException('Dars topilmadi.');
-    return lesson;
+    await assertLessonAccess(this.db, actor, lesson);
+    return { ...lesson, ...(await lessonAccess(this.db, actor))(lesson) };
   }
 }

@@ -1,0 +1,401 @@
+{
+  "MULTIPLE_CHOICE": {
+    "text": "8 × 7 = ?",
+    "answer": "56",
+    "options": ["54", "56", "64", "48"],
+    "explanation": "8 ni 7 marta qo‘shsak 56 bo‘ladi."
+  },
+  "TRUE_FALSE": {
+    "text": "RAM ma’lumotlarni doimiy saqlaydi.",
+    "answer": "false",
+    "explanation": "RAM — vaqtinchalik xotira. Doimiy saqlash uchun SSD ishlatiladi."
+  },
+  "TEXT": {
+    "text": "Algoritm so‘zining inglizcha shaklini yozing.",
+    "answer": "algorithm",
+    "explanation": "Algoritm ingliz tilida algorithm deb yoziladi."
+  },
+  "NUMERICAL": {
+    "text": "3x + 5 = 20. x ni toping.",
+    "answer": "5",
+    "explanation": "20 − 5 = 15, 15 ÷ 3 = 5."
+  },
+  "FILL_GAP": {
+    "text": "I ___ to school every day.",
+    "config": {
+      "slots": [
+        {
+          "id": "verb",
+          "text": "Mos fe’lni yozing"
+        }
+      ]
+    },
+    "grading": {
+      "values": ["go"]
+    },
+    "explanation": "I bilan Present Simple zamonida go ishlatiladi."
+  },
+  "MATCH_PAIRS": {
+    "text": "Qurilma va vazifasini juftlang.",
+    "config": {
+      "items": [
+        {
+          "id": "cpu",
+          "text": "CPU"
+        },
+        {
+          "id": "ram",
+          "text": "RAM"
+        },
+        {
+          "id": "ssd",
+          "text": "SSD"
+        }
+      ],
+      "targets": [
+        {
+          "id": "process",
+          "text": "Hisoblash"
+        },
+        {
+          "id": "temporary",
+          "text": "Vaqtinchalik xotira"
+        },
+        {
+          "id": "storage",
+          "text": "Doimiy xotira"
+        }
+      ]
+    },
+    "grading": {
+      "pairs": [
+        {
+          "left": "cpu",
+          "right": "process"
+        },
+        {
+          "left": "ram",
+          "right": "temporary"
+        },
+        {
+          "left": "ssd",
+          "right": "storage"
+        }
+      ]
+    },
+    "explanation": "CPU hisoblaydi, RAM vaqtincha, SSD doimiy saqlaydi."
+  },
+  "SORT_ORDER": {
+    "text": "Sonlarni kichikdan kattaga tartiblang.",
+    "config": {
+      "items": [
+        {
+          "id": "a",
+          "text": "17"
+        },
+        {
+          "id": "b",
+          "text": "3"
+        },
+        {
+          "id": "c",
+          "text": "25"
+        },
+        {
+          "id": "d",
+          "text": "8"
+        }
+      ]
+    },
+    "grading": {
+      "values": ["b", "d", "a", "c"]
+    },
+    "explanation": "To‘g‘ri tartib: 3, 8, 17, 25."
+  },
+  "DRAG_DROP": {
+    "text": "Qurilmalarni mos vazifalarga joylashtiring.",
+    "config": {
+      "items": [
+        {
+          "id": "cpu",
+          "text": "CPU"
+        },
+        {
+          "id": "ram",
+          "text": "RAM"
+        },
+        {
+          "id": "ssd",
+          "text": "SSD"
+        }
+      ],
+      "targets": [
+        {
+          "id": "process",
+          "text": "Hisoblash"
+        },
+        {
+          "id": "temporary",
+          "text": "Vaqtinchalik xotira"
+        },
+        {
+          "id": "storage",
+          "text": "Doimiy xotira"
+        }
+      ]
+    },
+    "grading": {
+      "pairs": [
+        {
+          "left": "cpu",
+          "right": "process"
+        },
+        {
+          "left": "ram",
+          "right": "temporary"
+        },
+        {
+          "left": "ssd",
+          "right": "storage"
+        }
+      ]
+    },
+    "explanation": "CPU hisoblaydi, RAM vaqtincha, SSD doimiy saqlaydi."
+  },
+  "FIND_MISTAKE": {
+    "text": "Qaysi qatorda hisoblash xatosi bor?",
+    "config": {
+      "items": [
+        {
+          "id": "a",
+          "text": "6 × 4 = 24"
+        },
+        {
+          "id": "b",
+          "text": "8 × 7 = 54"
+        },
+        {
+          "id": "c",
+          "text": "9 × 3 = 27"
+        }
+      ]
+    },
+    "grading": {
+      "values": ["b"]
+    },
+    "explanation": "8 × 7 = 56 bo‘lishi kerak."
+  },
+  "CODE_COMPLETION": {
+    "text": "O‘zgaruvchini ekranga chiqaring.",
+    "config": {
+      "code": "name = \"Ali\"\nprint(___)"
+    },
+    "grading": {
+      "text": "name"
+    },
+    "explanation": "print(name) o‘zgaruvchining qiymatini chiqaradi."
+  },
+  "DEBUG_CODE": {
+    "text": "Python kodidagi yetishmayotgan ikki nuqtani qo‘shing.",
+    "config": {
+      "code": "if age >= 18\n    print(\"Adult\")"
+    },
+    "grading": {
+      "text": "if age >= 18:\n    print(\"Adult\")"
+    },
+    "explanation": "Python shart qatori ikki nuqta bilan tugaydi."
+  },
+  "CONNECT_CONCEPT": {
+    "text": "Tushunchalar orasidagi bog‘lanishni toping.",
+    "config": {
+      "items": [
+        {
+          "id": "cpu",
+          "text": "CPU"
+        },
+        {
+          "id": "ram",
+          "text": "RAM"
+        },
+        {
+          "id": "ssd",
+          "text": "SSD"
+        }
+      ],
+      "targets": [
+        {
+          "id": "process",
+          "text": "Hisoblash"
+        },
+        {
+          "id": "temporary",
+          "text": "Vaqtinchalik xotira"
+        },
+        {
+          "id": "storage",
+          "text": "Doimiy xotira"
+        }
+      ]
+    },
+    "grading": {
+      "pairs": [
+        {
+          "left": "cpu",
+          "right": "process"
+        },
+        {
+          "left": "ram",
+          "right": "temporary"
+        },
+        {
+          "left": "ssd",
+          "right": "storage"
+        }
+      ]
+    },
+    "explanation": "Har bir qurilma uning vazifasi bilan bog‘lanadi."
+  },
+  "LISTEN_ANSWER": {
+    "text": "What time does Tom get up?",
+    "config": {
+      "audioText": "Tom gets up at seven o’clock.",
+      "language": "en-US"
+    },
+    "grading": {
+      "text": "7:00|seven|7|seven o’clock"
+    },
+    "explanation": "Tom gets up at seven o’clock — soat yettida."
+  },
+  "INTERACTIVE_IMAGE": {
+    "text": "Tasvirdagi uzun xotira modulini belgilang.",
+    "config": {
+      "imageUrl": "/exercises/computer-board.svg",
+      "imageAlt": "Kompyuter platasi: chapda kvadrat protsessor, o‘ngda uzun xotira moduli."
+    },
+    "grading": {
+      "points": [
+        {
+          "x": 75,
+          "y": 40
+        }
+      ],
+      "radius": 10
+    },
+    "explanation": "Uzun yashil modul — RAM, ya’ni vaqtinchalik xotira."
+  },
+  "MEMORY_CARDS": {
+    "text": "Kartalarni eslab qoling va mos juftlarni tanlang.",
+    "config": {
+      "items": [
+        {
+          "id": "cpu",
+          "text": "CPU"
+        },
+        {
+          "id": "ram",
+          "text": "RAM"
+        },
+        {
+          "id": "ssd",
+          "text": "SSD"
+        }
+      ],
+      "targets": [
+        {
+          "id": "process",
+          "text": "Hisoblash"
+        },
+        {
+          "id": "temporary",
+          "text": "Vaqtinchalik xotira"
+        },
+        {
+          "id": "storage",
+          "text": "Doimiy xotira"
+        }
+      ]
+    },
+    "grading": {
+      "pairs": [
+        {
+          "left": "cpu",
+          "right": "process"
+        },
+        {
+          "left": "ram",
+          "right": "temporary"
+        },
+        {
+          "left": "ssd",
+          "right": "storage"
+        }
+      ]
+    },
+    "explanation": "CPU — hisoblash; RAM — vaqtinchalik; SSD — doimiy xotira."
+  },
+  "SPEAK": {
+    "text": "Namunani tinglang va gapni ayting.",
+    "config": {
+      "audioText": "My name is Ali.",
+      "language": "en-US"
+    },
+    "grading": {
+      "text": "My name is Ali.|My name is Ali"
+    },
+    "explanation": "My name is Ali — Mening ismim Ali. Baho matndagi so‘zlar mosligiga asoslanadi."
+  },
+  "DRAW": {
+    "text": "A va B nuqtalarini kesma bilan tutashtiring.",
+    "config": {
+      "markers": [
+        {
+          "x": 20,
+          "y": 70
+        },
+        {
+          "x": 80,
+          "y": 30
+        }
+      ]
+    },
+    "grading": {
+      "points": [
+        {
+          "x": 20,
+          "y": 70
+        },
+        {
+          "x": 80,
+          "y": 30
+        }
+      ],
+      "radius": 5
+    },
+    "explanation": "Kesmaning uchlari A va B nuqtalarida joylashadi."
+  },
+  "GEOMETRY": {
+    "text": "A(20, 70) va B(80, 30) nuqtalarining o‘rtasini belgilang.",
+    "config": {
+      "markers": [
+        {
+          "x": 20,
+          "y": 70
+        },
+        {
+          "x": 80,
+          "y": 30
+        }
+      ]
+    },
+    "grading": {
+      "points": [
+        {
+          "x": 50,
+          "y": 50
+        }
+      ],
+      "radius": 4
+    },
+    "explanation": "O‘rta nuqta: ((20 + 80) / 2, (70 + 30) / 2) = (50, 50)."
+  }
+}

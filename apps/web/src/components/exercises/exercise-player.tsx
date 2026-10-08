@@ -1,0 +1,206 @@
+import { useEffect, useState } from 'react';
+import { ArrowRight, Lightbulb, Target } from 'lucide-react';
+import { api, errorText } from '../../lib/api';
+import type { Attempt, Feedback, Result } from '../../lib/types';
+import { isStructured, parsePayload, exerciseLabels } from '../../lib/exercises';
+import { Button, Card, ProgressBar } from '../ui';
+import { ExerciseRenderer, answerReady } from './exercise-renderer';
+import { ExerciseFeedback } from './exercise-feedback';
+export function ExercisePlayer({
+  attempt,
+  setAttempt,
+  onComplete,
+}: {
+  attempt: Attempt;
+  setAttempt: (attempt: Attempt) => void;
+  onComplete: (result: Result) => void;
+}) {
+  const [index, setIndex] = useState(() => {
+    const n = attempt.questions.findIndex(
+      (q) => !attempt.answers.some((a) => a.questionId === q.id),
+    );
+    return n === -1 ? attempt.questions.length - 1 : n;
+  });
+  const [value, setValue] = useState('');
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [showHint, setShowHint] = useState(false);
+  const question = attempt.questions[index]!;
+  const existing = attempt.answers.find((a) => a.questionId === question.id);
+  useEffect(() => {
+    try {
+      setValue(sessionStorage.getItem(`oyla:draft:${attempt.id}:${question.id}`) ?? '');
+    } catch {
+      setValue('');
+    }
+    setFeedback(null);
+    setShowHint(false);
+    setError('');
+  }, [index, attempt.id, question.id]);
+  const answered = !!existing;
+  const submit = async () => {
+    if (!answerReady(question, value)) return;
+    setBusy(true);
+    setError('');
+    try {
+      const response = await api<Feedback>(`/attempts/${attempt.id}/answers`, {
+        method: 'POST',
+        body: {
+          questionId: question.id,
+          ...(isStructured(question.type) ? { payload: parsePayload(value) } : { value }),
+        },
+      });
+      setFeedback(response);
+      if (!existing)
+        setAttempt({
+          ...attempt,
+          answers: [
+            ...attempt.answers,
+            { questionId: question.id, value, correct: response.correct },
+          ],
+        });
+    } catch (e) {
+      setError(errorText(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const next = async () => {
+    if (index < attempt.questions.length - 1) {
+      setIndex(index + 1);
+      return;
+    }
+    setBusy(true);
+    setError('');
+    try {
+      const result = await api<Result>(`/attempts/${attempt.id}/complete`, { method: 'POST' });
+      try {
+        for (const q of attempt.questions)
+          sessionStorage.removeItem(`oyla:draft:${attempt.id}:${q.id}`);
+      } catch {
+        /* The server result is saved even when browser storage is unavailable. */
+      }
+      onComplete(result);
+    } catch (e) {
+      setError(errorText(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="practice-layout exercise-player">
+      {attempt.mode && attempt.mode !== 'STANDARD' && (
+        <div className={`game-progress ${attempt.mode.toLowerCase()}`}>
+          <span className="game-character" aria-hidden="true">
+            {attempt.mode === 'BOSS_BATTLE' ? '🛡️' : '🚀'}
+          </span>
+          <div>
+            <strong>{attempt.mode === 'BOSS_BATTLE' ? 'Mavzu sinovi' : 'Bilim parvozi'}</strong>
+            <p>
+              {attempt.answers.filter((a) => a.correct).length} ta to‘g‘ri javob ·{' '}
+              {attempt.questions.length - attempt.answers.length} ta savol qoldi
+            </p>
+            <ProgressBar
+              value={
+                (100 *
+                  (attempt.mode === 'BOSS_BATTLE'
+                    ? attempt.questions.length - attempt.answers.filter((a) => a.correct).length
+                    : attempt.answers.filter((a) => a.correct).length)) /
+                attempt.questions.length
+              }
+              tone="mint"
+            />
+          </div>
+        </div>
+      )}
+      <div className="practice-header">
+        <span className="eyebrow">
+          {question.difficulty === 'HARD' ? 'CHALLENGE' : 'MASHQ VAQTI'}
+        </span>
+        <span className="subtle">
+          {index + 1} / {attempt.questions.length} savol
+        </span>
+      </div>
+      <ProgressBar value={(attempt.answers.length / attempt.questions.length) * 100} tone="mint" />
+      <Card className="question-card">
+        <div className="question-card-meta">
+          <span className={`pill ${question.difficulty === 'HARD' ? 'warm' : ''}`}>
+            {{ EASY: 'Oson', MEDIUM: 'O‘rta', HARD: 'Murakkab' }[question.difficulty]}
+          </span>
+          <span>
+            <Target size={16} />
+            {exerciseLabels[question.type]}
+          </span>
+        </div>
+        <h2>{question.text}</h2>
+        <ExerciseRenderer
+          key={question.id}
+          question={question}
+          value={value}
+          setValue={(v) => {
+            setValue(v);
+            try {
+              sessionStorage.setItem(`oyla:draft:${attempt.id}:${question.id}`, v);
+            } catch {
+              /* Storage may be unavailable in private browsing. */
+            }
+          }}
+          disabled={busy || !!feedback}
+        />
+        {question.hint && !feedback && (
+          <Button variant="ghost" onClick={() => setShowHint(!showHint)}>
+            <Lightbulb size={17} />
+            Maslahat olish
+          </Button>
+        )}
+        {showHint && <p className="question-hint">{question.hint}</p>}
+        {feedback && (
+          <ExerciseFeedback
+            feedback={feedback}
+            retry={() => {
+              setFeedback(null);
+              setValue('');
+            }}
+          />
+        )}
+        {existing && !feedback && (
+          <p className="subtle">
+            Birinchi javobingiz saqlangan. Mustahkamlash uchun yana urinishingiz mumkin.
+          </p>
+        )}
+        {error && (
+          <div className="form-error" role="alert">
+            {error}
+          </div>
+        )}
+        <div className="question-actions">
+          {!feedback && (
+            <Button
+              onClick={() => void submit()}
+              busy={busy}
+              disabled={!answerReady(question, value)}
+            >
+              Javobni tekshirish
+              <ArrowRight size={17} />
+            </Button>
+          )}
+          {answered && (
+            <Button
+              variant={feedback ? 'primary' : 'secondary'}
+              onClick={() => void next()}
+              busy={busy}
+            >
+              {index === attempt.questions.length - 1 ? 'Natijani ko‘rish' : 'Keyingi savol'}
+              <ArrowRight size={17} />
+            </Button>
+          )}
+        </div>
+      </Card>
+      <p className="practice-note">
+        Natija birinchi javobingiz asosida hisoblanadi. Qayta urinishlar — bilimni mustahkamlash
+        uchun.
+      </p>
+    </div>
+  );
+}
