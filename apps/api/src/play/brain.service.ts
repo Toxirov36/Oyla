@@ -56,41 +56,62 @@ export class BrainService {
     return { ...match, ...(await tx.brainMatch.update({ where: { id: match.id }, data })) };
   }
   private async advance(tx: Prisma.TransactionClient, initial: Match, now: number): Promise<Match> {
-    let match = initial;
-    if (match.status === 'INVITED' && match.expiresAt.getTime() <= now)
-      return this.update(tx, match, { status: 'EXPIRED' });
-    if (
+    const match = { ...initial };
+    let changed = false;
+
+    if (match.status === 'INVITED' && match.expiresAt.getTime() <= now) {
+      match.status = 'EXPIRED';
+      changed = true;
+    } else if (
       match.status === 'ACTIVE' &&
       [match.host, match.guest].some((user) => !user.active || user.role !== 'STUDENT')
-    )
-      return this.update(tx, match, { status: 'CANCELLED' });
+    ) {
+      match.status = 'CANCELLED';
+      changed = true;
+    }
+
     while (match.status === 'ACTIVE') {
       const deadline = match.roundStartedAt!.getTime() + BRAIN_ROUND_MS;
       const both =
         match.answers.filter((answer) => answer.roundIndex === match.roundIndex).length === 2;
+
       if (!match.revealedAt) {
         if (!both && now < deadline) break;
-        match = await this.update(tx, match, {
-          revealedAt: new Date(both ? Math.min(now, deadline) : deadline),
-        });
+        match.revealedAt = new Date(both ? Math.min(now, deadline) : deadline);
+        changed = true;
       }
+
       const nextStart = match.revealedAt!.getTime() + BRAIN_REVEAL_MS;
       if (now < nextStart) break;
+
       if (match.roundIndex + 1 >= (match.questionsSnapshot as unknown as Question[]).length) {
         const scores = brainScores(match.answers, match.roundIndex);
         const host = scores.get(match.hostId) ?? 0,
           guest = scores.get(match.guestId) ?? 0;
-        match = await this.update(tx, match, {
-          status: 'FINISHED',
-          winnerId: host === guest ? null : host > guest ? match.hostId : match.guestId,
-        });
-      } else
-        match = await this.update(tx, match, {
-          roundIndex: match.roundIndex + 1,
-          roundStartedAt: new Date(nextStart),
-          revealedAt: null,
-        });
+        match.status = 'FINISHED';
+        match.winnerId = host === guest ? null : host > guest ? match.hostId : match.guestId;
+        changed = true;
+      } else {
+        match.roundIndex += 1;
+        match.roundStartedAt = new Date(nextStart);
+        match.revealedAt = null;
+        changed = true;
+      }
     }
+
+    if (changed) {
+      await tx.brainMatch.update({
+        where: { id: match.id },
+        data: {
+          status: match.status,
+          winnerId: match.winnerId,
+          revealedAt: match.revealedAt,
+          roundIndex: match.roundIndex,
+          roundStartedAt: match.roundStartedAt,
+        },
+      });
+    }
+
     return match;
   }
   private async locked<T>(
@@ -385,20 +406,20 @@ export class BrainService {
           : !['true', 'false'].includes(dto.value)
       )
         throw new BadRequestException('Mavjud variantni tanlang.');
-      await tx.brainAnswer.create({
+      const correct = checkAnswer(q, dto.value);
+      const newAnswer = await tx.brainAnswer.create({
         data: {
           matchId: id,
           userId: actor.id,
           roundIndex: match.roundIndex,
           value: dto.value,
-          correct: checkAnswer(q, dto.value),
+          correct,
         },
       });
-      await this.advance(
-        tx,
-        await tx.brainMatch.findUniqueOrThrow({ where: { id }, include }),
-        Date.now(),
-      );
+
+      match.answers.push(newAnswer);
+      await this.advance(tx, match, Date.now());
+
       return { accepted: true };
     });
   }
