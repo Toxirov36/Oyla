@@ -41,7 +41,9 @@ test('login, profile validation, save and reload persist the real user name', as
     data: { name: 'Browser Updated', role: 'ADMIN', grade: 7 },
   });
   expect(forbidden.status()).toBe(400);
-  await page.getByRole('button', { name: 'Chiqish', exact: true }).click();
+  await page.getByRole('button', { name: /^Profil menyusi:/ }).click();
+  await page.getByRole('menuitem', { name: 'Chiqish', exact: true }).click();
+  await expect(page).toHaveURL(/\/login$/);
   await page.goto('/profile');
   await expect(page).toHaveURL(/\/login$/);
 });
