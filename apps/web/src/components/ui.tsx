@@ -4,6 +4,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { ComboboxPortalContext } from './ui/combobox-context';
 import { errorText } from '../lib/api';
 import { formatDate } from '../lib/locale';
+import { useI18n } from '../i18n';
 
 export function Button({
   className = '',
@@ -51,11 +52,12 @@ export function PageHeader({
   );
 }
 export function ProgressBar({ value, tone = 'blue' }: { value: number; tone?: string }) {
+  const { t } = useI18n();
   return (
     <div
       className={`progress-track ${tone}`}
       role="progressbar"
-      aria-label="Progress"
+      aria-label={t('common.progress')}
       aria-valuenow={value}
       aria-valuemin={0}
       aria-valuemax={100}
@@ -65,7 +67,7 @@ export function ProgressBar({ value, tone = 'blue' }: { value: number; tone?: st
   );
 }
 export function EmptyState({
-  title = 'Hozircha ma’lumot yo‘q',
+  title,
   description,
   action,
 }: {
@@ -73,18 +75,20 @@ export function EmptyState({
   description?: string;
   action?: ReactNode;
 }) {
+  const { t } = useI18n();
   return (
     <div className="empty-state">
       <div className="empty-orbit">○</div>
-      <h3>{title}</h3>
+      <h3>{title ?? t('common.empty')}</h3>
       {description && <p>{description}</p>}
       {action}
     </div>
   );
 }
 export function Loading() {
+  const { t } = useI18n();
   return (
-    <div aria-label="Yuklanmoqda" role="status" className="loading-grid">
+    <div aria-label={t('common.loading')} role="status" className="loading-grid">
       {[1, 2, 3].map((i) => (
         <div key={i} className="skeleton" />
       ))}
@@ -92,27 +96,29 @@ export function Loading() {
   );
 }
 export function ErrorState({ error, retry }: { error: unknown; retry?: () => void }) {
+  const { t } = useI18n();
   return (
     <div className="error-state" role="alert">
       <AlertCircle size={22} />
       <p>{errorText(error)}</p>
       {retry && (
         <Button variant="secondary" onClick={retry}>
-          Qayta urinish
+          {t('common.retry')}
         </Button>
       )}
     </div>
   );
 }
 export function StatusPill({ status }: { status: string }) {
+  const { t } = useI18n();
   return (
     <span className={`pill status-${status.toLowerCase()}`}>
       {(
         {
-          DRAFT: 'Qoralama',
-          PUBLISHED: 'Chop etilgan',
-          ARCHIVED: 'Arxiv',
-          COMPLETED: 'Bajarilgan',
+          DRAFT: t('common.draft'),
+          PUBLISHED: t('common.published'),
+          ARCHIVED: t('common.archived'),
+          COMPLETED: t('common.completed'),
         } as Record<string, string>
       )[status] || status}
     </span>
@@ -122,7 +128,7 @@ export function Modal({
   open,
   onOpenChange,
   title,
-  description = 'Ma’lumotlarni kiriting va saqlang.',
+  description,
   children,
   wide = false,
 }: {
@@ -133,6 +139,7 @@ export function Modal({
   children: ReactNode;
   wide?: boolean;
 }) {
+  const { t } = useI18n();
   const portalContainer = useRef<HTMLDivElement>(null);
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
@@ -151,10 +158,12 @@ export function Modal({
               <div className="modal-header">
                 <div>
                   <DialogPrimitive.Title>{title}</DialogPrimitive.Title>
-                  <DialogPrimitive.Description>{description}</DialogPrimitive.Description>
+                  <DialogPrimitive.Description>
+                    {description ?? t('common.modalDescription')}
+                  </DialogPrimitive.Description>
                 </div>
                 <DialogPrimitive.Close asChild>
-                  <Button variant="ghost" aria-label="Yopish">
+                  <Button variant="ghost" aria-label={t('common.close')}>
                     <X size={20} />
                   </Button>
                 </DialogPrimitive.Close>
@@ -198,3 +207,4 @@ export function Stat({
   );
 }
 export const dateLabel = (date: string) => formatDate(date);
+export * from './ui/select';

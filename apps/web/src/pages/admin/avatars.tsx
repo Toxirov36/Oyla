@@ -1,3 +1,5 @@
+import { localizeText } from '../../i18n';
+import { translate as tx, useI18n as usePageLocale } from '../../i18n';
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { AvatarOption } from '../../lib/types';
@@ -7,6 +9,7 @@ import { ComboboxField } from '../../components/combobox-field';
 import { UserAvatar } from '../../components/user-avatar';
 
 export default function AdminAvatars() {
+  usePageLocale();
   const cache = useQueryClient();
   const query = useQuery({
     queryKey: ['admin', 'avatars'],
@@ -26,8 +29,8 @@ export default function AdminAvatars() {
   return (
     <>
       <PageHeader
-        title="Avatarlar katalogi"
-        description="Tekshirilgan avatarlar, ularning nomi va ko‘rinishini boshqaring."
+        title={tx('navigation.avatars')}
+        description={tx('pages.admin.avatars.manageApprovedAvatarsTheirNamesAndVisibility')}
       />
       <Button
         onClick={() => {
@@ -40,15 +43,17 @@ export default function AdminAvatars() {
           });
         }}
       >
-        Avatar qo‘shish
+        {tx('pages.admin.avatars.addAvatar')}
       </Button>
       <div className="admin-avatar-grid">
         {query.data.items.map((avatar) => (
           <Card key={avatar.id} className="admin-avatar-card">
             <UserAvatar name={avatar.name} avatar={avatar} size="2xl" />
-            <h2>{avatar.name}</h2>
+            <h2>{localizeText(avatar.name)}</h2>
             <span className="pill">
-              {avatar.active ? 'Faol · bepul' : 'Katalogdan yashirilgan'}
+              {avatar.active
+                ? tx('pages.admin.avatars.activeFree')
+                : tx('pages.admin.avatars.hiddenFromCatalog')}
             </span>
             <Button
               variant="secondary"
@@ -62,9 +67,9 @@ export default function AdminAvatars() {
                   position: avatar.position ?? 0,
                 });
               }}
-              aria-label={`${avatar.name} avatarini tahrirlash`}
+              aria-label={tx('pages.admin.avatars.editAvatar', { value1: localizeText(avatar.name) })}
             >
-              Tahrirlash
+              {tx('pages.admin.avatars.edit')}
             </Button>
           </Card>
         ))}
@@ -74,7 +79,11 @@ export default function AdminAvatars() {
         onOpenChange={(open) => {
           if (!open && !busy) setEditor(null);
         }}
-        title={editor?.id ? 'Avatarni tahrirlash' : 'Avatar qo‘shish'}
+        title={
+          editor?.id
+            ? tx('pages.admin.avatars.editAvatarVariant13')
+            : tx('pages.admin.avatars.addAvatar')
+        }
       >
         {editor && (
           <form
@@ -102,17 +111,17 @@ export default function AdminAvatars() {
           >
             <div className="avatar-selection-preview">
               <UserAvatar
-                name={editor.name || 'Avatar'}
+                name={editor.name || tx('pages.admin.avatars.avatar')}
                 avatar={{
                   id: editor.id ?? 'preview',
-                  name: editor.name || 'Avatar',
+                  name: editor.name || tx('pages.admin.avatars.avatar'),
                   imageUrl: editor.imageUrl,
                 }}
                 size="2xl"
               />
             </div>
             <label>
-              Nomi
+              {tx('pages.admin.avatars.name')}
               <input
                 required
                 minLength={2}
@@ -122,9 +131,9 @@ export default function AdminAvatars() {
               />
             </label>
             <label>
-              Tekshirilgan rasm
+              {tx('pages.admin.avatars.approvedImage')}
               <ComboboxField
-                label="Tekshirilgan rasm"
+                label={tx('pages.admin.avatars.approvedImage')}
                 value={editor.imageUrl}
                 options={query.data.assets.map((asset) => ({
                   value: asset.imageUrl,
@@ -134,7 +143,7 @@ export default function AdminAvatars() {
               />
             </label>
             <label>
-              Tartib raqami
+              {tx('pages.admin.avatars.displayOrder')}
               <input
                 type="number"
                 min={0}
@@ -150,15 +159,14 @@ export default function AdminAvatars() {
                 checked={editor.active}
                 onChange={(e) => setEditor({ ...editor, active: e.target.checked })}
               />
-              Tanlash katalogida ko‘rsatish
+              {tx('pages.admin.avatars.showInSelectionCatalog')}
             </label>
             <p className="field-help">
-              Yashirilgan avatarni yangi tanlovda olish mumkin bo‘lmaydi. Avval tanlagan
-              foydalanuvchilarda rasmi ko‘rinadi.
+              {tx('pages.admin.avatars.aHiddenAvatarCannotBeSelectedAgainUsers')}
             </p>
             {error && (
               <p className="form-error" role="alert">
-                {error}
+                {localizeText(error)}
               </p>
             )}
             <div className="modal-actions">
@@ -168,10 +176,10 @@ export default function AdminAvatars() {
                 disabled={busy}
                 onClick={() => setEditor(null)}
               >
-                Bekor qilish
+                {tx('common.cancel')}
               </Button>
               <Button type="submit" busy={busy}>
-                Saqlash
+                {tx('pages.admin.avatars.save')}
               </Button>
             </div>
           </form>

@@ -1,3 +1,4 @@
+import { useI18n, localizeText } from '../../i18n';
 import * as Tabs from '@radix-ui/react-tabs';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { Link } from 'react-router-dom';
@@ -23,6 +24,7 @@ import {
   notificationTime,
   notificationTimestamp,
   safeNotificationLink,
+  notificationBody,
 } from '../../lib/notifications';
 
 const icons = {
@@ -47,19 +49,22 @@ export function NotificationHeader({
   close?: () => void;
   title?: ReactNode;
 }) {
+  const { t } = useI18n();
   return (
     <header className="notice-header">
       <div className="notice-header-title">
-        {title || <h2>Bildirishnomalar</h2>}
-        {count > 0 && <span className="notice-new-count">{count} yangi</span>}
+        {title || <h2>{t('notifications.title')}</h2>}
+        {count > 0 && (
+          <span className="notice-new-count">{t('notifications.newCount', { count })}</span>
+        )}
       </div>
       <div className="notice-header-actions">
         <button
           className="notice-icon-button"
           disabled={!count || busy}
           onClick={markAll}
-          aria-label="Barchasini o‘qish"
-          title="Barchasini o‘qilgan deb belgilash"
+          aria-label={t('notifications.readAll')}
+          title={t('notifications.markAll')}
         >
           <CheckCheck size={18} />
         </button>
@@ -67,7 +72,7 @@ export function NotificationHeader({
           <button
             className="notice-icon-button"
             onClick={close}
-            aria-label="Bildirishnomalar panelini yopish"
+            aria-label={t('notifications.close')}
           >
             <X size={18} />
           </button>
@@ -87,6 +92,7 @@ export function NotificationFilters({
   toolbar?: ReactNode;
   children: ReactNode;
 }) {
+  const { t } = useI18n();
   const value = unreadOnly ? 'unread' : 'all';
   return (
     <Tabs.Root
@@ -95,9 +101,9 @@ export function NotificationFilters({
       onValueChange={(value) => onChange(value === 'unread')}
     >
       <div className="notice-filter-row">
-        <Tabs.List className="notice-tabs" aria-label="Bildirishnomalarni filtrlash">
-          <Tabs.Trigger value="all">Barchasi</Tabs.Trigger>
-          <Tabs.Trigger value="unread">O‘qilmagan</Tabs.Trigger>
+        <Tabs.List className="notice-tabs" aria-label={t('notifications.filters')}>
+          <Tabs.Trigger value="all">{t('notifications.all')}</Tabs.Trigger>
+          <Tabs.Trigger value="unread">{t('notifications.unread')}</Tabs.Trigger>
         </Tabs.List>
         {toolbar}
       </div>
@@ -122,10 +128,12 @@ export function NotificationItem({
   remove: (item: Notification) => void;
   compact?: boolean;
 }) {
+  const { t } = useI18n();
   const descriptionId = useId();
   const type: NotificationType = item.type || 'SYSTEM';
   const Icon = icons[type] || Info;
   const link = safeNotificationLink(item.link);
+  const title = localizeText(item.title);
   const content = (
     <>
       <span className={`notice-kind-icon ${type.toLowerCase()}`} aria-hidden="true">
@@ -133,16 +141,16 @@ export function NotificationItem({
       </span>
       <span className="notice-item-copy">
         <span className="notice-item-title">
-          {item.title}
+          {title}
           {!item.readAt && (
             <>
               <span className="notice-unread-dot" aria-hidden="true" />
-              <span className="sr-only"> — o‘qilmagan</span>
+              <span className="sr-only"> {t('notifications.unreadSuffix')}</span>
             </>
           )}
         </span>
         <span id={descriptionId} className="notice-item-description">
-          {item.body}
+          {notificationBody(item.title, item.body)}
         </span>
         <time dateTime={item.createdAt} title={notificationTimestamp(item.createdAt)}>
           {notificationTime(item.createdAt)}
@@ -162,7 +170,7 @@ export function NotificationItem({
               if (!busy) onOpen(item);
             } else if (!item.readAt) setRead(item, true);
           }}
-          aria-label={`${item.title}${item.readAt ? '' : ', o‘qilmagan'}`}
+          aria-label={item.readAt ? title : t('notifications.unreadLabel', { title })}
           aria-describedby={descriptionId}
         >
           {content}
@@ -172,7 +180,7 @@ export function NotificationItem({
           className="notice-item-main"
           disabled={busy}
           onClick={() => onOpen(item)}
-          aria-label={`${item.title}${item.readAt ? '' : ', o‘qilmagan'}`}
+          aria-label={item.readAt ? title : t('notifications.unreadLabel', { title })}
           aria-describedby={descriptionId}
         >
           {content}
@@ -182,7 +190,7 @@ export function NotificationItem({
         <DropdownMenu.Trigger asChild>
           <button
             className="notice-icon-button notice-item-menu"
-            aria-label={`${item.title}: amallar`}
+            aria-label={t('notifications.actions', { title })}
             disabled={busy}
           >
             <MoreHorizontal size={18} />
@@ -192,12 +200,12 @@ export function NotificationItem({
           <DropdownMenu.Content className="notice-menu notice-surface" sideOffset={4} align="end">
             <DropdownMenu.Item onSelect={() => setRead(item, !item.readAt)}>
               {item.readAt ? <Mail size={16} /> : <MailOpen size={16} />}
-              {item.readAt ? 'O‘qilmagan deb belgilash' : 'O‘qilgan deb belgilash'}
+              {item.readAt ? t('notifications.markUnread') : t('notifications.markRead')}
             </DropdownMenu.Item>
             <DropdownMenu.Separator />
             <DropdownMenu.Item className="notice-menu-delete" onSelect={() => remove(item)}>
               <Trash2 size={16} />
-              O‘chirish
+              {t('notifications.remove')}
             </DropdownMenu.Item>
           </DropdownMenu.Content>
         </DropdownMenu.Portal>
@@ -206,19 +214,21 @@ export function NotificationItem({
   );
 }
 export function NotificationEmptyState({ unreadOnly = false }: { unreadOnly?: boolean }) {
+  const { t } = useI18n();
   return (
     <div className="notice-empty">
       <span className="notice-empty-icon">
         <BellOff size={24} />
       </span>
-      <h3>{unreadOnly ? 'Hammasini o‘qib bo‘ldingiz' : 'Hozircha bildirishnomalar yo‘q'}</h3>
-      <p>Yangi topshiriq va hisob yangiliklari shu yerda ko‘rinadi.</p>
+      <h3>{unreadOnly ? t('notifications.allRead') : t('notifications.empty')}</h3>
+      <p>{t('notifications.emptyHelp')}</p>
     </div>
   );
 }
 export function NotificationSkeleton() {
+  const { t } = useI18n();
   return (
-    <div className="notice-loading" role="status" aria-label="Bildirishnomalar yuklanmoqda">
+    <div className="notice-loading" role="status" aria-label={t('notifications.loading')}>
       {[1, 2, 3, 4].map((key) => (
         <div className="notice-skeleton-row" key={key}>
           <span className="skeleton notice-skeleton-icon" />
@@ -233,13 +243,14 @@ export function NotificationSkeleton() {
   );
 }
 export function NotificationErrorState({ retry }: { retry: () => void }) {
+  const { t } = useI18n();
   return (
     <div className="notice-empty" role="alert">
       <TriangleAlert size={24} />
-      <h3>Bildirishnomalar yuklanmadi</h3>
-      <p>Aloqada muammo yuz berdi. Qayta urinib ko‘ring.</p>
+      <h3>{t('notifications.loadError')}</h3>
+      <p>{t('notifications.connectionError')}</p>
       <button className="notice-retry" onClick={retry}>
-        Qayta urinish
+        {t('common.retry')}
       </button>
     </div>
   );

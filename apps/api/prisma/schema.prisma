@@ -89,8 +89,10 @@ model User {
   avatar Avatar? @relation(fields: [avatarId], references: [id], onDelete: SetNull)
   id String @id @default(uuid()) @db.Uuid
   email String @unique
+  googleSub String? @unique
   name String
   passwordHash String
+  preferredLocale String @default("uz")
   role Role @default(STUDENT)
   teacherAccess Boolean @default(false)
   active Boolean @default(true)
@@ -454,7 +456,19 @@ model Assignment {
   class Class @relation(fields: [classId], references: [id], onDelete: Cascade)
   lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Restrict)
   submissions AssignmentSubmission[]
+  attachments AssignmentAttachment[]
   @@index([classId, deadline])
+}
+model AssignmentAttachment {
+  id String @id @default(uuid()) @db.Uuid
+  assignmentId String @db.Uuid
+  originalName String
+  storageKey String @unique
+  contentType String
+  size Int
+  createdAt DateTime @default(now())
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  @@index([assignmentId])
 }
 model AssignmentSubmission {
   assignmentId String @db.Uuid

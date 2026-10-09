@@ -1,6 +1,8 @@
+import { localizeText } from '../i18n';
+import { translate as tx, useI18n as usePageLocale } from '../i18n';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -12,10 +14,12 @@ import {
   ClipboardList,
   GraduationCap,
   Plus,
+  Trash2,
   Users,
 } from 'lucide-react';
 import { api, errorText } from '../lib/api';
 import { ComboboxField } from '../components/combobox-field';
+import { AssignmentAttachments } from '../components/assignment-attachments';
 import { TeacherAnalysis } from '../components/teacher-analysis';
 import type { Assignment, Classroom, Subject } from '../lib/types';
 import {
@@ -32,10 +36,10 @@ import {
 } from '../components/ui';
 
 const schema = z.object({
-  classId: z.string().min(1, 'Sinfni tanlang.'),
-  lessonId: z.string().min(1, 'Darsni tanlang.'),
-  title: z.string().trim().min(2, 'Nomini kiriting.').max(100),
-  deadline: z.string().min(1, 'Muddatni belgilang.'),
+  classId: z.string().min(1, tx('pages.teacher.selectAClass')),
+  lessonId: z.string().min(1, tx('pages.teacher.selectALesson')),
+  title: z.string().trim().min(2, tx('pages.teacher.enterATitle')).max(100),
+  deadline: z.string().min(1, tx('pages.teacher.setADeadline')),
 });
 function AssignmentForm({
   classes,
@@ -48,8 +52,10 @@ function AssignmentForm({
   initialClassId?: string;
   initialLessonId?: string;
 }) {
+  usePageLocale();
   const cache = useQueryClient();
   const [error, setError] = useState('');
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const content = useQuery({
     queryKey: ['teacher-content'],
     queryFn: () => api<Subject[]>('/subjects'),
@@ -77,7 +83,10 @@ function AssignmentForm({
         .filter((c) => c.grade === selectedClass?.grade)
         .flatMap((c) =>
           c.topics.flatMap((t) =>
-            t.lessons.map((l) => ({ ...l, label: `${s.title} / ${t.title} / ${l.title}` })),
+            t.lessons.map((l) => ({
+              ...l,
+              label: `${localizeText(s.title)} / ${localizeText(t.title)} / ${localizeText(l.title)}`,
+            })),
           ),
         ),
     ) || [];
@@ -87,9 +96,15 @@ function AssignmentForm({
       onSubmit={handleSubmit(async (values) => {
         setError('');
         try {
+          const body = new FormData();
+          body.append('classId', values.classId);
+          body.append('lessonId', values.lessonId);
+          body.append('title', values.title);
+          body.append('deadline', new Date(values.deadline).toISOString());
+          selectedFiles.forEach((file) => body.append('attachments', file));
           await api('/teacher/assignments', {
             method: 'POST',
-            body: { ...values, deadline: new Date(values.deadline).toISOString() },
+            body,
           });
           await cache.invalidateQueries({ queryKey: ['teacher'] });
           close();
@@ -99,13 +114,18 @@ function AssignmentForm({
       })}
     >
       <label>
-        Sinf
+        {tx('pages.admin.users.grade')}
         <Controller
           name="classId"
           control={control}
           render={({ field, fieldState }) => (
             <ComboboxField
-              options={classes.map((c) => ({ value: c.id, label: `${c.name} · ${c.grade}-sinf` }))}
+              options={classes.map((c) => ({
+                value: c.id,
+                get label() {
+                  return tx('pages.admin.classes.grade', { value1: c.name, value2: c.grade });
+                },
+              }))}
               value={field.value}
               onChange={(value) => {
                 if (value !== field.value) setValue('lessonId', '', { shouldDirty: true });
@@ -114,24 +134,29 @@ function AssignmentForm({
               onBlur={field.onBlur}
               inputRef={field.ref}
               name={field.name}
-              label="Sinf"
+              label={tx('pages.admin.users.grade')}
               invalid={fieldState.invalid}
             />
           )}
         />
         {errors.classId && (
           <small className="field-error" role="alert">
-            {errors.classId.message}
+            {localizeText(errors.classId.message)}
           </small>
         )}
       </label>
       <label>
-        Topshiriq nomi
-        <input placeholder="Masalan, kasrlarni mustahkamlaymiz" {...register('title')} />
-        {errors.title && <small className="field-error">{errors.title.message}</small>}
+        {tx('pages.teacher.assignmentTitle')}
+        <input
+          placeholder={tx('pages.teacher.forExamplePracticingFractions')}
+          {...register('title')}
+        />
+        {errors.title && (
+          <small className="field-error">{localizeText(errors.title.message)}</small>
+        )}
       </label>
       <label>
-        Dars
+        {tx('pages.admin.content.lesson')}
         <Controller
           name="lessonId"
           control={control}
@@ -143,32 +168,75 @@ function AssignmentForm({
               onBlur={field.onBlur}
               inputRef={field.ref}
               name={field.name}
-              label="Dars"
-              placeholder="Darsni tanlang yoki qidiring…"
+              label={tx('pages.admin.content.lesson')}
+              placeholder={tx('pages.teacher.selectOrSearchForALesson')}
               disabled={content.isPending || !selectedClass}
               invalid={fieldState.invalid}
             />
           )}
         />
-        {errors.lessonId && <small className="field-error">{errors.lessonId.message}</small>}
+        {errors.lessonId && (
+          <small className="field-error">{localizeText(errors.lessonId.message)}</small>
+        )}
       </label>
       {content.error && <ErrorState error={content.error} />}
       <label>
-        Topshirish muddati
+        {tx('pages.teacher.dueDate')}
         <input type="datetime-local" {...register('deadline')} />
-        {errors.deadline && <small className="field-error">{errors.deadline.message}</small>}
+        {errors.deadline && (
+          <small className="field-error">{localizeText(errors.deadline.message)}</small>
+        )}
       </label>
+      <label>
+        {tx('pages.teacher.assignmentFiles')}
+        <input
+          type="file"
+          multiple
+          accept=".pdf,.docx,image/jpeg,image/png,image/webp"
+          onChange={(event) => {
+            const files = Array.from(event.currentTarget.files || []);
+            event.currentTarget.value = '';
+            if (files.length > 5) {
+              setError(tx('pages.teacher.tooManyAssignmentFiles'));
+              return;
+            }
+            if (files.some((file) => file.size > 15 * 1024 * 1024)) {
+              setError(tx('pages.teacher.assignmentFileTooLarge'));
+              return;
+            }
+            setError('');
+            setSelectedFiles(files);
+          }}
+        />
+        <small className="subtle">{tx('pages.teacher.assignmentFilesHelp')}</small>
+      </label>
+      {!!selectedFiles.length && (
+        <ul className="assignment-file-selection">
+          {selectedFiles.map((file, index) => (
+            <li key={`${file.name}-${file.size}-${index}`}>
+              <span>{file.name}</span>
+              <button
+                type="button"
+                aria-label={tx('pages.teacher.removeAssignmentFile', { value1: file.name })}
+                onClick={() => setSelectedFiles((current) => current.filter((_, i) => i !== index))}
+              >
+                ×
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
       {error && (
         <div role="alert" className="form-error">
-          {error}
+          {localizeText(error)}
         </div>
       )}
       <div className="modal-actions">
         <Button variant="secondary" type="button" onClick={close}>
-          Bekor qilish
+          {tx('common.cancel')}
         </Button>
         <Button busy={isSubmitting} type="submit">
-          Topshiriq berish
+          {tx('pages.teacher.assignTask')}
           <ArrowRight size={17} />
         </Button>
       </div>
@@ -182,11 +250,25 @@ function AssignmentResults({
   assignments: Assignment[];
   studentCount?: number;
 }) {
+  usePageLocale();
+  const cache = useQueryClient();
+  const [deleteTarget, setDeleteTarget] = useState<Assignment | null>(null);
+  const [deleteError, setDeleteError] = useState('');
+  const removeAssignment = useMutation({
+    mutationFn: (assignmentId: string) =>
+      api(`/teacher/assignments/${assignmentId}`, { method: 'DELETE' }),
+    onSuccess: async () => {
+      setDeleteTarget(null);
+      setDeleteError('');
+      await cache.invalidateQueries({ queryKey: ['teacher'] });
+    },
+    onError: (error) => setDeleteError(errorText(error)),
+  });
   if (!assignments.length)
     return (
       <EmptyState
-        title="Hali topshiriq berilmagan"
-        description="Darsni tanlab, sinfingizga birinchi topshiriqni bering."
+        title={tx('pages.teacher.noAssignmentsYet')}
+        description={tx('pages.teacher.chooseALessonAndGiveYourClassIts')}
       />
     );
   return (
@@ -194,22 +276,50 @@ function AssignmentResults({
       {assignments.map((a) => {
         const count = a.completion?.total ?? studentCount ?? a.class?._count?.students ?? 0;
         const completed = a.completion?.completed ?? a.submissions.length;
+        const students = a.students ?? a.submissions.map((submission) => ({
+          id: submission.user?.id || submission.createdAt,
+          name: submission.user?.name || '',
+          submission,
+        }));
+        const average = students.reduce(
+          (sum, student) => sum + (student.submission?.score ?? 0),
+          0,
+        ) / Math.max(1, students.filter((student) => student.submission).length);
         return (
-          <Card key={a.id}>
-            <div className="card-heading">
+          <Card key={a.id} className="teacher-assignment-card">
+            <div className="assignment-card-top">
+              <span className="eyebrow">
+                {tx('pages.teacher.due', {
+                  value1: a.class?.name || tx('pages.teacher.assignmentHeading'),
+                  value2: dateLabel(a.deadline),
+                })}
+              </span>
+              <button
+                type="button"
+                className="assignment-delete-button"
+                aria-label={tx('pages.teacher.deleteAssignment')}
+                title={tx('pages.teacher.deleteAssignment')}
+                onClick={() => {
+                  setDeleteError('');
+                  setDeleteTarget(a);
+                }}
+              >
+                <Trash2 size={13} />
+                <span>{tx('pages.teacher.deleteAssignment')}</span>
+              </button>
+            </div>
+            <div className="assignment-card-body">
               <div>
-                <span className="eyebrow">
-                  {a.class?.name || 'TOPSHIRIQ'} · {dateLabel(a.deadline)} GACHA
-                </span>
                 <h3>{a.title}</h3>
-                <p>{a.lesson.title}</p>
+                <p>{localizeText(a.lesson.title)}</p>
+                <AssignmentAttachments attachments={a.attachments} />
               </div>
               <span className="square-icon blue">
-                <ClipboardList size={23} />
+                <ClipboardList size={22} />
               </span>
             </div>
             <div className="progress-label">
-              <span>Bajarilish holati</span>
+              <span>{tx('pages.teacher.completionStatus')}</span>
               <strong>
                 {completed} / {count}
               </strong>
@@ -217,29 +327,38 @@ function AssignmentResults({
             <ProgressBar value={count ? (completed / count) * 100 : 0} tone="mint" />
             {!!a.completion?.historical && (
               <p className="subtle">
-                {a.completion.historical} ta avvalgi a’zo topshirishi tarixda saqlangan.
+                {tx('pages.teacher.submissionsFromFormerMembersRetained', {
+                  value1: a.completion.historical,
+                })}
               </p>
             )}
-            {a.submissions.length ? (
+            {students.length ? (
               <details className="submission-details">
-                <summary>Natijalarni ko‘rish</summary>
+                <summary>{tx('pages.teacher.analyzeResults')}</summary>
+                <div className="assignment-analysis-summary">
+                  <span>{tx('pages.teacher.completionStatus')}: <strong>{completed} / {count}</strong></span>
+                  <span>{tx('pages.teacher.averageScore')}: <strong>{completed ? Math.round(average) : 0}%</strong></span>
+                  <span>{tx('pages.teacher.submittedLateCount')}: <strong>{a.completion?.late ?? students.filter((student) => student.submission?.late).length}</strong></span>
+                </div>
                 <div className="table-scroll">
                   <table>
                     <thead>
                       <tr>
-                        <th>O‘quvchi</th>
-                        <th>Natija</th>
-                        <th>Topshirish</th>
+                        <th>{tx('role.STUDENT')}</th>
+                        <th>{tx('pages.admin.overview.result')}</th>
+                        <th>{tx('pages.teacher.submission')}</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {a.submissions.map((s) => (
-                        <tr key={s.user?.id || s.createdAt}>
-                          <td>{s.user?.name}</td>
+                      {students.map((student) => (
+                        <tr key={student.id}>
+                          <td>{student.name}</td>
+                          <td><strong>{student.submission ? `${student.submission.score}%` : tx('pages.teacher.notSubmitted')}</strong></td>
                           <td>
-                            <strong>{s.score}%</strong>
+                            {student.submission
+                              ? <>{student.submission.late ? tx('pages.teacher.submittedLate') : tx('pages.teacher.onTime')} · {dateLabel(student.submission.createdAt)}</>
+                              : tx('pages.teacher.waitingForSubmission')}
                           </td>
-                          <td>{s.late ? 'Kech topshirilgan' : 'O‘z vaqtida'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -247,15 +366,39 @@ function AssignmentResults({
                 </div>
               </details>
             ) : (
-              <p className="subtle">Hali natijalar yo‘q.</p>
+              <p className="subtle">{tx('pages.teacher.noResultsYet')}</p>
             )}
           </Card>
         );
       })}
+      <Modal
+        open={!!deleteTarget}
+        onOpenChange={(open) => {
+          if (!open && !removeAssignment.isPending) setDeleteTarget(null);
+        }}
+        title={tx('pages.teacher.deleteAssignment')}
+        description={tx('pages.teacher.deleteAssignmentConfirmation')}
+      >
+        {deleteError && <div role="alert" className="form-error">{localizeText(deleteError)}</div>}
+        <div className="modal-actions">
+          <Button variant="secondary" disabled={removeAssignment.isPending} onClick={() => setDeleteTarget(null)}>
+            {tx('common.cancel')}
+          </Button>
+          <Button
+            variant="danger"
+            busy={removeAssignment.isPending}
+            onClick={() => deleteTarget && removeAssignment.mutate(deleteTarget.id)}
+          >
+            <Trash2 size={17} />
+            {tx('pages.teacher.deleteAssignment')}
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }
 export default function TeacherPage({ assignmentsOnly = false }: { assignmentsOnly?: boolean }) {
+  usePageLocale();
   const { id } = useParams();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<{ classId?: string; lessonId?: string }>({});
@@ -295,22 +438,22 @@ export default function TeacherPage({ assignmentsOnly = false }: { assignmentsOn
       {id && (
         <Link to="/teacher" className="back-link">
           <ArrowLeft size={17} />
-          Mening sinflarim
+          {tx('navigation.classes')}
         </Link>
       )}
       <PageHeader
-        eyebrow="O‘QITUVCHI MAYDONI"
+        eyebrow={tx('pages.teacher.teacherSpace')}
         title={
           id
-            ? `${detail.data?.name} sinfi`
+            ? tx('pages.teacher.class', { value1: detail.data?.name ?? '' })
             : assignmentsOnly
-              ? 'Topshiriqlar va natijalar'
-              : 'Har bir o‘quvchi e’tiborda.'
+              ? tx('pages.teacher.assignmentsAndResults')
+              : tx('pages.teacher.everyStudentMatters')
         }
         description={
           id
-            ? 'O‘quvchilar, mavzular va topshiriqlar natijalari.'
-            : 'Sinfingizning o‘rganish jarayonini kuzating va keyingi qadamni belgilang.'
+            ? tx('pages.teacher.resultsByStudentTopicAndAssignment')
+            : tx('pages.teacher.trackYourClasssLearningAndPlanTheNext')
         }
         action={
           <Button
@@ -321,7 +464,7 @@ export default function TeacherPage({ assignmentsOnly = false }: { assignmentsOn
             disabled={!groups.length}
           >
             <Plus size={18} />
-            Topshiriq berish
+            {tx('pages.teacher.assignTask')}
           </Button>
         }
       />
@@ -329,25 +472,25 @@ export default function TeacherPage({ assignmentsOnly = false }: { assignmentsOn
         <>
           <div className="stats-grid">
             <Stat
-              label="Mening sinflarim"
+              label={tx('navigation.classes')}
               value={groups.length}
               icon={<GraduationCap size={26} />}
             />
             <Stat
-              label="O‘quvchilar"
+              label={tx('pages.admin.classes.studentsVariant16')}
               value={new Set(students.map((s) => s.id)).size}
               icon={<Users size={26} />}
             />
             <Stat
-              label="Yordam kerak"
+              label={tx('pages.teacher.needsSupport')}
               value={new Set(struggling.map((s) => s.id)).size}
               icon={<BookOpen size={26} />}
-              detail="Kamida bitta mavzuda 60% dan past"
+              detail={tx('pages.teacher.below60InAtLeastOneTopic')}
             />
           </div>
           <div className="section-title">
-            <h2>Sinflarim</h2>
-            <span className="subtle">Haqiqiy o‘quv natijalari asosida</span>
+            <h2>{tx('pages.teacher.myClasses')}</h2>
+            <span className="subtle">{tx('pages.teacher.basedOnActualLearningResults')}</span>
           </div>
           <div className="class-grid">
             {groups.map((group) => {
@@ -359,12 +502,16 @@ export default function TeacherPage({ assignmentsOnly = false }: { assignmentsOn
                   </span>
                   <h2>{group.name}</h2>
                   <p>
-                    {group.students.length} o‘quvchi · {group.grade}-sinf
+                    {tx('pages.teacher.studentsGrade', {
+                      value1: group.students.length,
+                      value2: group.grade,
+                    })}
                   </p>
                   <div className="class-metrics">
                     <div>
                       <span className="metric-dot mint" />
-                      80% dan yuqori<strong>{learned.filter((s) => s.mastery > 80).length}</strong>
+                      {tx('pages.teacher.above80')}
+                      <strong>{learned.filter((s) => s.mastery > 80).length}</strong>
                     </div>
                     <div>
                       <span className="metric-dot orange" />
@@ -375,15 +522,17 @@ export default function TeacherPage({ assignmentsOnly = false }: { assignmentsOn
                     </div>
                     <div>
                       <span className="metric-dot red" />
-                      60% dan past<strong>{learned.filter((s) => s.mastery < 60).length}</strong>
+                      {tx('pages.teacher.below60')}
+                      <strong>{learned.filter((s) => s.mastery < 60).length}</strong>
                     </div>
                     <div>
                       <span className="metric-dot gray" />
-                      Hali boshlamagan<strong>{group.students.length - learned.length}</strong>
+                      {tx('pages.teacher.notStartedYet')}
+                      <strong>{group.students.length - learned.length}</strong>
                     </div>
                   </div>
                   <Link to={`/teacher/classes/${group.id}`} className="btn btn-secondary">
-                    Sinfni ko‘rish
+                    {tx('pages.teacher.viewClass')}
                     <ArrowRight size={17} />
                   </Link>
                 </Card>
@@ -393,8 +542,8 @@ export default function TeacherPage({ assignmentsOnly = false }: { assignmentsOn
           {!groups.length && (
             <Card>
               <EmptyState
-                title="Hali sinflar biriktirilmagan"
-                description="Administrator sizga sinf biriktirganda shu yerda ko‘rinadi."
+                title={tx('pages.teacher.noClassesAssignedYet')}
+                description={tx('pages.teacher.yourClassWillAppearHereOnceAnAdministrator')}
               />
             </Card>
           )}
@@ -411,8 +560,10 @@ export default function TeacherPage({ assignmentsOnly = false }: { assignmentsOn
           />
           <Card>
             <div className="card-heading">
-              <h2>O‘quvchilar</h2>
-              <span className="pill">{detail.data.students.length} o‘quvchi</span>
+              <h2>{tx('pages.admin.classes.studentsVariant16')}</h2>
+              <span className="pill">
+                {tx('pages.admin.classes.students', { value1: detail.data.students.length })}
+              </span>
             </div>
             {detail.data.students.length ? (
               <div className="student-list">
@@ -423,15 +574,19 @@ export default function TeacherPage({ assignmentsOnly = false }: { assignmentsOn
                       <div>
                         <strong>{student.name}</strong>
                         <small>
-                          {student.completed} / {student.totalLessons} dars · progress{' '}
-                          {student.progressPercent}%{' · '}
-                          {student.mastered ?? 0} ta o‘zlashtirilgan
+                          {tx('pages.teacher.lessonsProgressMastered', {
+                            value1: student.completed,
+                            value2: student.totalLessons,
+                            value3: student.progressPercent,
+                            value4: ' · ',
+                            value5: student.mastered ?? 0,
+                          })}
                         </small>
                       </div>
                       <span
                         className={`pill ${student.mastery >= 80 ? 'status-completed' : student.completed && student.mastery < 60 ? 'warm' : ''}`}
                       >
-                        {student.completed ? `${student.mastery}%` : 'Boshlamagan'}
+                        {student.completed ? `${student.mastery}%` : tx('pages.teacher.notStarted')}
                       </span>
                     </summary>
                     <div className="student-topics">
@@ -445,18 +600,18 @@ export default function TeacherPage({ assignmentsOnly = false }: { assignmentsOn
                           </div>
                         ))
                       ) : (
-                        <p>O‘quvchi hali dars yakunlamagan.</p>
+                        <p>{tx('pages.teacher.theStudentHasNotCompletedALessonYet')}</p>
                       )}
                     </div>
                   </details>
                 ))}
               </div>
             ) : (
-              <EmptyState title="Sinfda hali o‘quvchilar yo‘q" />
+              <EmptyState title={tx('pages.teacher.noStudentsInTheClassYet')} />
             )}
           </Card>
           <div className="section-title">
-            <h2>Sinf topshiriqlari</h2>
+            <h2>{tx('pages.student-class.classAssignments')}</h2>
             <CheckCircle2 size={20} />
           </div>
           <AssignmentResults
@@ -469,8 +624,8 @@ export default function TeacherPage({ assignmentsOnly = false }: { assignmentsOn
       <Modal
         open={open}
         onOpenChange={setOpen}
-        title="Yangi topshiriq"
-        description="Sinf, dars va muddatni tanlang."
+        title={tx('pages.teacher.newAssignment')}
+        description={tx('pages.teacher.chooseAClassLessonAndDeadline')}
       >
         <AssignmentForm
           classes={groups}

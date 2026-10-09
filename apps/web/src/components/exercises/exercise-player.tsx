@@ -1,8 +1,10 @@
+import { localizeText } from '../../i18n';
+import { useI18n } from '../../i18n';
 import { useEffect, useState } from 'react';
 import { ArrowRight, Lightbulb, Target } from 'lucide-react';
 import { api, errorText } from '../../lib/api';
 import type { Attempt, Feedback, Result } from '../../lib/types';
-import { isStructured, parsePayload, exerciseLabels } from '../../lib/exercises';
+import { isStructured, parsePayload } from '../../lib/exercises';
 import { Button, Card, ProgressBar } from '../ui';
 import { ExerciseRenderer, answerReady } from './exercise-renderer';
 import { ExerciseFeedback } from './exercise-feedback';
@@ -15,6 +17,7 @@ export function ExercisePlayer({
   setAttempt: (attempt: Attempt) => void;
   onComplete: (result: Result) => void;
 }) {
+  const { t } = useI18n();
   const [index, setIndex] = useState(() => {
     if (attempt.resumeQuestionId) {
       const resumed = attempt.questions.findIndex((q) => q.id === attempt.resumeQuestionId);
@@ -128,10 +131,14 @@ export function ExercisePlayer({
             {attempt.mode === 'BOSS_BATTLE' ? '🛡️' : '🚀'}
           </span>
           <div>
-            <strong>{attempt.mode === 'BOSS_BATTLE' ? 'Mavzu sinovi' : 'Bilim parvozi'}</strong>
+            <strong>
+              {attempt.mode === 'BOSS_BATTLE' ? t('lesson.bossBattle') : t('lesson.miniGame')}
+            </strong>
             <p>
-              {attempt.answers.filter((a) => a.correct).length} ta to‘g‘ri javob ·{' '}
-              {attempt.questions.length - attempt.answers.length} ta savol qoldi
+              {t('exercise.gameProgress', {
+                correct: attempt.answers.filter((a) => a.correct).length,
+                remaining: attempt.questions.length - attempt.answers.length,
+              })}
             </p>
             <ProgressBar
               value={
@@ -148,21 +155,25 @@ export function ExercisePlayer({
       )}
       <div className="practice-header">
         <span className="eyebrow">
-          {question.difficulty === 'HARD' ? 'CHALLENGE' : 'MASHQ VAQTI'}
+          {question.difficulty === 'HARD' ? 'CHALLENGE' : t('exercise.practiceTime')}
         </span>
         <span className="subtle">
-          {index + 1} / {attempt.questions.length} savol
+          {t('exercise.questions', { index: index + 1, total: attempt.questions.length })}
         </span>
       </div>
       <ProgressBar value={(attempt.answers.length / attempt.questions.length) * 100} tone="mint" />
       <Card className="question-card">
         <div className="question-card-meta">
           <span className={`pill ${question.difficulty === 'HARD' ? 'warm' : ''}`}>
-            {{ EASY: 'Oson', MEDIUM: 'O‘rta', HARD: 'Murakkab' }[question.difficulty]}
+            {
+              { EASY: t('exercise.easy'), MEDIUM: t('exercise.medium'), HARD: t('exercise.hard') }[
+                question.difficulty
+              ]
+            }
           </span>
           <span>
             <Target size={16} />
-            {exerciseLabels[question.type]}
+            {t(`exercise.${question.type}`)}
           </span>
         </div>
         <h2>{question.text}</h2>
@@ -183,7 +194,7 @@ export function ExercisePlayer({
         {question.hint && !feedback && (
           <Button variant="ghost" onClick={() => setShowHint(!showHint)}>
             <Lightbulb size={17} />
-            Maslahat olish
+            {t('exercise.hint')}
           </Button>
         )}
         {showHint && <p className="question-hint">{question.hint}</p>}
@@ -192,7 +203,9 @@ export function ExercisePlayer({
             feedback={feedback}
             next={() => void next()}
             nextLabel={
-              index === attempt.questions.length - 1 ? 'Natijani ko‘rish' : 'Keyingi savol'
+              index === attempt.questions.length - 1
+                ? t('dashboard.viewResult')
+                : t('exercise.next')
             }
             busy={busy}
             retry={() => {
@@ -201,14 +214,10 @@ export function ExercisePlayer({
             }}
           />
         )}
-        {existing && !feedback && (
-          <p className="subtle">
-            Birinchi javobingiz saqlangan. Mustahkamlash uchun yana urinishingiz mumkin.
-          </p>
-        )}
+        {existing && !feedback && <p className="subtle">{t('exercise.saved')}</p>}
         {error && (
           <div className="form-error" role="alert">
-            {error}
+            {localizeText(error)}
           </div>
         )}
         <div className="question-actions">
@@ -218,7 +227,7 @@ export function ExercisePlayer({
               busy={busy}
               disabled={!answerReady(question, value)}
             >
-              Javobni tekshirish
+              {t('exercise.check')}
               <ArrowRight size={17} />
             </Button>
           )}
@@ -228,16 +237,15 @@ export function ExercisePlayer({
               onClick={() => void next()}
               busy={busy}
             >
-              {index === attempt.questions.length - 1 ? 'Natijani ko‘rish' : 'Keyingi savol'}
+              {index === attempt.questions.length - 1
+                ? t('dashboard.viewResult')
+                : t('exercise.next')}
               <ArrowRight size={17} />
             </Button>
           )}
         </div>
       </Card>
-      <p className="practice-note">
-        Natija birinchi javobingiz asosida hisoblanadi. Qayta urinishlar — bilimni mustahkamlash
-        uchun.
-      </p>
+      <p className="practice-note">{t('exercise.note')}</p>
     </div>
   );
 }

@@ -1,3 +1,6 @@
+import { localizeText } from '../i18n';
+import { translate as tx } from '../i18n';
+import { useI18n } from '../i18n';
 import { ExercisePlayer } from '../components/exercises/exercise-player';
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -20,6 +23,7 @@ import {
 import { api, errorText } from '../lib/api';
 import type { Attempt, Daily, Lesson, Result } from '../lib/types';
 import { Button, Card, EmptyState, ErrorState, Loading, PageHeader } from '../components/ui';
+import { ContentLanguageNotice } from '../components/content-language-notice';
 
 export function ResultSummary({
   result,
@@ -30,70 +34,62 @@ export function ResultSummary({
   daily?: boolean;
   retry?: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className="result-page">
       <span className="result-medal">
         <Trophy size={54} />
       </span>
-      <span className="eyebrow">YANA BIR QADAM OLDINGA</span>
-      <h1>{result.score >= 80 ? 'Ajoyib natija!' : 'Har bir mashq — yangi bilim.'}</h1>
-      <p>
-        {daily ? 'Bugungi challengeni yakunladingiz.' : 'Dars yakunlandi. O‘rganishda davom eting!'}
-      </p>
+      <span className="eyebrow">{t('lesson.resultEyebrow')}</span>
+      <h1>{result.score >= 80 ? t('lesson.greatResult') : t('lesson.practiceResult')}</h1>
+      <p>{daily ? t('lesson.dailyDone') : t('lesson.done')}</p>
       <div className="result-score">
         <strong>
           {result.score}
           <span>%</span>
         </strong>
-        <p>
-          {result.correct} / {result.total} to‘g‘ri javob
-        </p>
+        <p>{t('lesson.correctCount', { correct: result.correct, total: result.total })}</p>
       </div>
       {!daily && (
         <p className={`pill ${(result.mastered ?? result.score >= 70) ? '' : 'warm'}`}>
           {(result.mastered ?? result.score >= 70)
-            ? 'Dars yakunlandi · O‘zlashtirildi'
-            : `Dars yakunlandi · Mustahkamlash kerak (${result.masteryThreshold ?? 70}% maqsad)`}
+            ? t('lesson.mastered')
+            : t('lesson.needsPractice', { score: result.masteryThreshold ?? 70 })}
         </p>
       )}
       <div className="result-stats">
         <div>
           <Zap size={24} />
-          <strong>+{result.earnedXp} XP</strong>
-          <span>Qo‘lga kiritildi</span>
+          <strong>{tx('pages.admin.gamification.xp', { value1: result.earnedXp })}</strong>
+          <span>{t('lesson.earned')}</span>
         </div>
         <div>
           <Target size={24} />
           <strong>
             {daily
-              ? `Daraja ${result.level}`
+              ? t('lesson.level', { level: result.level })
               : `${result.masteryBefore}% → ${result.masteryAfter}%`}
           </strong>
-          <span>{daily ? 'Bilim darajangiz' : 'Mavzuni o‘zlashtirish'}</span>
+          <span>{daily ? t('profile.level') : t('lesson.mastery')}</span>
         </div>
         <div>
           <Flame size={24} />
-          <strong>{result.streak} kun</strong>
-          <span>O‘rganish streaki</span>
+          <strong>{t('common.days', { count: result.streak })}</strong>
+          <span>{t('lesson.streak')}</span>
         </div>
       </div>
-      {result.earnedXp === 0 && (
-        <p className="subtle">
-          Bu dars uchun XP avval olingan. Yangi natija o‘zlashtirish ko‘rsatkichingizni yaxshilashi
-          mumkin.
-        </p>
-      )}
+      {result.earnedXp === 0 && <p className="subtle">{t('lesson.noXp')}</p>}
       {result.badges.length > 0 && (
         <Card className="unlocked-badges">
           <h3>
             <Sparkles size={19} />
-            Yangi nishonlar ochildi!
+            {t('lesson.newBadges')}
           </h3>
           {result.badges.map((b) => (
             <div key={b.id}>
               <Award size={26} />
-              <strong>{b.title}</strong>
-              <span>{b.description}</span>
+              <strong>{localizeText(b.title)}</strong>
+              <span>{localizeText(b.description)}</span>
             </div>
           ))}
         </Card>
@@ -101,29 +97,30 @@ export function ResultSummary({
       <div className="result-actions">
         {result.nextLesson ? (
           <Link className="btn btn-primary" to={`/lessons/${result.nextLesson.id}`}>
-            Keyingi dars
+            {t('lesson.next')}
             <ArrowRight size={18} />
           </Link>
         ) : (
           <Link to="/subjects" className="btn btn-primary">
-            Fanlarga qaytish
+            {t('subjects.back')}
             <ArrowRight size={18} />
           </Link>
         )}
         {retry && (
           <Button variant="secondary" onClick={retry}>
             <RotateCcw size={17} />
-            Qayta mashq qilish
+            {t('lesson.retry')}
           </Button>
         )}
         <Link to="/dashboard" className="btn btn-ghost">
-          Bosh sahifa
+          {t('navigation.home')}
         </Link>
       </div>
     </div>
   );
 }
 export default function LessonPage({ daily = false }: { daily?: boolean }) {
+  const { t } = useI18n();
   const { id } = useParams();
   const cache = useQueryClient();
   const query = useQuery({
@@ -214,10 +211,11 @@ export default function LessonPage({ daily = false }: { daily?: boolean }) {
       return (
         <>
           <PageHeader
-            eyebrow="KUNLIK CHALLENGE"
-            title="Bugungi bilim sinovi"
-            description="Har bir savol — o‘zingizni sinash imkoniyati."
+            eyebrow={t('lesson.dailyEyebrow')}
+            title={t('lesson.dailyTitle')}
+            description={t('lesson.dailyDescription')}
           />
+          <ContentLanguageNotice />
           <ExercisePlayer attempt={attempt} setAttempt={setAttempt} onComplete={complete} />
         </>
       );
@@ -225,42 +223,42 @@ export default function LessonPage({ daily = false }: { daily?: boolean }) {
     return (
       <>
         <PageHeader
-          eyebrow="HAR KUNI BIR QADAM"
-          title="Kunlik challenge"
-          description="Bugun yangi bilimlar bilan o‘zingizni sinang."
+          eyebrow={t('path.daily')}
+          title={t('navigation.challenge')}
+          description={t('lesson.dailyIntro')}
         />
+        <ContentLanguageNotice />
         <Card className="daily-intro">
           <span className="daily-icon">
             <Zap size={55} />
           </span>
-          <span className="eyebrow">BUGUNGI CHALLENGE</span>
-          <h2>5 ta savol. Bitta yangi imkoniyat.</h2>
-          <p>
-            Matematika, ingliz tili va informatika bo‘yicha aralash savollar. Shoshilmang, o‘ylang
-            va javob bering.
-          </p>
+          <span className="eyebrow">{t('lesson.todayChallenge')}</span>
+          <h2>{t('lesson.fiveQuestions')}</h2>
+          <p>{t('lesson.mixedQuestions')}</p>
           <div className="daily-facts">
             <span>
-              <BookOpen size={20} />5 ta savol
+              <BookOpen size={20} />
+              {t('lesson.questions')}
             </span>
             <span>
               <Clock3 size={20} />
-              Taxminan 5 daqiqa
+              {t('lesson.duration')}
             </span>
             <span>
-              <Sparkles size={20} />+{challenge.data.reward} XP bonus
+              <Sparkles size={20} />
+              {t('dashboard.xpBonus', { count: challenge.data.reward })}
             </span>
           </div>
           {error && (
             <div className="form-error" role="alert">
-              {error}
+              {localizeText(error)}
             </div>
           )}
           <Button onClick={() => void start()} busy={busy}>
-            {challenge.data.attemptId ? 'Davom ettirish' : 'Challengeni boshlash'}
+            {challenge.data.attemptId ? t('path.resume') : t('dashboard.startChallenge')}
             <ArrowRight size={19} />
           </Button>
-          <small>Mukofot kuniga bir marta beriladi.</small>
+          <small>{t('lesson.rewardNote')}</small>
         </Card>
       </>
     );
@@ -268,23 +266,24 @@ export default function LessonPage({ daily = false }: { daily?: boolean }) {
   if (query.isPending) return <Loading />;
   if (query.error) return <ErrorState error={query.error} retry={() => void query.refetch()} />;
   const lesson = query.data;
-  if (!lesson) return <EmptyState title="Dars topilmadi" />;
+  if (!lesson) return <EmptyState title={t('lesson.notFound')} />;
   return (
     <>
       <Link to={`/subjects/${lesson.topic.course.subject.id}`} className="back-link">
         <ArrowLeft size={17} />
-        {lesson.topic.course.subject.title} / {lesson.topic.title}
+        {localizeText(lesson.topic.course.subject.title)} / {localizeText(lesson.topic.title)}
       </Link>
       <PageHeader
-        eyebrow={`${lesson.topic.course.grade}-SINF · ${lesson.duration} DAQIQA`}
-        title={lesson.title}
-        description="Tushuning. Mashq qiling. Bilimingizni mustahkamlang."
+        eyebrow={t('lesson.meta', { grade: lesson.topic.course.grade, duration: lesson.duration })}
+        title={localizeText(lesson.title)}
+        description={t('lesson.description')}
       />
+      <ContentLanguageNotice />
       <div className="lesson-steps">
         {[
-          { label: 'Tushuntirish', icon: BookOpen },
-          { label: 'Misol', icon: Lightbulb },
-          { label: 'Mashq va challenge', icon: Target },
+          { label: t('lesson.explanation'), icon: BookOpen },
+          { label: t('lesson.example'), icon: Lightbulb },
+          { label: t('lesson.practice'), icon: Target },
         ].map(({ label, icon: Icon }, i) => (
           <button
             key={label}
@@ -301,8 +300,8 @@ export default function LessonPage({ daily = false }: { daily?: boolean }) {
         <ExercisePlayer attempt={attempt} setAttempt={setAttempt} onComplete={complete} />
       ) : (
         <Card className="lesson-reading">
-          <span className="eyebrow">{step === 0 ? 'KELING, TUSHUNAMIZ' : 'AMALDA KO‘RAMIZ'}</span>
-          <h2>{step === 0 ? 'Asosiy tushuncha' : 'Birgalikda yechamiz'}</h2>
+          <span className="eyebrow">{step === 0 ? t('lesson.understand') : t('lesson.try')}</span>
+          <h2>{step === 0 ? t('lesson.concept') : t('lesson.solve')}</h2>
           <div className={`lesson-prose ${step === 1 ? 'example-prose' : ''}`}>
             {(step === 0 ? lesson.explanation : lesson.example).split('\n\n').map((p, i) => (
               <p key={i}>{p}</p>
@@ -310,17 +309,17 @@ export default function LessonPage({ daily = false }: { daily?: boolean }) {
           </div>
           {error && (
             <div className="form-error" role="alert">
-              {error}
+              {localizeText(error)}
             </div>
           )}
           {step === 1 && (
             <fieldset className="practice-modes">
-              <legend>Mashq usuli</legend>
+              <legend>{t('lesson.mode')}</legend>
               {(
                 [
-                  ['STANDARD', 'Oddiy mashq'],
-                  ['MINI_GAME', 'Bilim parvozi'],
-                  ['BOSS_BATTLE', 'Mavzu sinovi'],
+                  ['STANDARD', t('lesson.standard')],
+                  ['MINI_GAME', t('lesson.miniGame')],
+                  ['BOSS_BATTLE', t('lesson.bossBattle')],
                 ] as const
               ).map(([value, label]) => (
                 <label key={value} className={mode === value ? 'selected' : ''}>
@@ -340,11 +339,11 @@ export default function LessonPage({ daily = false }: { daily?: boolean }) {
             {step === 1 && (
               <Button variant="ghost" onClick={() => setStep(0)}>
                 <ArrowLeft size={17} />
-                Tushuntirishga qaytish
+                {t('lesson.backExplanation')}
               </Button>
             )}
             <Button busy={busy} onClick={step === 0 ? () => setStep(1) : () => void start()}>
-              {step === 0 ? 'Misolni ko‘rish' : 'Mashqni boshlash'}
+              {step === 0 ? t('lesson.viewExample') : t('lesson.startPractice')}
               <ArrowRight size={18} />
             </Button>
           </div>

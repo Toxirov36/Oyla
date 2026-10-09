@@ -1,3 +1,6 @@
+import { localizeText } from '../i18n';
+import { translate as tx } from '../i18n';
+import { translate, useI18n } from '../i18n';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
@@ -18,7 +21,7 @@ import {
   Calculator,
 } from 'lucide-react';
 import { api } from '../lib/api';
-import { formatDate } from '../lib/locale';
+import { formatDate, formatNumber } from '../lib/locale';
 import type { Daily, Dashboard, Ranking } from '../lib/types';
 import {
   Card,
@@ -33,11 +36,12 @@ import {
 
 export const subjectStyle = (slug: string) =>
   slug === 'mathematics'
-    ? { tone: 'blue', icon: Calculator, label: 'MATEMATIKA' }
+    ? { tone: 'blue', icon: Calculator, label: translate('subject.mathematics').toUpperCase() }
     : slug === 'english'
-      ? { tone: 'mint', icon: Globe, label: 'INGLIZ TILI' }
-      : { tone: 'purple', icon: Code2, label: 'INFORMATIKA' };
+      ? { tone: 'mint', icon: Globe, label: translate('subject.english').toUpperCase() }
+      : { tone: 'purple', icon: Code2, label: translate('subject.informatics').toUpperCase() };
 export function LeaderboardPreview({ rows }: { rows: Ranking[] }) {
+  const { t } = useI18n();
   return rows.length ? (
     <div className="ranking-list">
       {rows.map((row) => (
@@ -48,22 +52,20 @@ export function LeaderboardPreview({ rows }: { rows: Ranking[] }) {
           <UserAvatar name={row.name} avatar={row.avatar} size="sm" />
           <strong>
             {row.name}
-            {row.isMe && <small> (siz)</small>}
+            {row.isMe && <small> {t('dashboard.me')}</small>}
           </strong>
           <span className="ranking-xp">
-            {row.xp.toLocaleString()} <small>XP</small>
+            {formatNumber(row.xp)} <small>XP</small>
           </span>
         </div>
       ))}
     </div>
   ) : (
-    <EmptyState
-      title="Birinchi o‘rinni siz oling"
-      description="Dars yakunlang — XPingiz reytingda ko‘rinadi."
-    />
+    <EmptyState title={t('dashboard.firstRank')} description={t('dashboard.rankHelp')} />
   );
 }
 export default function DashboardPage() {
+  const { t } = useI18n();
   const query = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => api<Dashboard>('/students/me'),
@@ -87,9 +89,9 @@ export default function DashboardPage() {
   return (
     <>
       <PageHeader
-        eyebrow="BUGUN YANGI IMKONIYATLAR KUNI"
-        title={`Salom, ${d.user.name.split(' ')[0]}! 👋`}
-        description="Keling, bugun ham birgalikda yangi narsalarni o‘rganamiz."
+        eyebrow={t('dashboard.eyebrow')}
+        title={t('dashboard.hello', { name: d.user.name.split(' ')[0] })}
+        description={t('dashboard.description')}
         action={
           <div className="date-chip">
             <span className="live-dot" />
@@ -103,29 +105,29 @@ export default function DashboardPage() {
             <div className="continue-copy">
               <div className="hero-kicker">
                 <span className="hero-dot" />
-                BILIM SAYOHATINGIZ DAVOM ETADI
+                {t('dashboard.journey')}
               </div>
-              <h2>{next ? 'Keyingi katta qadam.' : 'Siz ajoyib natijaga erishdingiz!'}</h2>
+              <h2>{next ? t('dashboard.nextStep') : t('dashboard.great')}</h2>
               <p>
                 {next
-                  ? `${next.subject} · ${next.topic}`
-                  : 'Barcha darslar yakunlandi. Mashqlar bilan bilimni mustahkamlang.'}
+                  ? `${localizeText(next.subject)} · ${localizeText(next.topic)}`
+                  : t('dashboard.allDone')}
               </p>
               {next && (
                 <>
-                  <h3>{next.title}</h3>
+                  <h3>{localizeText(next.title)}</h3>
                   <div className="hero-meta">
                     <span>
                       <Clock3 size={15} />
-                      {next.duration} daqiqa
+                      {t('common.minutes', { count: next.duration })}
                     </span>
                     <span>
                       <BookOpen size={15} />
-                      Tushunish + mashq
+                      {t('dashboard.understandPractice')}
                     </span>
                   </div>
                   <Link className="btn btn-white" to={`/lessons/${next.id}`}>
-                    O‘rganishni davom ettirish
+                    {t('dashboard.continue')}
                     <ArrowRight size={18} />
                   </Link>
                 </>
@@ -141,16 +143,16 @@ export default function DashboardPage() {
               </span>
               <span className="hero-art-plus">+</span>
               <div className="hero-art-bubble">
-                Yangi bilim
+                {t('auth.newKnowledge')}
                 <br />
-                <strong>yangi imkoniyat</strong>
+                <strong>{t('dashboard.newOpportunity')}</strong>
               </div>
             </div>
           </Card>
           <div className="section-title">
-            <h2>Mening fanlarim</h2>
+            <h2>{t('navigation.subjects')}</h2>
             <Link to="/subjects">
-              <TextLink>Barcha darslar</TextLink>
+              <TextLink>{t('dashboard.allLessons')}</TextLink>
             </Link>
           </div>
           <div className="subject-grid">
@@ -166,14 +168,17 @@ export default function DashboardPage() {
                     <Icon size={26} />
                   </span>
                   <div className="subject-card-top">
-                    <h3>{subject.title}</h3>
+                    <h3>{localizeText(subject.title)}</h3>
                     <ChevronRight size={17} />
                   </div>
                   <p>
-                    {subject.completed} / {subject.total} dars yakunlandi
+                    {t('dashboard.lessonsDone', {
+                      completed: subject.completed,
+                      total: subject.total,
+                    })}
                   </p>
                   <div className="progress-label">
-                    <span>O‘rganish progressi</span>
+                    <span>{t('dashboard.learningProgress')}</span>
                     <strong>{subject.progress}%</strong>
                   </div>
                   <ProgressBar value={subject.progress} tone={tone} />
@@ -182,20 +187,22 @@ export default function DashboardPage() {
             })}
           </div>
           <div className="section-title">
-            <h2>Bugungi imkoniyatlar</h2>
-            <span className="subtle">Bir qadam oldinga</span>
+            <h2>{t('dashboard.opportunities')}</h2>
+            <span className="subtle">{t('dashboard.oneStep')}</span>
           </div>
           <div className="opportunity-grid">
             <Card className="challenge-card">
               <span className="square-icon orange">
                 <Zap size={24} />
               </span>
-              <span className="pill warm">HAR KUNI YANGI</span>
-              <h3>Kunlik challenge</h3>
-              <p>5 ta savol. Turli fanlar. O‘zingizni sinash uchun ajoyib imkoniyat.</p>
+              <span className="pill warm">{t('dashboard.everyDay')}</span>
+              <h3>{t('navigation.challenge')}</h3>
+              <p>{t('dashboard.challengeHelp')}</p>
               <div className="challenge-reward">
                 <Sparkles size={16} />
-                {challenge.data ? `+${challenge.data.reward} XP bonus` : 'Yuklanmoqda...'}
+                {challenge.data
+                  ? t('dashboard.xpBonus', { count: challenge.data.reward })
+                  : t('common.loadingDots')}
               </div>
               <Link
                 className={`btn ${d.dailyCompleted ? 'btn-secondary' : 'btn-primary'}`}
@@ -204,11 +211,11 @@ export default function DashboardPage() {
                 {d.dailyCompleted ? (
                   <>
                     <Check size={17} />
-                    Natijani ko‘rish
+                    {t('dashboard.viewResult')}
                   </>
                 ) : (
                   <>
-                    Challengeni boshlash
+                    {t('dashboard.startChallenge')}
                     <ArrowRight size={17} />
                   </>
                 )}
@@ -219,26 +226,31 @@ export default function DashboardPage() {
                 <span className="square-icon blue">
                   <BookOpen size={22} />
                 </span>
-                <span className="pill">{pending.length} ta yangi</span>
+                <span className="pill">
+                  {t('dashboard.newAssignments', { count: pending.length })}
+                </span>
               </div>
-              <h3>O‘qituvchi topshirig‘i</h3>
+              <h3>{t('dashboard.teacherAssignment')}</h3>
               {pending[0] ? (
                 <>
                   <p>{pending[0].title}</p>
                   <div className="assignment-meta">
                     <Clock3 size={16} />
-                    {dateLabel(pending[0].deadline)} gacha · {pending[0].class.name}
+                    {t('dashboard.deadline', {
+                      date: dateLabel(pending[0].deadline),
+                      class: pending[0].class.name,
+                    })}
                   </div>
                   <Link className="btn btn-secondary" to={`/lessons/${pending[0].lesson.id}`}>
-                    Topshiriqni bajarish
+                    {t('dashboard.doAssignment')}
                     <ArrowRight size={17} />
                   </Link>
                 </>
               ) : (
                 <>
-                  <p>Hozircha yangi topshiriq yo‘q. Mustaqil o‘rganishni davom ettiring.</p>
+                  <p>{t('dashboard.noAssignment')}</p>
                   <Link to="/assignments" className="text-link">
-                    Topshiriqlarni ko‘rish
+                    {t('dashboard.viewAssignments')}
                     <ArrowRight size={17} />
                   </Link>
                 </>
@@ -248,41 +260,44 @@ export default function DashboardPage() {
           <Card className="tip-card">
             <Lightbulb size={24} />
             <div>
-              <strong>Kichik odat, katta natija.</strong>
-              <p>
-                Har kuni bitta darsni yakunlash ham bilimingizni mustahkamlaydi. Muhimi — davom
-                etish.
-              </p>
+              <strong>{t('dashboard.habit')}</strong>
+              <p>{t('dashboard.habitHelp')}</p>
             </div>
           </Card>
         </div>
         <aside className="dashboard-side">
           <Card className="journey-card">
             <div className="card-heading">
-              <h3>Sizning rivojlanishingiz</h3>
+              <h3>{t('dashboard.growth')}</h3>
               <Sparkles size={18} className="purple-text" />
             </div>
             <div className="level-orbit">
               <div className="level-circle">
-                <span>DARAJA</span>
+                <span>{t('profile.levelLabel')}</span>
                 <strong>{d.level.number}</strong>
               </div>
               <div className="level-caption">
-                <strong>{d.level.title}</strong>
-                <span>O‘rganish davom etmoqda</span>
+                <strong>{localizeText(d.level.title)}</strong>
+                <span>{t('dashboard.learning')}</span>
               </div>
             </div>
             <div className="progress-label">
-              <strong>{d.totalXp.toLocaleString()} XP</strong>
+              <strong>
+                {tx('pages.admin.gamification.xpVariant60', { value1: formatNumber(d.totalXp) })}
+              </strong>
               <span>
-                {d.nextLevel ? `${d.nextLevel.threshold.toLocaleString()} XP` : 'Eng yuqori daraja'}
+                {d.nextLevel
+                  ? tx('pages.admin.gamification.xpVariant60', {
+                      value1: formatNumber(d.nextLevel.threshold),
+                    })
+                  : t('dashboard.maxLevel')}
               </span>
             </div>
             <ProgressBar value={currentLevelProgress} tone="purple" />
             <p className="xp-until">
               {d.nextLevel
-                ? `Keyingi darajaga ${d.nextLevel.threshold - d.totalXp} XP qoldi`
-                : 'Yangi bilimlar sari davom eting!'}
+                ? t('dashboard.nextLevel', { count: d.nextLevel.threshold - d.totalXp })
+                : t('dashboard.keepGoing')}
             </p>
             <div className="journey-stats">
               <div>
@@ -291,7 +306,7 @@ export default function DashboardPage() {
                 </span>
                 <strong>
                   {d.streak}
-                  <small>kunlik streak</small>
+                  <small>{t('dashboard.streak')}</small>
                 </strong>
               </div>
               <div>
@@ -300,31 +315,31 @@ export default function DashboardPage() {
                 </span>
                 <strong>
                   {d.completedLessons}
-                  <small>tugallangan dars</small>
+                  <small>{t('dashboard.completed')}</small>
                 </strong>
               </div>
             </div>
           </Card>
           <Card className="leaderboard-card">
             <div className="card-heading">
-              <h3>Hafta bilimdonlari</h3>
+              <h3>{t('dashboard.weekLeaders')}</h3>
               <Trophy size={18} className="orange-text" />
             </div>
-            <p className="card-subtitle">Bilim yo‘lida birga o‘samiz.</p>
+            <p className="card-subtitle">{t('dashboard.growTogether')}</p>
             {ranking.error ? (
               <ErrorState error={ranking.error} retry={() => void ranking.refetch()} />
             ) : (
               <LeaderboardPreview rows={(ranking.data || []).slice(0, 4)} />
             )}
             <Link to="/leaderboard" className="card-bottom-link">
-              To‘liq reyting
+              {t('dashboard.fullRanking')}
               <ChevronRight size={16} />
             </Link>
           </Card>
           <Card className="badges-preview">
             <div className="card-heading">
-              <h3>Yutuqlarim</h3>
-              <Link to="/badges" aria-label="Barcha nishonlar">
+              <h3>{t('dashboard.achievements')}</h3>
+              <Link to="/badges" aria-label={t('dashboard.allBadges')}>
                 <Plus size={19} />
               </Link>
             </div>
@@ -341,7 +356,7 @@ export default function DashboardPage() {
               ) : (
                 <div className="first-badge">
                   <Award size={34} />
-                  <p>Birinchi darsni yakunlang va ilk nishoningizni oching.</p>
+                  <p>{t('dashboard.firstBadge')}</p>
                 </div>
               )}
             </div>

@@ -19,6 +19,19 @@ export default defineConfig({
     },
   ],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'i18n-vendor': ['i18next', 'react-i18next'],
+          'validation-vendor': ['zod', 'zod/v4/locales/uz.js', 'zod/v4/locales/ru.js'],
+          'locale-uz': [
+            fileURLToPath(new URL('./src/i18n/resources/uz/common.json', import.meta.url)),
+          ],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     proxy: { '/api': process.env.API_PROXY_TARGET || 'http://127.0.0.1:3001' },

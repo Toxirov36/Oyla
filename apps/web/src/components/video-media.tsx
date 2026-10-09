@@ -1,9 +1,12 @@
+import { localizeText } from '../i18n';
+import { translate as tx, useI18n as usePageLocale } from '../i18n';
 import { useEffect, useState } from 'react';
 import { Pause, Play, RotateCcw, Volume2 } from 'lucide-react';
 import type { VideoLesson } from '../lib/play';
 import { Button, ProgressBar } from './ui';
 import { AnimationScene } from './animation-scene';
 export function VideoMedia({ video }: { video: VideoLesson }) {
+  usePageLocale();
   const [playing, setPlaying] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [youtube, setYoutube] = useState(false);
@@ -32,7 +35,7 @@ export function VideoMedia({ video }: { video: VideoLesson }) {
       <div className="youtube-lesson">
         {youtube ? (
           <iframe
-            title={video.title}
+            title={localizeText(video.title)}
             src={`https://www.youtube-nocookie.com/embed/${video.youtubeId}?rel=0`}
             allow="accelerometer; autoplay; encrypted-media; picture-in-picture"
             allowFullScreen
@@ -40,8 +43,8 @@ export function VideoMedia({ video }: { video: VideoLesson }) {
         ) : (
           <div className="video-poster">
             <Play size={54} />
-            <h2>{video.title}</h2>
-            <Button onClick={() => setYoutube(true)}>Videoni ochish</Button>
+            <h2>{localizeText(video.title)}</h2>
+            <Button onClick={() => setYoutube(true)}>{tx('pages.video-media.openVideo')}</Button>
           </div>
         )}
         <a
@@ -50,17 +53,17 @@ export function VideoMedia({ video }: { video: VideoLesson }) {
           target="_blank"
           rel="noreferrer"
         >
-          YouTube’da ochish ↗
+          {tx('pages.video-media.openOnYoutube')}
         </a>
       </div>
     );
-  if (!chapter) return <p>Dars tayyorlanmoqda.</p>;
+  if (!chapter) return <p>{tx('pages.video-media.theLessonIsBeingPrepared')}</p>;
   return (
     <div className={`animated-video ${playing ? 'is-playing' : 'is-paused'}`}>
       <AnimationScene key={index} visual={chapter.visual} />
       <div className="video-chapter">
         <span className="eyebrow">
-          {index + 1} / {chapters.length} QISM
+          {tx('pages.video-media.part', { value1: index + 1, value2: chapters.length })}
         </span>
         <h2>{chapter.title}</h2>
         <p aria-live="polite">{chapter.text}</p>
@@ -74,7 +77,7 @@ export function VideoMedia({ video }: { video: VideoLesson }) {
           }}
         >
           {playing ? <Pause size={18} /> : <Play size={18} />}{' '}
-          {playing ? 'Pauza' : 'Ko‘rishni boshlash'}
+          {playing ? tx('pages.video-media.pause') : tx('pages.video-media.startWatching')}
         </Button>
         <Button
           variant="secondary"
@@ -82,7 +85,7 @@ export function VideoMedia({ video }: { video: VideoLesson }) {
             setElapsed(0);
             setPlaying(false);
           }}
-          aria-label="Boshidan ko‘rish"
+          aria-label={tx('pages.video-media.watchFromTheStart')}
         >
           <RotateCcw size={18} />
         </Button>
@@ -98,11 +101,14 @@ export function VideoMedia({ video }: { video: VideoLesson }) {
             }}
           >
             <Volume2 size={18} />
-            Matnni tinglash
+            {tx('pages.video-media.listenToTheText')}
           </Button>
         )}
         <span>
-          {Math.floor(elapsed / 1000)} / {duration / 1000} s
+          {tx('pages.video-media.s', {
+            value1: Math.floor(elapsed / 1000),
+            value2: duration / 1000,
+          })}
         </span>
       </div>
       <div className="video-chapters">
@@ -121,7 +127,7 @@ export function VideoMedia({ video }: { video: VideoLesson }) {
       </div>
       {elapsed >= duration && (
         <p role="status" className="video-complete">
-          Ajoyib! Endi mashqlarda sinab ko‘ring.
+          {tx('pages.video-media.greatNowTryTheExercises')}
         </p>
       )}
     </div>

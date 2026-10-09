@@ -1,3 +1,4 @@
+import { translate as tx, useI18n as usePageLocale } from '../../i18n';
 import { Search, ChevronLeft, ChevronRight, Pencil, Trash2, KeyRound } from 'lucide-react';
 import type { User } from '../../lib/types';
 import { Button, Card, EmptyState } from '../../components/ui';
@@ -21,32 +22,33 @@ export function AdminUsers({
   onDelete: (value: { endpoint: string; title: string }) => void;
   onReset: (user: User) => void;
 }) {
+  usePageLocale();
   return (
     <Card className="data-table-card">
       <div className="filter-bar">
         <label className="search-input">
           <Search size={18} />
           <input
-            aria-label="Foydalanuvchini qidirish"
+            aria-label={tx('pages.admin.users.searchUsers')}
             value={search}
             onChange={(e) => {
               onSearch(e.target.value);
               onPage(1);
             }}
-            placeholder="Ism yoki email bo‘yicha qidirish..."
+            placeholder={tx('pages.admin.users.searchByNameOrEmail')}
           />
         </label>
-        <span className="subtle">{data.total} ta foydalanuvchi</span>
+        <span className="subtle">{tx('pages.admin.users.users', { value1: data.total })}</span>
       </div>
       <div className="table-scroll">
         <table>
           <thead>
             <tr>
-              <th>Foydalanuvchi</th>
-              <th>Rol</th>
-              <th>Sinf</th>
-              <th>Holat</th>
-              <th>Tahrirlash</th>
+              <th>{tx('pages.admin.users.user')}</th>
+              <th>{tx('pages.admin.user-editor.role')}</th>
+              <th>{tx('pages.admin.users.grade')}</th>
+              <th>{tx('pages.admin.users.status')}</th>
+              <th>{tx('pages.admin.avatars.edit')}</th>
             </tr>
           </thead>
           <tbody>
@@ -59,28 +61,34 @@ export function AdminUsers({
                 <td>
                   <span className="pill">
                     {roles.find((r) => r.value === user.role)?.label}
-                    {user.role === 'ADMIN' && user.teacherAccess ? ' · O‘qituvchi paneli' : ''}
+                    {user.role === 'ADMIN' && user.teacherAccess
+                      ? tx('pages.admin.users.teacherPanel')
+                      : ''}
                   </span>
                 </td>
                 <td>
-                  {user.role === 'STUDENT' && user.student ? `${user.student.grade}-sinf` : '—'}
+                  {user.role === 'STUDENT' && user.student
+                    ? tx('common.grade', { grade: user.student.grade })
+                    : '—'}
                 </td>
                 <td>
                   <span className={`pill ${user.active ? 'status-completed' : ''}`}>
-                    {user.active ? 'Faol' : 'Faolsiz'}
+                    {user.active
+                      ? tx('pages.admin.users.active')
+                      : tx('pages.admin.users.inactive')}
                   </span>
                 </td>
                 <td>
                   <Button
                     variant="ghost"
-                    aria-label={`${user.name} tahrirlash`}
+                    aria-label={tx('pages.admin.users.edit', { value1: user.name })}
                     onClick={() => onEdit(user)}
                   >
                     <Pencil size={17} />
                   </Button>
                   <Button
                     variant="ghost"
-                    aria-label={`${user.name} parolini tiklash`}
+                    aria-label={tx('pages.admin.users.resetPasswordFor', { value1: user.name })}
                     disabled={!user.active}
                     onClick={() => onReset(user)}
                   >
@@ -88,11 +96,15 @@ export function AdminUsers({
                   </Button>
                   <Button
                     variant="ghost"
-                    aria-label={`${user.name} hisobini faolsizlantirish`}
+                    aria-label={tx('pages.admin.users.deactivateAccountFor', { value1: user.name })}
                     onClick={() => {
                       onDelete({
                         endpoint: `/admin/users/${user.id}`,
-                        title: `${user.name} hisobini faolsizlantirish`,
+                        get title() {
+                          return tx('pages.admin.users.deactivateAccountFor', {
+                            value1: user.name,
+                          });
+                        },
                       });
                     }}
                   >
@@ -104,7 +116,7 @@ export function AdminUsers({
           </tbody>
         </table>
       </div>
-      {!data.items.length && <EmptyState title="Qidiruv bo‘yicha natija yo‘q" />}
+      {!data.items.length && <EmptyState title={tx('pages.admin.users.noSearchResults')} />}
       <div className="pagination">
         <Button variant="secondary" disabled={page === 1} onClick={() => onPage(page - 1)}>
           <ChevronLeft size={17} />

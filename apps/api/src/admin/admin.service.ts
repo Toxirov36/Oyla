@@ -262,10 +262,33 @@ export class AdminService {
     return this.db.course.delete({ where: { id } });
   }
   createTopic(dto: TopicDto) {
-    return this.db.topic.create({ data: dto });
+    return this.db.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(64201, hashtext(${dto.courseId}))::text`;
+      const lastTopic = await tx.topic.findFirst({
+        where: { courseId: dto.courseId },
+        orderBy: [{ position: 'desc' }, { id: 'desc' }],
+        select: { position: true },
+      });
+      return tx.topic.create({
+        data: { ...dto, position: (lastTopic?.position ?? -1) + 1 },
+      });
+    });
   }
   updateTopic(id: string, dto: UpdateTopicDto) {
-    return this.db.topic.update({ where: { id }, data: dto });
+    return this.db.$transaction(async (tx) => {
+      const current = await tx.topic.findUniqueOrThrow({ where: { id } });
+      let position = current.position;
+      if (dto.courseId && dto.courseId !== current.courseId) {
+        await tx.$queryRaw`SELECT pg_advisory_xact_lock(64201, hashtext(${dto.courseId}))::text`;
+        const lastTopic = await tx.topic.findFirst({
+          where: { courseId: dto.courseId },
+          orderBy: [{ position: 'desc' }, { id: 'desc' }],
+          select: { position: true },
+        });
+        position = (lastTopic?.position ?? -1) + 1;
+      }
+      return tx.topic.update({ where: { id }, data: { ...dto, position } });
+    });
   }
   deleteTopic(id: string) {
     return this.db.topic.delete({ where: { id } });

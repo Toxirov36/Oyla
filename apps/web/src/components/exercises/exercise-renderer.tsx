@@ -1,3 +1,4 @@
+import { useI18n } from '../../i18n';
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, CircleCheck, GripVertical, X } from 'lucide-react';
 import type { Question } from '../../lib/types';
@@ -18,6 +19,7 @@ export function ExerciseRenderer({
   setValue,
   disabled,
 }: ExerciseRendererProps) {
+  const { t } = useI18n();
   const c = q.config ?? {};
   const p = parsePayload(value);
   const update = (next: ExercisePayload) => setValue(JSON.stringify(next));
@@ -33,13 +35,13 @@ export function ExerciseRenderer({
     const options =
       q.type === 'TRUE_FALSE'
         ? [
-            { value: 'true', text: 'To‘g‘ri' },
-            { value: 'false', text: 'Noto‘g‘ri' },
+            { value: 'true', text: t('exercise.true') },
+            { value: 'false', text: t('exercise.false') },
           ]
         : q.options;
     return (
       <fieldset className="question-options">
-        <legend className="sr-only">Javob variantlari</legend>
+        <legend className="sr-only">{t('exercise.options')}</legend>
         {options.map((o, i) => (
           <label
             key={o.value}
@@ -64,12 +66,14 @@ export function ExerciseRenderer({
   if (q.type === 'TEXT' || q.type === 'NUMERICAL')
     return (
       <label className="text-answer">
-        Javobingiz
+        {t('exercise.answer')}
         <input
           type="text"
           inputMode={q.type === 'NUMERICAL' ? 'decimal' : 'text'}
           maxLength={2000}
-          placeholder={q.type === 'NUMERICAL' ? 'Sonni kiriting...' : 'Javobingizni yozing...'}
+          placeholder={
+            q.type === 'NUMERICAL' ? t('exercise.numberPlaceholder') : t('exercise.textPlaceholder')
+          }
           value={value}
           onChange={(e) => setValue(e.target.value)}
           disabled={disabled}
@@ -87,7 +91,7 @@ export function ExerciseRenderer({
               value={p.values?.[i] ?? ''}
               disabled={disabled}
               maxLength={1000}
-              placeholder="Bo‘shliqni to‘ldiring"
+              placeholder={t('exercise.gapPlaceholder')}
               onChange={(e) => {
                 const values = c.slots!.map((_, j) => p.values?.[j] ?? '');
                 values[i] = e.target.value;
@@ -111,10 +115,8 @@ export function ExerciseRenderer({
     return (
       <div className={`pair-exercise ${memory ? 'memory-exercise' : ''}`}>
         <p className="subtle">
-          {memory
-            ? 'Kartalarni oching va juftlarini tanlang.'
-            : 'Chapdagi elementni, so‘ng mos o‘ng elementni bosing.'}
-          {q.type === 'DRAG_DROP' ? ' Sudrab joylashtirish ham mumkin.' : ''}
+          {memory ? t('exercise.memoryHelp') : t('exercise.pairsHelp')}
+          {q.type === 'DRAG_DROP' ? t('exercise.dragHelp') : ''}
         </p>
         <div className="pair-columns">
           <div>
@@ -134,7 +136,7 @@ export function ExerciseRenderer({
                 }}
                 aria-label={
                   memory && !open.includes('l' + item.id)
-                    ? `Chap karta ${items.indexOf(item) + 1}`
+                    ? t('exercise.leftCard', { index: items.indexOf(item) + 1 })
                     : item.text
                 }
                 aria-pressed={selected === item.id}
@@ -164,7 +166,7 @@ export function ExerciseRenderer({
                 }}
                 aria-label={
                   memory && !open.includes('r' + target.id)
-                    ? `O‘ng karta ${targets.indexOf(target) + 1}`
+                    ? t('exercise.rightCard', { index: targets.indexOf(target) + 1 })
                     : target.text
                 }
               >
@@ -183,7 +185,7 @@ export function ExerciseRenderer({
               <button
                 type="button"
                 disabled={disabled}
-                aria-label="Juftlikni bekor qilish"
+                aria-label={t('exercise.removePair')}
                 onClick={() => update({ pairs: pairs.filter((v) => v.left !== pair.left) })}
               >
                 <X size={16} />
@@ -224,7 +226,7 @@ export function ExerciseRenderer({
               type="button"
               variant="ghost"
               disabled={disabled || i === 0}
-              aria-label={`${i + 1}-elementni yuqoriga`}
+              aria-label={t('exercise.moveUp', { index: i + 1 })}
               onClick={() => move(i, i - 1)}
             >
               <ArrowUp size={16} />
@@ -233,7 +235,7 @@ export function ExerciseRenderer({
               type="button"
               variant="ghost"
               disabled={disabled || i === order.length - 1}
-              aria-label={`${i + 1}-elementni pastga`}
+              aria-label={t('exercise.moveDown', { index: i + 1 })}
               onClick={() => move(i, i + 1)}
             >
               <ArrowDown size={16} />
@@ -287,7 +289,7 @@ export function ExerciseRenderer({
       {c.code && <pre className="exercise-code">{c.code}</pre>}
       {q.type === 'LISTEN_ANSWER' && <AudioPrompt config={c} />}
       <label className="text-answer">
-        {q.type === 'DEBUG_CODE' ? 'Tuzatilgan kod' : 'Javobingiz'}
+        {q.type === 'DEBUG_CODE' ? t('exercise.correctedCode') : t('exercise.answer')}
         {q.type === 'DEBUG_CODE' ? (
           <textarea
             rows={6}

@@ -1,3 +1,5 @@
+import { localizeText } from '../../i18n';
+import { useI18n } from '../../i18n';
 import { useEffect, useRef, useState } from 'react';
 import { Mic, Play, Square } from 'lucide-react';
 import type { ExerciseConfig } from '../../lib/exercises';
@@ -20,6 +22,7 @@ type SpeechWindow = Window & {
   webkitSpeechRecognition?: new () => Recognition;
 };
 export function AudioPrompt({ config }: { config: ExerciseConfig }) {
+  const { t } = useI18n();
   const [error, setError] = useState('');
   useEffect(
     () => () => {
@@ -34,10 +37,10 @@ export function AudioPrompt({ config }: { config: ExerciseConfig }) {
           controls
           preload="none"
           src={config.audioUrl}
-          aria-label="Mashq audiosi"
-          onError={() => setError('Audio yuklanmadi. Qayta urinib ko‘ring.')}
+          aria-label={t('speech.audio')}
+          onError={() => setError(t('speech.audioError'))}
         />
-        {error && <p role="alert">{error}</p>}
+        {error && <p role="alert">{localizeText(error)}</p>}
       </div>
     );
   return (
@@ -47,21 +50,21 @@ export function AudioPrompt({ config }: { config: ExerciseConfig }) {
         variant="secondary"
         onClick={() => {
           if (!('speechSynthesis' in window)) {
-            setError('Ovozli o‘qish bu brauzerda mavjud emas.');
+            setError(t('speech.noSynthesis'));
             return;
           }
           window.speechSynthesis.cancel();
           const speech = new SpeechSynthesisUtterance(config.audioText ?? '');
           speech.lang = config.language ?? 'en-US';
           speech.rate = 0.85;
-          speech.onerror = () => setError('Audio ijrosi amalga oshmadi.');
+          speech.onerror = () => setError(t('speech.playError'));
           window.speechSynthesis.speak(speech);
         }}
       >
         <Play size={18} />
-        Tinglash
+        {t('speech.listen')}
       </Button>
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert">{localizeText(error)}</p>}
     </div>
   );
 }
@@ -76,6 +79,7 @@ export function SpeechExercise({
   onChange: (v: string) => void;
   disabled: boolean;
 }) {
+  const { t } = useI18n();
   const [recording, setRecording] = useState(false);
   const [error, setError] = useState('');
   const [audio, setAudio] = useState('');
@@ -108,8 +112,7 @@ export function SpeechExercise({
   const start = async () => {
     setError('');
     try {
-      if (!navigator.mediaDevices?.getUserMedia)
-        throw Error('Mikrofon uchun HTTPS va mikrofonni qo‘llaydigan brauzer kerak.');
+      if (!navigator.mediaDevices?.getUserMedia) throw Error(t('speech.requirements'));
       const media = await navigator.mediaDevices.getUserMedia({ audio: true });
       if (!mounted.current) {
         media.getTracks().forEach((t) => t.stop());
@@ -141,19 +144,15 @@ export function SpeechExercise({
         speech.continuous = false;
         speech.interimResults = false;
         speech.onresult = (e) => onChange(e.results[0]![0]!.transcript);
-        speech.onerror = () =>
-          setError('Nutq matnga aylantirilmadi. Yozuvni tinglang va matnni qo‘lda kiriting.');
+        speech.onerror = () => setError(t('speech.recognitionError'));
         speech.onend = () => {
           if (mounted.current) stop();
         };
         speech.start();
-      } else
-        setError(
-          'Ovozingiz yozilmoqda. Nutqni matnga aylantirish mavjud emas; matnni qo‘lda kiriting.',
-        );
+      } else setError(t('speech.noRecognition'));
     } catch (e) {
       stop();
-      setError(e instanceof Error ? e.message : 'Mikrofonga ruxsat berilmadi.');
+      setError(e instanceof Error ? e.message : t('speech.permission'));
     }
   };
   return (
@@ -167,17 +166,17 @@ export function SpeechExercise({
         onClick={() => (recording ? stop() : void start())}
       >
         {recording ? <Square size={18} /> : <Mic size={18} />}{' '}
-        {recording ? 'Yozishni tugatish' : 'Gapirish'}
+        {recording ? t('speech.stop') : t('speech.speak')}
       </Button>
-      {recording && <span role="status">Ovoz yozilmoqda…</span>}
-      {audio && <audio controls src={audio} aria-label="Ovoz yozuvingiz" />}
+      {recording && <span role="status">{t('speech.recording')}</span>}
+      {audio && <audio controls src={audio} aria-label={t('speech.recorded')} />}
       {error && (
         <p role="status" className="subtle">
-          {error}
+          {localizeText(error)}
         </p>
       )}
       <label className="text-answer">
-        Aytilgan matn
+        {t('speech.transcript')}
         <input
           value={value}
           disabled={disabled || recording}
@@ -185,10 +184,7 @@ export function SpeechExercise({
           onChange={(e) => onChange(e.target.value)}
         />
       </label>
-      <p className="subtle">
-        Natija aytilgan so‘zlarning mosligiga asoslanadi. Talaffuzni namuna va o‘z yozuvingizni
-        tinglab mashq qiling.
-      </p>
+      <p className="subtle">{t('speech.note')}</p>
     </div>
   );
 }

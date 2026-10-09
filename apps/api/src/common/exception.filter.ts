@@ -1,6 +1,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Logger } from '@nestjs/common';
 import { Prisma } from '../../generated/prisma/client';
 import type { Response, Request } from 'express';
+import { localizedMessage, localizedValidation, resolveLocale } from './locale';
 
 @Catch()
 export class ApiExceptionFilter implements ExceptionFilter {
@@ -41,6 +42,18 @@ export class ApiExceptionFilter implements ExceptionFilter {
         path: request.path,
         status,
       });
-    response.status(status).json({ statusCode: status, ...body });
+    const locale = resolveLocale(request.headers['accept-language']);
+    const localized = { ...body } as Record<string, unknown>;
+    if (typeof localized.code === 'string')
+      localized.message = localizedMessage(localized.code, locale) ?? localized.message;
+    if (locale !== 'uz' && Array.isArray(localized.errors)) {
+      localized.errors = localized.errors.map(
+        (error: { field: string; messages: string[]; codes?: string[] }) => ({
+          ...error,
+          messages: error.codes?.map((code) => localizedValidation(code, locale)) ?? error.messages,
+        }),
+      );
+    }
+    response.status(status).json({ statusCode: status, ...localized });
   }
 }

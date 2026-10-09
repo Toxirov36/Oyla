@@ -100,7 +100,7 @@ export class RateGuard implements CanActivate {
   async canActivate(ctx: ExecutionContext) {
     const req = ctx.switchToHttp().getRequest<Request>();
     const sensitive =
-      /\/auth\/(login|register|refresh|password-reset\/(request|confirm))$|\/users\/me\/password$|\/admin\/users\/[^/]+\/password-reset$/.test(
+      /\/auth\/(login|register|refresh|password-reset\/(request|confirm))$|\/auth\/google\/(start|callback)$|\/users\/me\/password$|\/admin\/users\/[^/]+\/password-reset$/.test(
         req.path,
       );
     const playRead =

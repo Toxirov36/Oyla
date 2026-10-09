@@ -1,4 +1,7 @@
+import { localizeText } from '../i18n';
+import { useI18n } from '../i18n';
 import { useState } from 'react';
+import { Sparkles } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { AvatarOption, Profile } from '../lib/types';
 import { api, errorText } from '../lib/api';
@@ -7,6 +10,7 @@ import { Button, EmptyState, ErrorState, Loading, Modal } from './ui';
 import { UserAvatar } from './user-avatar';
 
 export function AvatarPicker({ profile }: { profile: Profile }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -24,6 +28,7 @@ export function AvatarPicker({ profile }: { profile: Profile }) {
     <>
       <Button
         variant="secondary"
+        className="profile-action-btn"
         onClick={() => {
           setSelected(profile.user.avatarId ?? null);
           setError('');
@@ -31,11 +36,12 @@ export function AvatarPicker({ profile }: { profile: Profile }) {
           setOpen(true);
         }}
       >
-        Avatar tanlash
+        <Sparkles size={15} className="btn-icon" />
+        {t('profile.avatarChoose')}
       </Button>
       {saved && (
         <p className="profile-success" role="status">
-          Avataringiz saqlandi.
+          {t('profile.avatarSaved')}
         </p>
       )}
       <Modal
@@ -43,8 +49,8 @@ export function AvatarPicker({ profile }: { profile: Profile }) {
         onOpenChange={(value) => {
           if (!busy) setOpen(value);
         }}
-        title="Avatar tanlash"
-        description="O‘zingizga yoqqan avatarni tanlang. Boshlang‘ich avatarlar bepul."
+        title={t('profile.avatarChoose')}
+        description={t('profile.avatarHelp')}
       >
         {catalog.isPending ? (
           <Loading />
@@ -54,11 +60,11 @@ export function AvatarPicker({ profile }: { profile: Profile }) {
           <>
             <div className="avatar-selection-preview">
               <UserAvatar name={profile.user.name} avatar={preview} size="2xl" />
-              <strong>{preview?.name ?? 'Sizning avataringiz'}</strong>
+              <strong>{localizeText(preview?.name) || t('profile.avatarPreview')}</strong>
             </div>
             {catalog.data?.length ? (
               <fieldset className="avatar-grid">
-                <legend className="sr-only">Avatarlar</legend>
+                <legend className="sr-only">{t('profile.avatars')}</legend>
                 {catalog.data.map((avatar) => (
                   <label
                     key={avatar.id}
@@ -72,21 +78,21 @@ export function AvatarPicker({ profile }: { profile: Profile }) {
                       disabled={busy}
                     />
                     <img src={avatar.imageUrl} alt="" width="64" height="64" />
-                    <span>{avatar.name}</span>
+                    <span>{localizeText(avatar.name)}</span>
                   </label>
                 ))}
               </fieldset>
             ) : (
-              <EmptyState title="Avatarlar hozircha mavjud emas" />
+              <EmptyState title={t('profile.noAvatars')} />
             )}
             {error && (
               <p className="form-error" role="alert">
-                {error}
+                {localizeText(error)}
               </p>
             )}
             <div className="modal-actions">
               <Button variant="secondary" disabled={busy} onClick={() => setOpen(false)}>
-                Bekor qilish
+                {t('common.cancel')}
               </Button>
               <Button
                 disabled={
@@ -117,7 +123,7 @@ export function AvatarPicker({ profile }: { profile: Profile }) {
                   }
                 }}
               >
-                Avatarni saqlash
+                {t('profile.saveAvatar')}
               </Button>
             </div>
           </>

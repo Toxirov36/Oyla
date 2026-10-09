@@ -1,5 +1,4 @@
-// Formatting stays independent of browser ICU support; future locales use this interface.
-export const locale = 'uz';
+import { getLocale, localeTags, type Locale } from '../i18n';
 const months = [
   'yanvar',
   'fevral',
@@ -19,7 +18,18 @@ export function tashkentDate(value: string | Date) {
   const date = typeof value === 'string' ? new Date(value) : value;
   return new Date(date.getTime() + 5 * 3600000);
 }
-export function formatDate(value: string | Date, weekday = false) {
+export function formatDate(value: string | Date, weekday = false, locale: Locale = getLocale()) {
+  if (locale !== 'uz') {
+    return new Intl.DateTimeFormat(localeTags[locale], {
+      timeZone: 'Asia/Tashkent',
+      day: 'numeric',
+      month: 'long',
+      ...(weekday ? { weekday: 'long' } : {}),
+    }).format(typeof value === 'string' ? new Date(value) : value);
+  }
   const date = tashkentDate(value);
   return `${weekday ? `${days[date.getUTCDay()]}, ` : ''}${date.getUTCDate()}-${months[date.getUTCMonth()]}`;
+}
+export function formatNumber(value: number, locale: Locale = getLocale()) {
+  return new Intl.NumberFormat(localeTags[locale]).format(value);
 }

@@ -1,3 +1,5 @@
+import { localizeText } from '../i18n';
+import { useI18n } from '../i18n';
 import { LessonPath } from '../components/lesson-path';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
@@ -6,7 +8,9 @@ import { api } from '../lib/api';
 import type { Dashboard, Subject } from '../lib/types';
 import { EmptyState, ErrorState, Loading, PageHeader, ProgressBar } from '../components/ui';
 import { subjectStyle } from './dashboard';
+import { ContentLanguageNotice } from '../components/content-language-notice';
 export default function SubjectsPage() {
+  const { t } = useI18n();
   const { id } = useParams();
   const query = useQuery({ queryKey: ['subjects'], queryFn: () => api<Subject[]>('/subjects') });
   const progress = useQuery({
@@ -20,10 +24,10 @@ export default function SubjectsPage() {
     if (!subject)
       return (
         <EmptyState
-          title="Fan topilmadi"
+          title={t('subjects.notFound')}
           action={
             <Link to="/subjects" className="btn btn-primary">
-              Fanlarga qaytish
+              {t('subjects.back')}
             </Link>
           }
         />
@@ -33,18 +37,19 @@ export default function SubjectsPage() {
       <>
         <Link to="/subjects" className="back-link">
           <ArrowLeft size={17} />
-          Mening fanlarim
+          {t('navigation.subjects')}
         </Link>
         <PageHeader
-          eyebrow="BILIM SAYOHATI"
-          title={subject.title}
-          description={subject.description}
+          eyebrow={t('subjects.eyebrow')}
+          title={localizeText(subject.title)}
+          description={localizeText(subject.description)}
           action={
             <span className={`subject-icon large ${tone}`}>
               <Icon size={34} />
             </span>
           }
         />
+        <ContentLanguageNotice />
         <LessonPath subject={subject} dashboard={progress.data} />
       </>
     );
@@ -53,9 +58,9 @@ export default function SubjectsPage() {
     <div className="subject-selection">
       <PageHeader
         className="subject-selection-header"
-        eyebrow="BILIM UCHUN VAQT"
-        title="Mening fanlarim"
-        description="Fanni tanlang va o‘rganishni boshlang."
+        eyebrow={t('subjects.selectEyebrow')}
+        title={t('navigation.subjects')}
+        description={t('subjects.description')}
       />
       <div className="subject-picker-grid">
         {query.data.map((subject) => {
@@ -68,20 +73,20 @@ export default function SubjectsPage() {
               key={subject.id}
               to={`/subjects/${subject.id}`}
               className={`subject-tile ${tone}`}
-              aria-label={`${subject.title}. Darslarni ko‘rish`}
+              aria-label={t('subjects.open', { subject: localizeText(subject.title) })}
             >
               <ArrowRight className="subject-tile-arrow" size={16} aria-hidden="true" />
               <span className={`subject-icon ${tone}`} aria-hidden="true">
                 <Icon size={32} />
               </span>
-              <h2>{subject.title}</h2>
+              <h2>{localizeText(subject.title)}</h2>
               <span className="subject-tile-meta">
-                {grade ? `${grade}-sinf · ` : ''}
-                {lessons.length} ta dars
+                {grade ? `${t('common.grade', { grade })} · ` : ''}
+                {t('subjects.lessons', { count: lessons.length })}
               </span>
               <div className="subject-tile-progress">
                 <div className="subject-tile-progress-label">
-                  <span>{p?.completed || 0} ta yakunlangan</span>
+                  <span>{t('subjects.completed', { count: p?.completed || 0 })}</span>
                   <strong>{p?.progress || 0}%</strong>
                 </div>
                 <ProgressBar value={p?.progress || 0} tone={tone} />
@@ -90,7 +95,7 @@ export default function SubjectsPage() {
           );
         })}
       </div>
-      {!query.data.length && <EmptyState title="Fanlar tayyorlanmoqda" />}
+      {!query.data.length && <EmptyState title={t('subjects.preparing')} />}
     </div>
   );
 }

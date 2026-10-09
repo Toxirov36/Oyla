@@ -195,9 +195,18 @@ export class ProgressService {
           where: { userId: actor.id },
           select: { score: true, late: true, createdAt: true },
         },
+        attachments: { select: { id: true, originalName: true, contentType: true, size: true } },
       },
       orderBy: { deadline: 'asc' },
-    });
+    }).then((assignments) =>
+      assignments.map(({ attachments, ...assignment }) => ({
+        ...assignment,
+        attachments: attachments.map(({ originalName, ...attachment }) => ({
+          ...attachment,
+          name: originalName,
+        })),
+      })),
+    );
   }
   async badges(actor: Actor) {
     const badges = await this.db.badge.findMany({

@@ -1,3 +1,5 @@
+import { localizeText } from '../../i18n';
+import { translate as tx, useI18n as usePageLocale } from '../../i18n';
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -72,6 +74,7 @@ export function QuestionEditor({
   lessons: { id: string; title: string }[];
   close: () => void;
 }) {
+  usePageLocale();
   const cache = useQueryClient();
   const [type, setType] = useState<ExerciseType>(question?.type ?? 'MULTIPLE_CHOICE');
   const [fields, setFields] = useState(() =>
@@ -114,7 +117,7 @@ export function QuestionEditor({
       lines(text).map((row) => {
         const [x, y] = row.split(',').map(Number);
         if (x === undefined || y === undefined || !Number.isFinite(x) || !Number.isFinite(y))
-          throw Error('Koordinatalarni x, y shaklida yozing.');
+          throw Error(tx('pages.exercises.question-editor.enterCoordinatesInXYFormat'));
         return { x, y };
       });
     if (pairTypes.includes(type) || ['SORT_ORDER', 'FIND_MISTAKE'].includes(type))
@@ -232,21 +235,21 @@ export function QuestionEditor({
       }}
     >
       <Link to="/admin/exercises" onClick={close} className="back-link">
-        Mashqlar katalogini ochish →
+        {tx('pages.exercises.question-editor.openExerciseCatalog')}
       </Link>
       <label>
-        Dars
+        {tx('pages.admin.content.lesson')}
         <ComboboxField
-          label="Dars"
+          label={tx('pages.admin.content.lesson')}
           value={selectedLesson}
           options={lessons.map((l) => ({ value: l.id, label: l.title }))}
           onChange={setSelectedLesson}
         />
       </label>
       <label>
-        Savol turi
+        {tx('pages.exercises.question-editor.questionType')}
         <ComboboxField
-          label="Savol turi"
+          label={tx('pages.exercises.question-editor.questionType')}
           value={type}
           options={Object.entries(exerciseLabels).map(([value, label]) => ({ value, label }))}
           onChange={(v) => {
@@ -257,41 +260,74 @@ export function QuestionEditor({
           }}
         />
         <small className="field-help">
-          Tur o‘zgarsa, tahrirlash uchun boshlang‘ich namuna qo‘yiladi.
+          {tx('pages.exercises.question-editor.changingTheTypeLoadsAStarterExampleTo')}
         </small>
       </label>
-      {field('text', 'Savol matni')}
+      {field('text', tx('pages.exercises.question-editor.questionText'))}
       {type === 'MULTIPLE_CHOICE' &&
-        field('optionsText', 'Variantlar', 'Har qatorda bittadan variant, 2–8 ta.')}
+        field(
+          'optionsText',
+          tx('pages.exercises.question-editor.options'),
+          tx('pages.exercises.question-editor.enter28OptionsOnePerLine'),
+        )}
       {(pairing || ['SORT_ORDER', 'FIND_MISTAKE'].includes(type)) &&
         field(
           'items',
-          'Elementlar',
-          'Har qatorda bitta element. Qator raqami javobni belgilashda ishlatiladi.',
+          tx('pages.exercises.question-editor.items'),
+          tx('pages.exercises.question-editor.oneItemPerLineUseLineNumbersTo'),
         )}
-      {pairing && field('targets', 'Mos keladigan elementlar', 'Har qatorda bitta element.')}
+      {pairing &&
+        field(
+          'targets',
+          tx('pages.exercises.question-editor.matchingItems'),
+          tx('pages.exercises.question-editor.oneItemPerLine'),
+        )}
       {type === 'FILL_GAP' &&
-        field('slots', 'Bo‘shliqlar', 'Har qatorda bo‘shliqning nomi yoki unga ko‘rsatma.')}
+        field(
+          'slots',
+          tx('pages.exercises.question-editor.gaps'),
+          tx('pages.exercises.question-editor.enterEachGapsNameOrHintOnA'),
+        )}
       {['CODE_COMPLETION', 'DEBUG_CODE'].includes(type) &&
-        field('code', 'Kod namunasi', 'Kodni bajarish talab qilinmaydi.', 6)}
+        field(
+          'code',
+          tx('pages.exercises.question-editor.codeExample'),
+          tx('pages.exercises.question-editor.runningTheCodeIsNotRequired'),
+          6,
+        )}
       {['LISTEN_ANSWER', 'SPEAK'].includes(type) && (
         <>
-          {field('audioText', 'Ovozli namuna matni')}
+          {field('audioText', tx('pages.exercises.question-editor.spokenSampleText'))}
           {field(
             'audioUrl',
-            'Audio fayl manzili (ixtiyoriy)',
-            'HTTPS havola yoki / bilan boshlanadigan mahalliy fayl. Audio bo‘lmasa matn ovozli o‘qiladi.',
+            tx('pages.exercises.question-editor.audioFileUrlOptional'),
+            tx('pages.exercises.question-editor.useAnHttpsLinkOrALocalPath'),
             2,
           )}
           <label>
-            Til
+            {tx('pages.exercises.question-editor.language')}
             <ComboboxField
-              label="Til"
+              label={tx('pages.exercises.question-editor.language')}
               value={fields.language}
               options={[
-                { value: 'en-US', label: 'Inglizcha (US)' },
-                { value: 'en-GB', label: 'Inglizcha (UK)' },
-                { value: 'uz-UZ', label: 'O‘zbekcha' },
+                {
+                  value: 'en-US',
+                  get label() {
+                    return tx('pages.exercises.question-editor.englishUs');
+                  },
+                },
+                {
+                  value: 'en-GB',
+                  get label() {
+                    return tx('pages.exercises.question-editor.englishUk');
+                  },
+                },
+                {
+                  value: 'uz-UZ',
+                  get label() {
+                    return tx('pages.exercises.question-editor.uzbek');
+                  },
+                },
               ]}
               onChange={(v) => set('language', v)}
             />
@@ -300,20 +336,20 @@ export function QuestionEditor({
       )}
       {type === 'INTERACTIVE_IMAGE' && (
         <>
-          {field('imageUrl', 'Rasm manzili', undefined, 2)}
-          {field('imageAlt', 'Rasm tavsifi', undefined, 2)}
+          {field('imageUrl', tx('pages.exercises.question-editor.imageUrl'), undefined, 2)}
+          {field('imageAlt', tx('pages.exercises.question-editor.imageDescription'), undefined, 2)}
         </>
       )}
       {spatial && (
         <>
           {field(
             'markers',
-            'Ko‘rsatiladigan nuqtalar (ixtiyoriy)',
-            'Har qatorda x, y. 0–100 foizli koordinata; Y yuqoridan pastga o‘sadi.',
+            tx('pages.exercises.question-editor.visiblePointsOptional'),
+            tx('pages.exercises.question-editor.oneXYPairPerLineCoordinatesRange'),
             2,
           )}
           <label>
-            Ruxsat etilgan og‘ish (%)
+            {tx('pages.exercises.question-editor.allowedDeviation')}
             <input
               type="number"
               min=".5"
@@ -327,45 +363,50 @@ export function QuestionEditor({
       )}
       {field(
         'answer',
-        'To‘g‘ri javob',
+        tx('pages.admin.gamification.correctAnswer'),
         pairing
-          ? 'Juftliklar: chap qator raqami:o‘ng qator raqami. Masalan 1:2. Har juftlik alohida qatorda.'
+          ? tx('pages.exercises.question-editor.pairsLeftLineNumberrightLineNumberForExample')
           : type === 'SORT_ORDER'
-            ? 'Qator raqamlarini kerakli tartibda yozing: 2, 4, 1, 3.'
+            ? tx('pages.exercises.question-editor.enterLineNumbersInTheRequiredOrder2')
             : type === 'FIND_MISTAKE'
-              ? 'Xato elementning qator raqami.'
+              ? tx('pages.exercises.question-editor.lineNumberOfTheIncorrectItem')
               : type === 'FILL_GAP'
-                ? 'Har bo‘shliq javobi alohida qatorda. Muqobillarni | bilan ajrating.'
+                ? tx('pages.exercises.question-editor.oneGapAnswerPerLineSeparateAlternativesWith')
                 : spatial
-                  ? 'Har nuqta alohida qatorda: x, y (0–100). Chiziq uchun ikkita nuqta.'
+                  ? tx('pages.exercises.question-editor.onePointPerLineXY0100Use')
                   : type === 'TRUE_FALSE'
-                    ? 'true yoki false.'
-                    : 'Qabul qilinadigan muqobillarni | bilan ajrating.',
+                    ? tx('pages.exercises.question-editor.trueOrFalse')
+                    : tx('pages.exercises.question-editor.separateAcceptedAlternativesWith'),
       )}
-      {field('explanation', 'Javob izohi')}
+      {field('explanation', tx('exercise.feedback'))}
       <fieldset className="feedback-editor">
-        <legend>Xato javobdan keyingi tushuntirish</legend>
+        <legend>{tx('pages.exercises.question-editor.explanationAfterAnIncorrectAnswer')}</legend>
         <p className="field-help">
-          Izohlar javob yuborilgandan keyin ko‘rsatiladi. Faqat tekshirilgan qoida va misollarni
-          kiriting. Bo‘sh qolsa, mavjud javob izohi ishlatiladi.
+          {tx(
+            'pages.exercises.question-editor.explanationsAppearAfterSubmissionEnterOnlyVerifiedRules',
+          )}
         </p>
         {field(
           'feedbackReason',
-          'Nima uchun xato? (umumiy sabab)',
-          'Sababni aniq bilmasangiz, taxminiy tashxis yozmang.',
+          tx('pages.exercises.question-editor.whyIsItIncorrectGeneralReason'),
+          tx('pages.exercises.question-editor.doNotGuessTheReasonIfYouAre'),
           2,
         )}
-        {field('feedbackRule', 'Qoida', 'Tegishli qoida yoki hisoblash usuli.')}
+        {field(
+          'feedbackRule',
+          tx('exercise.rule'),
+          tx('pages.exercises.question-editor.theRelevantRuleOrCalculationMethod'),
+        )}
         {field(
           'feedbackSteps',
-          'Yechim qadamlari',
-          'Har qatorda bitta qadam. Ko‘pi bilan 10 ta.',
+          tx('pages.exercises.question-editor.solutionSteps'),
+          tx('pages.exercises.question-editor.oneStepPerLineUpTo10Steps'),
           4,
         )}
         {field(
           'feedbackExample',
-          'Qo‘shimcha misol',
-          'Shu qoidani qo‘llaydigan boshqa kichik misol.',
+          tx('pages.exercises.question-editor.additionalExample'),
+          tx('pages.exercises.question-editor.anotherShortExampleUsingTheSameRule'),
         )}
         {type === 'MULTIPLE_CHOICE' &&
           lines(fields.optionsText).map((text, i) => {
@@ -373,7 +414,7 @@ export function QuestionEditor({
             if (value === fields.answer.trim()) return null;
             return (
               <label key={i}>
-                {`“${text}” tanlansa, nima uchun xato?`}
+                {tx('pages.exercises.question-editor.whyIsIncorrect', { value1: text })}
                 <textarea
                   rows={2}
                   maxLength={1500}
@@ -388,37 +429,67 @@ export function QuestionEditor({
           })}
       </fieldset>
       <label>
-        Maslahat
+        {tx('pages.exercises.question-editor.hint')}
         <input value={hint} maxLength={2000} onChange={(e) => setHint(e.target.value)} />
       </label>
       <label>
-        Murakkablik
+        {tx('pages.exercises.question-editor.difficulty')}
         <ComboboxField
-          label="Murakkablik"
+          label={tx('pages.exercises.question-editor.difficulty')}
           value={difficulty}
           options={[
-            { value: 'EASY', label: 'Oson' },
-            { value: 'MEDIUM', label: 'O‘rta' },
-            { value: 'HARD', label: 'Murakkab' },
+            {
+              value: 'EASY',
+              get label() {
+                return tx('exercise.easy');
+              },
+            },
+            {
+              value: 'MEDIUM',
+              get label() {
+                return tx('exercise.medium');
+              },
+            },
+            {
+              value: 'HARD',
+              get label() {
+                return tx('exercise.hard');
+              },
+            },
           ]}
           onChange={(v) => setDifficulty(v as typeof difficulty)}
         />
       </label>
       <label>
-        Holat
+        {tx('pages.admin.users.status')}
         <ComboboxField
-          label="Holat"
+          label={tx('pages.admin.users.status')}
           value={status}
           options={[
-            { value: 'DRAFT', label: 'Qoralama' },
-            { value: 'PUBLISHED', label: 'Chop etilgan' },
-            { value: 'ARCHIVED', label: 'Arxiv' },
+            {
+              value: 'DRAFT',
+              get label() {
+                return tx('common.draft');
+              },
+            },
+            {
+              value: 'PUBLISHED',
+              get label() {
+                return tx('common.published');
+              },
+            },
+            {
+              value: 'ARCHIVED',
+              get label() {
+                return tx('common.archived');
+              },
+            },
           ]}
           onChange={(v) => setStatus(v as typeof status)}
         />
       </label>
       <label>
-        Tartib raqami
+        {tx('pages.admin.avatars.displayOrder')}
         <input
           type="number"
           min="0"
@@ -428,7 +499,7 @@ export function QuestionEditor({
         />
       </label>
       <label>
-        Savol uchun XP (ixtiyoriy)
+        {tx('pages.exercises.question-editor.xpForThisQuestionOptional')}
         <input
           type="number"
           min="0"
@@ -439,7 +510,7 @@ export function QuestionEditor({
       </label>
       {type === 'NUMERICAL' && (
         <label>
-          Sonli javob xatolik chegarasi
+          {tx('pages.exercises.question-editor.numericalAnswerTolerance')}
           <input
             type="number"
             min="0"
@@ -462,20 +533,20 @@ export function QuestionEditor({
           }
         }}
       >
-        O‘quvchi ko‘rinishida sinash
+        {tx('pages.exercises.question-editor.previewAsAStudent')}
       </Button>
       {preview && <ExercisePreview key={JSON.stringify(preview)} definition={preview} />}
       {error && (
         <p className="form-error" role="alert">
-          {error}
+          {localizeText(error)}
         </p>
       )}
       <div className="modal-actions">
         <Button type="button" variant="secondary" onClick={close}>
-          Bekor qilish
+          {tx('common.cancel')}
         </Button>
         <Button type="submit" busy={busy}>
-          Saqlash
+          {tx('pages.admin.avatars.save')}
         </Button>
       </div>
     </form>

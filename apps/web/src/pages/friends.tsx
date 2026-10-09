@@ -1,3 +1,5 @@
+import { localizeText } from '../i18n';
+import { translate as tx, useI18n as usePageLocale } from '../i18n';
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -14,9 +16,10 @@ const schema = z.object({
   code: z
     .string()
     .trim()
-    .regex(/^[A-Za-z0-9_-]{16}$/, '16 belgili taklif kodini kiriting.'),
+    .regex(/^[A-Za-z0-9_-]{16}$/, tx('pages.friends.enterThe16characterInvitationCode')),
 });
 export default function FriendsPage() {
+  usePageLocale();
   const { user } = useAuth();
   const [params] = useSearchParams();
   const cache = useQueryClient();
@@ -55,10 +58,10 @@ export default function FriendsPage() {
       });
       setMessage(
         result.state === 'ACCEPTED'
-          ? 'Bu o‘quvchi allaqachon do‘stingiz.'
+          ? tx('pages.friends.thisStudentIsAlreadyYourFriend')
           : result.state === 'INCOMING'
-            ? 'Bu o‘quvchidan kelgan so‘rov bor. Uni quyida qabul qilishingiz mumkin.'
-            : 'Do‘stlik so‘rovi yuborildi.',
+            ? tx('pages.friends.youHaveARequestFromThisStudentYou')
+            : tx('pages.friends.friendRequestSent'),
       );
       reset({ code: '' });
       await refresh();
@@ -91,8 +94,10 @@ export default function FriendsPage() {
         <div className="friend-person">
           <strong>{entry.user.name}</strong>
           <small>
-            {entry.user.grade ? `${entry.user.grade}-sinf` : 'O‘quvchi'}
-            {!entry.user.active ? ' · faolsiz' : ''}
+            {entry.user.grade
+              ? tx('common.grade', { grade: entry.user.grade })
+              : tx('role.STUDENT')}
+            {!entry.user.active ? tx('pages.friends.inactive') : ''}
           </small>
         </div>
         <div className="friend-actions">
@@ -101,24 +106,24 @@ export default function FriendsPage() {
               variant="secondary"
               disabled={busy || !entry.user.active}
               onClick={() => void action(entry, true)}
-              aria-label={`${entry.user.name} so‘rovini qabul qilish`}
+              aria-label={tx('pages.friends.acceptRequestFrom', { value1: entry.user.name })}
             >
               <Check size={16} />
-              Qabul qilish
+              {tx('pages.brain-ring.accept')}
             </Button>
           )}
           <Button
             variant="ghost"
             disabled={busy}
             onClick={() => void action(entry)}
-            aria-label={`${entry.user.name}: ${kind === 'friends' ? 'do‘stlikni tugatish' : kind === 'incoming' ? 'rad etish' : 'so‘rovni bekor qilish'}`}
+            aria-label={`${entry.user.name}: ${kind === 'friends' ? tx('pages.friends.removeFriendVariant226') : kind === 'incoming' ? tx('pages.friends.decline') : tx('pages.friends.cancelRequest')}`}
           >
             <X size={16} />
             {kind === 'friends'
-              ? 'Do‘stlikni tugatish'
+              ? tx('pages.friends.removeFriend')
               : kind === 'incoming'
-                ? 'Rad etish'
-                : 'Bekor qilish'}
+                ? tx('pages.brain-ring.decline')
+                : tx('common.cancel')}
           </Button>
         </div>
       </div>
@@ -126,21 +131,23 @@ export default function FriendsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="BIRGA O‘RGANAMIZ"
-        title="Do‘stlarim"
-        description="Taklif kodini ulashing, so‘rovni qabul qiling va haftalik reytingda bilimlaringizni sinang."
+        eyebrow={tx('pages.friends.learnTogether')}
+        title={tx('navigation.friends')}
+        description={tx('pages.friends.shareYourInvitationCodeAcceptRequestsAndTest')}
         action={
           <Link to="/leaderboard?scope=friends" className="btn btn-secondary">
             <Trophy size={18} />
-            Do‘stlar reytingi
+            {tx('pages.friends.friendsRanking')}
           </Link>
         }
       />
       <div className="two-column">
         <Card>
-          <h2>Taklif kodim</h2>
-          <p className="card-subtitle">Kodingizni faqat bog‘lanishni istagan o‘quvchiga bering.</p>
-          <label htmlFor="friend-code">Taklif kodi</label>
+          <h2>{tx('pages.friends.myInvitationCode')}</h2>
+          <p className="card-subtitle">
+            {tx('pages.friends.shareYourCodeOnlyWithStudentsYouWant')}
+          </p>
+          <label htmlFor="friend-code">{tx('pages.friends.invitationCode')}</label>
           <div className="friend-code">
             <input
               id="friend-code"
@@ -150,13 +157,13 @@ export default function FriendsPage() {
             />
             <Button
               variant="secondary"
-              aria-label="Taklif kodini nusxalash"
+              aria-label={tx('pages.friends.copyInvitationCode')}
               onClick={async () => {
                 try {
                   await navigator.clipboard.writeText(data.inviteCode);
-                  setMessage('Taklif kodi nusxalandi.');
+                  setMessage(tx('pages.friends.invitationCodeCopied'));
                 } catch {
-                  setError('Kodni tanlab, Ctrl+C bilan nusxalang.');
+                  setError(tx('pages.friends.selectTheCodeAndCopyItWithCtrlc'));
                 }
               }}
             >
@@ -165,9 +172,9 @@ export default function FriendsPage() {
           </div>
         </Card>
         <Card>
-          <h2>Do‘st qo‘shish</h2>
+          <h2>{tx('pages.friends.addFriend')}</h2>
           <form className="profile-form" onSubmit={submit} noValidate>
-            <label htmlFor="friend-invite">Do‘stingizning taklif kodi</label>
+            <label htmlFor="friend-invite">{tx('pages.friends.yourFriendsInvitationCode')}</label>
             <input
               id="friend-invite"
               maxLength={16}
@@ -177,19 +184,19 @@ export default function FriendsPage() {
             />
             {errors.code && (
               <small className="field-error" role="alert">
-                {errors.code.message}
+                {localizeText(errors.code.message)}
               </small>
             )}
             <Button type="submit" busy={isSubmitting}>
               <UserPlus size={17} />
-              So‘rov yuborish
+              {tx('pages.friends.sendRequest')}
             </Button>
           </form>
         </Card>
       </div>
       {error && (
         <p className="form-error" role="alert">
-          {error}
+          {localizeText(error)}
         </p>
       )}
       {message && (
@@ -198,18 +205,18 @@ export default function FriendsPage() {
         </p>
       )}
       <div className="section-title">
-        <h2>Kelgan so‘rovlar</h2>
+        <h2>{tx('pages.friends.incomingRequests')}</h2>
         <span className="pill">{data.incoming.length}</span>
       </div>
       <Card>
         {data.incoming.length ? (
           rows(data.incoming, 'incoming')
         ) : (
-          <EmptyState title="Kelgan so‘rovlar yo‘q" />
+          <EmptyState title={tx('pages.friends.noIncomingRequests')} />
         )}
       </Card>
       <div className="section-title">
-        <h2>Mening do‘stlarim</h2>
+        <h2>{tx('pages.friends.myFriends')}</h2>
         <span className="pill">{data.friends.length}</span>
       </div>
       <Card>
@@ -217,20 +224,20 @@ export default function FriendsPage() {
           rows(data.friends, 'friends')
         ) : (
           <EmptyState
-            title="Hali do‘stlar qo‘shilmagan"
-            description="O‘quvchining taklif kodini kiriting yoki o‘z kodingizni ulashing."
+            title={tx('pages.friends.noFriendsAddedYet')}
+            description={tx('pages.friends.enterAStudentsInvitationCodeOrShareYour')}
           />
         )}
       </Card>
       <div className="section-title">
-        <h2>Yuborilgan so‘rovlar</h2>
+        <h2>{tx('pages.friends.sentRequests')}</h2>
         <Users size={20} />
       </div>
       <Card>
         {data.outgoing.length ? (
           rows(data.outgoing, 'outgoing')
         ) : (
-          <EmptyState title="Yuborilgan so‘rovlar yo‘q" />
+          <EmptyState title={tx('pages.friends.noSentRequests')} />
         )}
       </Card>
     </>

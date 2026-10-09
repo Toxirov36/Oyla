@@ -1,3 +1,4 @@
+import { translate as tx, useI18n as usePageLocale } from '../i18n';
 import { useId, type Ref } from 'react';
 import {
   Combobox,
@@ -21,7 +22,7 @@ export function ComboboxField({
   id,
   name,
   label,
-  placeholder = 'Tanlang yoki qidiring…',
+  placeholder = tx('pages.combobox-field.selectOrSearch'),
   disabled = false,
   invalid = false,
   describedBy,
@@ -39,6 +40,7 @@ export function ComboboxField({
   invalid?: boolean;
   describedBy?: string;
 }) {
+  usePageLocale();
   const generatedId = useId();
   return (
     <Combobox
@@ -62,7 +64,7 @@ export function ComboboxField({
         placeholder={placeholder}
       />
       <ComboboxContent>
-        <ComboboxEmpty>Hech narsa topilmadi.</ComboboxEmpty>
+        <ComboboxEmpty>{tx('pages.combobox-field.noResultsFound')}</ComboboxEmpty>
         <ComboboxList>
           {(option: ComboboxOption) => (
             <ComboboxItem key={option.value} value={option}>

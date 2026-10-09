@@ -1,3 +1,5 @@
+import { localizeText } from '../../i18n';
+import { translate as tx, useI18n as usePageLocale } from '../../i18n';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,13 +13,14 @@ import { grades, roles } from './config';
 import { ComboboxField } from '../../components/combobox-field';
 
 export function UserEditor({ user, close }: { user?: User; close: () => void }) {
+  usePageLocale();
   const { user: actor } = useAuth();
   const cache = useQueryClient();
   const [error, setError] = useState('');
   const schema = z
     .object({
-      name: z.string().trim().min(2, 'Ism kamida 2 ta belgidan iborat bo‘lsin.').max(80),
-      email: z.email('Emailni to‘g‘ri kiriting.'),
+      name: z.string().trim().min(2, tx('validation.nameMin')).max(80),
+      email: z.email(tx('pages.admin.user-editor.enterAValidEmailAddress')),
       role: z.enum(['STUDENT', 'TEACHER', 'ADMIN']),
       grade: z.enum(['5', '6', '7']),
       teacherAccess: z.boolean(),
@@ -29,7 +32,9 @@ export function UserEditor({ user, close }: { user?: User; close: () => void }) 
         context.addIssue({
           code: 'custom',
           path: ['password'],
-          message: 'Parol kamida 10 ta belgidan iborat bo‘lsin.',
+          get message() {
+            return tx('validation.passwordMinForm');
+          },
         });
     });
   const {
@@ -75,16 +80,16 @@ export function UserEditor({ user, close }: { user?: User; close: () => void }) 
   return (
     <form className="editor-form" onSubmit={submit} noValidate>
       <label>
-        Ism va familiya
+        {tx('profile.name')}
         <input autoComplete="name" {...register('name')} aria-invalid={!!errors.name} />
         {errors.name && (
           <small className="field-error" role="alert">
-            {errors.name.message}
+            {localizeText(errors.name.message)}
           </small>
         )}
       </label>
       <label>
-        Email
+        {tx('pages.admin.user-editor.email')}
         <input
           type="email"
           autoComplete="email"
@@ -93,11 +98,11 @@ export function UserEditor({ user, close }: { user?: User; close: () => void }) 
         />
         {errors.email && (
           <small className="field-error" role="alert">
-            {errors.email.message}
+            {localizeText(errors.email.message)}
           </small>
         )}
       </label>
-      <label htmlFor="admin-user-role">Rol</label>
+      <label htmlFor="admin-user-role">{tx('pages.admin.user-editor.role')}</label>
       {user && user.id === actor?.id ? (
         <>
           <input
@@ -120,7 +125,7 @@ export function UserEditor({ user, close }: { user?: User; close: () => void }) 
               onBlur={field.onBlur}
               inputRef={field.ref}
               name={field.name}
-              label="Rol"
+              label={tx('pages.admin.user-editor.role')}
               invalid={fieldState.invalid}
             />
           )}
@@ -128,13 +133,12 @@ export function UserEditor({ user, close }: { user?: User; close: () => void }) 
       )}
       {user && (
         <p className="field-help">
-          Rol o‘zgarganda foydalanuvchi qayta kiradi. O‘quv tarixi saqlanadi; o‘quvchi roli olib
-          tashlansa sinf a’zoligi tugaydi.
+          {tx('pages.admin.user-editor.afterARoleChangeTheUserMustSign')}
         </p>
       )}
       {role === 'STUDENT' && (
         <label>
-          O‘quvchi sinfi
+          {tx('pages.admin.user-editor.studentGrade')}
           <Controller
             name="grade"
             control={control}
@@ -146,7 +150,7 @@ export function UserEditor({ user, close }: { user?: User; close: () => void }) 
                 onBlur={field.onBlur}
                 inputRef={field.ref}
                 name={field.name}
-                label="O‘quvchi sinfi"
+                label={tx('pages.admin.user-editor.studentGrade')}
                 invalid={fieldState.invalid}
               />
             )}
@@ -156,17 +160,17 @@ export function UserEditor({ user, close }: { user?: User; close: () => void }) 
       {role === 'ADMIN' && (
         <label className="checkbox-field">
           <input type="checkbox" {...register('teacherAccess')} />
-          O‘qituvchi paneli ham ochilsin
+          {tx('pages.admin.user-editor.alsoEnableTheTeacherPanel')}
         </label>
       )}
       {user ? (
         <label className="checkbox-field">
           <input type="checkbox" {...register('active')} />
-          Hisob faol
+          {tx('pages.admin.user-editor.accountActive')}
         </label>
       ) : (
         <label>
-          Boshlang‘ich parol
+          {tx('pages.admin.user-editor.initialPassword')}
           <input
             type="password"
             autoComplete="new-password"
@@ -175,22 +179,22 @@ export function UserEditor({ user, close }: { user?: User; close: () => void }) 
           />
           {errors.password && (
             <small className="field-error" role="alert">
-              {errors.password.message}
+              {localizeText(errors.password.message)}
             </small>
           )}
         </label>
       )}
       {error && (
         <p className="form-error" role="alert">
-          {error}
+          {localizeText(error)}
         </p>
       )}
       <div className="modal-actions">
         <Button type="button" variant="secondary" onClick={close}>
-          Bekor qilish
+          {tx('common.cancel')}
         </Button>
         <Button type="submit" busy={isSubmitting}>
-          Saqlash
+          {tx('pages.admin.avatars.save')}
         </Button>
       </div>
     </form>

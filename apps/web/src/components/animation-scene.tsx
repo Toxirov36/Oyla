@@ -1,6 +1,8 @@
+import { translate as tx, useI18n as usePageLocale } from '../i18n';
 import { BookOpen, Check, CloudRain, Moon, Sun, Umbrella, X } from 'lucide-react';
 import type { AnimationVisual } from '../lib/play';
 export function AnimationScene({ visual }: { visual: AnimationVisual }) {
+  usePageLocale();
   const step = visual.step ?? 0;
   return (
     <div className={`learning-scene scene-${visual.kind}`}>
@@ -73,11 +75,19 @@ export function AnimationScene({ visual }: { visual: AnimationVisual }) {
           ) : (
             <BookOpen size={48} />
           )}
-          <img className="scene-character" src="/avatars/rabbit.svg" alt="Quyon qahramon" />
+          <img
+            className="scene-character"
+            src="/avatars/rabbit.svg"
+            alt={tx('pages.animation-scene.rabbitCharacter')}
+          />
         </div>
       ) : visual.kind === 'verbs' ? (
         <div className="verb-scene">
-          <img className="scene-character" src="/avatars/owl.svg" alt="Boyqush qahramon" />
+          <img
+            className="scene-character"
+            src="/avatars/owl.svg"
+            alt={tx('pages.animation-scene.owlCharacter')}
+          />
           <span className="scene-word">{visual.label}</span>
         </div>
       ) : visual.kind === 'condition' ? (
@@ -97,7 +107,11 @@ export function AnimationScene({ visual }: { visual: AnimationVisual }) {
         </div>
       ) : (
         <div className="robot-scene">
-          <img className="scene-character" src="/avatars/robot.svg" alt="Robot qahramon" />
+          <img
+            className="scene-character"
+            src="/avatars/robot.svg"
+            alt={tx('pages.animation-scene.robotCharacter')}
+          />
           <div className="robot-path">
             {visual.kind === 'loop' ? (
               Array.from({ length: 3 }, (_, i) => (

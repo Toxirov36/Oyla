@@ -6,6 +6,7 @@ import { Bell } from 'lucide-react';
 import { useNotificationCount } from '../hooks/use-notifications';
 import { NotificationsPanel } from './notifications/panel';
 import './notifications/notifications.css';
+import { useI18n } from '../i18n';
 
 function useMobilePanel() {
   const [mobile, setMobile] = useState(
@@ -22,6 +23,7 @@ function useMobilePanel() {
   return mobile;
 }
 export function NotificationBell() {
+  const { t } = useI18n();
   const query = useNotificationCount();
   const count = query.data?.unreadCount || 0;
   const [open, setOpen] = useState(false);
@@ -31,7 +33,7 @@ export function NotificationBell() {
       <button
         type="button"
         className="notice-bell"
-        aria-label={`Bildirishnomalarni ochish${count ? `: ${count} ta o‘qilmagan` : ''}`}
+        aria-label={t(count ? 'notifications.openUnread' : 'notifications.open', { count })}
       >
         <Bell size={21} />
         {count > 0 && (
@@ -49,7 +51,7 @@ export function NotificationBell() {
         <Dialog.Overlay className="notice-sheet-overlay" />
         <Dialog.Content className="notice-sheet notice-surface" aria-describedby={undefined}>
           <NotificationsPanel
-            title={<Dialog.Title>Bildirishnomalar</Dialog.Title>}
+            title={<Dialog.Title>{t('notifications.title')}</Dialog.Title>}
             close={() => setOpen(false)}
           />
         </Dialog.Content>
@@ -64,7 +66,7 @@ export function NotificationBell() {
           sideOffset={12}
           align="end"
           collisionPadding={12}
-          aria-label="Bildirishnomalar paneli"
+          aria-label={t('notifications.panel')}
         >
           <NotificationsPanel close={() => setOpen(false)} />
         </Popover.Content>
@@ -77,7 +79,7 @@ export function NotificationBell() {
         {panel}
         <Tooltip.Portal>
           <Tooltip.Content className="notice-tooltip notice-surface" sideOffset={8}>
-            Bildirishnomalar
+            {t('notifications.title')}
             <Tooltip.Arrow />
           </Tooltip.Content>
         </Tooltip.Portal>

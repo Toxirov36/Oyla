@@ -1,3 +1,4 @@
+import { translate as tx, useI18n as usePageLocale } from '../../i18n';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
@@ -6,23 +7,24 @@ import { Modal, PageHeader } from '../../components/ui';
 import { ExercisePreview, exampleQuestion } from '../../components/exercises/exercise-preview';
 
 export default function ExerciseCatalog() {
+  usePageLocale();
   const [selected, setSelected] = useState<string | null>(null);
   const catalog = [
     ...Object.entries(exerciseLabels),
-    ['MINI_GAME', 'Bilim parvozi'],
-    ['BOSS_BATTLE', 'Mavzu sinovi'],
+    ['MINI_GAME', tx('lesson.miniGame')],
+    ['BOSS_BATTLE', tx('lesson.bossBattle')],
   ];
   const game = selected === 'MINI_GAME' || selected === 'BOSS_BATTLE';
   return (
     <>
       <Link to="/admin/content" className="back-link">
         <ArrowLeft size={18} />
-        O‘quv kontentiga qaytish
+        {tx('pages.admin.exercise-catalog.backToLearningContent')}
       </Link>
       <PageHeader
-        eyebrow="MASHQLAR USTAXONASI"
-        title="20 xil o‘rganish tajribasi"
-        description="Mashq turini tanlang va o‘quvchi ko‘rinishida sinab ko‘ring. Namunalar natijaga yoki XP’ga ta’sir qilmaydi."
+        eyebrow={tx('pages.admin.exercise-catalog.exerciseWorkshop')}
+        title={tx('pages.admin.exercise-catalog.20WaysToLearn')}
+        description={tx('pages.admin.exercise-catalog.chooseAnExerciseTypeAndTryItAs')}
       />
       <div className="exercise-catalog">
         {catalog.map(([type, label], i) => (
@@ -31,8 +33,8 @@ export default function ExerciseCatalog() {
             <h3>{label}</h3>
             <p>
               {type === 'MINI_GAME' || type === 'BOSS_BATTLE'
-                ? 'Turli savollardan tuzilgan o‘yin rejimi'
-                : 'Interaktiv namunani ochish →'}
+                ? tx('pages.admin.exercise-catalog.gameModeWithAMixOfQuestions')
+                : tx('pages.admin.exercise-catalog.openInteractiveExample')}
             </p>
           </button>
         ))}
@@ -42,7 +44,10 @@ export default function ExerciseCatalog() {
         onOpenChange={(open) => {
           if (!open) setSelected(null);
         }}
-        title={catalog.find(([t]) => t === selected)?.[1] ?? 'Mashq namunasi'}
+        title={
+          catalog.find(([t]) => t === selected)?.[1] ??
+          tx('pages.admin.exercise-catalog.exerciseExample')
+        }
       >
         {selected && (
           <ExercisePreview

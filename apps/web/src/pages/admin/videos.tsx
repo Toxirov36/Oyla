@@ -1,3 +1,5 @@
+import { localizeText } from '../../i18n';
+import { translate as tx, useI18n as usePageLocale } from '../../i18n';
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, errorText } from '../../lib/api';
@@ -15,7 +17,6 @@ type Editor = {
   animationKey: string;
   youtubeId: string;
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
-  position: number;
 };
 function youtubeId(value: string) {
   if (/^[A-Za-z0-9_-]{11}$/.test(value.trim())) return value.trim();
@@ -36,9 +37,10 @@ function youtubeId(value: string) {
   } catch {
     /* Fall through to the localized validation message. */
   }
-  throw Error('YouTube video havolasi yoki 11 belgili ID kiriting.');
+  throw Error(tx('pages.admin.videos.enterAYoutubeVideoLinkOrAn11character'));
 }
 export default function AdminVideos() {
+  usePageLocale();
   const cache = useQueryClient();
   const query = useQuery({
     queryKey: ['admin', 'video-lessons'],
@@ -60,8 +62,8 @@ export default function AdminVideos() {
   return (
     <>
       <PageHeader
-        title="Videodarslar"
-        description="Animatsiya yoki YouTube video qo‘shing, tekshiring va chop eting."
+        title={tx('navigation.videos')}
+        description={tx('pages.admin.videos.addReviewAndPublishAnimationsOrYoutubeVideos')}
       />
       <Button
         onClick={() => {
@@ -75,29 +77,32 @@ export default function AdminVideos() {
             animationKey: 'math-5',
             youtubeId: '',
             status: 'DRAFT',
-            position: 0,
           });
         }}
       >
-        Videodars qo‘shish
+        {tx('pages.admin.videos.addVideoLesson')}
       </Button>
       <div className="admin-video-list">
         {query.data.items.map((video) => (
           <Card key={video.id}>
             <div>
               <span className="pill">
-                {video.grade}-sinf · {subjectNames[video.subject]} · {video.status}
+                {tx('pages.admin.videos.grade', {
+                  value1: video.grade,
+                  value2: subjectNames[video.subject],
+                  value3: video.status,
+                })}
               </span>
-              <h2>{video.title}</h2>
-              <p>{video.description}</p>
+              <h2>{localizeText(video.title)}</h2>
+              <p>{localizeText(video.description)}</p>
             </div>
             <div className="play-actions">
               <Button
                 variant="secondary"
                 onClick={() => setPreview(video)}
-                aria-label={`${video.title} videosini ko‘rish`}
+                aria-label={tx('pages.admin.videos.watchVideo', { value1: video.title })}
               >
-                Ko‘rish
+                {tx('pages.admin.videos.view')}
               </Button>
               <Button
                 variant="secondary"
@@ -109,9 +114,9 @@ export default function AdminVideos() {
                     youtubeId: video.youtubeId ?? '',
                   });
                 }}
-                aria-label={`${video.title} videosini tahrirlash`}
+                aria-label={tx('pages.admin.videos.editVideo', { value1: video.title })}
               >
-                Tahrirlash
+                {tx('pages.admin.avatars.edit')}
               </Button>
             </div>
           </Card>
@@ -122,7 +127,7 @@ export default function AdminVideos() {
         onOpenChange={(open) => {
           if (!open) setPreview(null);
         }}
-        title={preview?.title ?? 'Videodars'}
+        title={preview?.title ?? tx('pages.admin.videos.videoLesson')}
         wide
       >
         {preview && <VideoMedia key={preview.id} video={preview} />}
@@ -132,7 +137,11 @@ export default function AdminVideos() {
         onOpenChange={(open) => {
           if (!open && !busy) setEditor(null);
         }}
-        title={editor?.id ? 'Videodarsni tahrirlash' : 'Videodars qo‘shish'}
+        title={
+          editor?.id
+            ? tx('pages.admin.videos.editVideoLesson')
+            : tx('pages.admin.videos.addVideoLesson')
+        }
       >
         {editor && (
           <form
@@ -143,14 +152,20 @@ export default function AdminVideos() {
               setError('');
               try {
                 const { id, animationKey, youtubeId: input, ...rest } = editor;
+                const videoData = {
+                  title: rest.title,
+                  description: rest.description,
+                  grade: rest.grade,
+                  subject: rest.subject,
+                  kind: rest.kind,
+                  status: rest.status,
+                  ...(editor.kind === 'ANIMATION'
+                    ? { animationKey: animationKey || animations[0]?.key }
+                    : { youtubeId: youtubeId(input) }),
+                };
                 await api(`/admin/video-lessons${id ? `/${id}` : ''}`, {
                   method: id ? 'PATCH' : 'POST',
-                  body: {
-                    ...rest,
-                    ...(editor.kind === 'ANIMATION'
-                      ? { animationKey: animationKey || animations[0]?.key }
-                      : { youtubeId: youtubeId(input) }),
-                  },
+                  body: videoData,
                 });
                 await cache.invalidateQueries({ queryKey: ['admin', 'video-lessons'] });
                 await cache.invalidateQueries({ queryKey: ['video-lessons'] });
@@ -163,7 +178,7 @@ export default function AdminVideos() {
             }}
           >
             <label>
-              Nomi
+              {tx('pages.admin.avatars.name')}
               <input
                 required
                 minLength={3}
@@ -173,7 +188,7 @@ export default function AdminVideos() {
               />
             </label>
             <label>
-              Tavsif
+              {tx('pages.admin.videos.description')}
               <textarea
                 required
                 minLength={5}
@@ -183,36 +198,49 @@ export default function AdminVideos() {
               />
             </label>
             <ComboboxField
-              label="Sinf"
+              label={tx('pages.admin.users.grade')}
               value={String(editor.grade)}
-              options={[5, 6, 7].map((grade) => ({ value: String(grade), label: `${grade}-sinf` }))}
+              options={[5, 6, 7].map((grade) => ({
+                value: String(grade),
+                get label() {
+                  return tx('common.grade', { grade });
+                },
+              }))}
               onChange={(value) => setEditor({ ...editor, grade: Number(value), animationKey: '' })}
             />
             <ComboboxField
-              label="Fan"
+              label={tx('pages.admin.videos.subject')}
               value={editor.subject}
               options={Object.entries(subjectNames).map(([value, label]) => ({ value, label }))}
               onChange={(subject) => setEditor({ ...editor, subject, animationKey: '' })}
             />
             <ComboboxField
-              label="Manba"
+              label={tx('pages.admin.videos.source')}
               value={editor.kind}
               options={[
-                { value: 'ANIMATION', label: 'Animatsiya' },
+                {
+                  value: 'ANIMATION',
+                  get label() {
+                    return tx('pages.admin.videos.animation');
+                  },
+                },
                 { value: 'YOUTUBE', label: 'YouTube' },
               ]}
               onChange={(kind) => setEditor({ ...editor, kind: kind as Editor['kind'] })}
             />
             {editor.kind === 'ANIMATION' ? (
               <ComboboxField
-                label="Animatsiyali dars"
+                label={tx('pages.admin.videos.animatedLesson')}
                 value={editor.animationKey || animations[0]?.key || ''}
-                options={animations.map((item) => ({ value: item.key, label: item.title }))}
+                options={animations.map((item) => ({
+                  value: item.key,
+                  label: localizeText(item.title),
+                }))}
                 onChange={(animationKey) => setEditor({ ...editor, animationKey })}
               />
             ) : (
               <label>
-                YouTube havolasi yoki ID
+                {tx('pages.admin.videos.youtubeLinkOrId')}
                 <input
                   required
                   value={editor.youtubeId}
@@ -221,28 +249,33 @@ export default function AdminVideos() {
               </label>
             )}
             <ComboboxField
-              label="Holat"
+              label={tx('pages.admin.users.status')}
               value={editor.status}
               options={[
-                { value: 'DRAFT', label: 'Qoralama' },
-                { value: 'PUBLISHED', label: 'Chop etilgan' },
-                { value: 'ARCHIVED', label: 'Arxiv' },
+                {
+                  value: 'DRAFT',
+                  get label() {
+                    return tx('common.draft');
+                  },
+                },
+                {
+                  value: 'PUBLISHED',
+                  get label() {
+                    return tx('common.published');
+                  },
+                },
+                {
+                  value: 'ARCHIVED',
+                  get label() {
+                    return tx('common.archived');
+                  },
+                },
               ]}
               onChange={(status) => setEditor({ ...editor, status: status as Editor['status'] })}
             />
-            <label>
-              Tartib raqami
-              <input
-                type="number"
-                min={0}
-                max={10000}
-                value={editor.position}
-                onChange={(e) => setEditor({ ...editor, position: Number(e.target.value) })}
-              />
-            </label>
             {error && (
               <p role="alert" className="form-error">
-                {error}
+                {localizeText(error)}
               </p>
             )}
             <div className="modal-actions">
@@ -252,10 +285,10 @@ export default function AdminVideos() {
                 disabled={busy}
                 onClick={() => setEditor(null)}
               >
-                Bekor qilish
+                {tx('common.cancel')}
               </Button>
               <Button type="submit" busy={busy}>
-                Saqlash
+                {tx('pages.admin.avatars.save')}
               </Button>
             </div>
           </form>

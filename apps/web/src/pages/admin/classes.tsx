@@ -1,3 +1,4 @@
+import { translate as tx, useI18n as usePageLocale } from '../../i18n';
 import { GraduationCap, Users, Pencil, Trash2 } from 'lucide-react';
 import type { AdminClass } from '../../lib/types';
 import { Button, Card } from '../../components/ui';
@@ -12,6 +13,7 @@ export function AdminClasses({
   onMembership: (group: AdminClass) => void;
   onDelete: (value: { endpoint: string; title: string }) => void;
 }) {
+  usePageLocale();
   return (
     <div className="class-grid">
       {data.map((group) => (
@@ -21,9 +23,9 @@ export function AdminClasses({
           </span>
           <h2>{group.name}</h2>
           <p>
-            {group.teacher.name} · {group.grade}-sinf
+            {tx('pages.admin.classes.grade', { value1: group.teacher.name, value2: group.grade })}
           </p>
-          <strong>{group.students.length} o‘quvchi</strong>
+          <strong>{tx('pages.admin.classes.students', { value1: group.students.length })}</strong>
           <div className="class-actions">
             <Button
               variant="secondary"
@@ -32,14 +34,18 @@ export function AdminClasses({
               }}
             >
               <Users size={17} />
-              O‘quvchilar
+              {tx('pages.admin.classes.studentsVariant16')}
             </Button>
-            <Button variant="ghost" onClick={() => onEdit(group)} aria-label="Sinfni tahrirlash">
+            <Button
+              variant="ghost"
+              onClick={() => onEdit(group)}
+              aria-label={tx('pages.admin.classes.editClass')}
+            >
               <Pencil size={17} />
             </Button>
             <Button
               variant="ghost"
-              aria-label="Sinfni o‘chirish"
+              aria-label={tx('pages.admin.classes.deleteClass')}
               onClick={() => {
                 onDelete({ endpoint: `/admin/classes/${group.id}`, title: group.name });
               }}

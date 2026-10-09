@@ -37,10 +37,10 @@ export const brand = {
 export const brandTitle = `${brand.name} — ${brand.tagline}`;
 export const brandDescription = `${brand.name} — ${brand.description}`;
 
-export function applyBrand() {
-  document.title = brandTitle;
+export function applyBrand(labels?: { tagline: string; description: string }) {
+  document.title = labels ? `${brand.name} — ${labels.tagline}` : brandTitle;
   const meta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
-  if (meta) meta.content = brandDescription;
+  if (meta) meta.content = labels ? `${brand.name} — ${labels.description}` : brandDescription;
   const theme = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
   if (theme) theme.content = brand.colors.navy;
   const favicon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');

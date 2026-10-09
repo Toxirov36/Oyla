@@ -1,22 +1,59 @@
+import { translate as tx } from '../i18n';
 export const exerciseLabels = {
-  MULTIPLE_CHOICE: 'Variantli savol',
-  TRUE_FALSE: 'To‘g‘ri / noto‘g‘ri',
-  TEXT: 'Matnli javob',
-  NUMERICAL: 'Sonli javob',
-  FILL_GAP: 'Bo‘shliqni to‘ldirish',
-  MATCH_PAIRS: 'Juftliklarni topish',
-  SORT_ORDER: 'Tartiblash',
-  DRAG_DROP: 'Sudrab joylashtirish',
-  FIND_MISTAKE: 'Xatoni topish',
-  CODE_COMPLETION: 'Kodni to‘ldirish',
-  DEBUG_CODE: 'Kodni tuzatish',
-  CONNECT_CONCEPT: 'Tushunchalarni bog‘lash',
-  LISTEN_ANSWER: 'Tinglash va javob berish',
-  INTERACTIVE_IMAGE: 'Rasmda topish',
-  MEMORY_CARDS: 'Xotira kartalari',
-  SPEAK: 'Nutq mashqi',
-  DRAW: 'Chiziq chizish',
-  GEOMETRY: 'Geometriya va grafik',
+  get MULTIPLE_CHOICE() {
+    return tx('exercise.MULTIPLE_CHOICE');
+  },
+  get TRUE_FALSE() {
+    return tx('exercise.TRUE_FALSE');
+  },
+  get TEXT() {
+    return tx('exercise.TEXT');
+  },
+  get NUMERICAL() {
+    return tx('exercise.NUMERICAL');
+  },
+  get FILL_GAP() {
+    return tx('exercise.FILL_GAP');
+  },
+  get MATCH_PAIRS() {
+    return tx('exercise.MATCH_PAIRS');
+  },
+  get SORT_ORDER() {
+    return tx('exercise.SORT_ORDER');
+  },
+  get DRAG_DROP() {
+    return tx('exercise.DRAG_DROP');
+  },
+  get FIND_MISTAKE() {
+    return tx('exercise.FIND_MISTAKE');
+  },
+  get CODE_COMPLETION() {
+    return tx('exercise.CODE_COMPLETION');
+  },
+  get DEBUG_CODE() {
+    return tx('exercise.DEBUG_CODE');
+  },
+  get CONNECT_CONCEPT() {
+    return tx('exercise.CONNECT_CONCEPT');
+  },
+  get LISTEN_ANSWER() {
+    return tx('exercise.LISTEN_ANSWER');
+  },
+  get INTERACTIVE_IMAGE() {
+    return tx('exercise.INTERACTIVE_IMAGE');
+  },
+  get MEMORY_CARDS() {
+    return tx('exercise.MEMORY_CARDS');
+  },
+  get SPEAK() {
+    return tx('exercise.SPEAK');
+  },
+  get DRAW() {
+    return tx('exercise.DRAW');
+  },
+  get GEOMETRY() {
+    return tx('exercise.GEOMETRY');
+  },
 } as const;
 export type ExerciseType = keyof typeof exerciseLabels;
 export interface ExerciseItem {

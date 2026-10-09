@@ -1,3 +1,5 @@
+import { localizeText } from '../i18n';
+import { translate as tx, useI18n as usePageLocale } from '../i18n';
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -18,15 +20,28 @@ import {
 import { ComboboxField } from '../components/combobox-field';
 import { UserAvatar } from '../components/user-avatar';
 const statusNames: Record<BrainMatch['status'], string> = {
-  INVITED: 'Taklif',
-  ACTIVE: 'Davom etmoqda',
-  FINISHED: 'Yakunlangan',
-  DECLINED: 'Rad etilgan',
-  CANCELLED: 'Bekor qilingan',
-  EXPIRED: 'Taklif vaqti tugagan',
+  get INVITED() {
+    return tx('pages.brain-ring.invitation');
+  },
+  get ACTIVE() {
+    return tx('pages.brain-ring.inProgress');
+  },
+  get FINISHED() {
+    return tx('pages.brain-ring.completed');
+  },
+  get DECLINED() {
+    return tx('pages.brain-ring.declined');
+  },
+  get CANCELLED() {
+    return tx('pages.brain-ring.cancelled');
+  },
+  get EXPIRED() {
+    return tx('pages.brain-ring.invitationExpired');
+  },
 };
 
 export default function BrainRing() {
+  usePageLocale();
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -104,18 +119,31 @@ export default function BrainRing() {
     const options =
       match.question?.type === 'TRUE_FALSE'
         ? [
-            { value: 'true', text: 'To‘g‘ri' },
-            { value: 'false', text: 'Noto‘g‘ri' },
+            {
+              value: 'true',
+              get text() {
+                return tx('exercise.true');
+              },
+            },
+            {
+              value: 'false',
+              get text() {
+                return tx('exercise.false');
+              },
+            },
           ]
         : (match.question?.options ?? []);
     return (
       <div className="play-space">
         <Link className="back-link" to="/brain-ring">
-          ← Bellashuvlarga qaytish
+          {tx('pages.brain-ring.backToMatches')}
         </Link>
         <PageHeader
           title="Brain Ring"
-          description={`${opponent.name} bilan · ${match.grade}-sinf darajasida`}
+          description={tx('pages.brain-ring.withGradeLevel', {
+            value1: opponent.name,
+            value2: match.grade,
+          })}
         />
         <div className="brain-scoreboard">
           {match.players.map((player) => (
@@ -125,9 +153,13 @@ export default function BrainRing() {
             >
               <UserAvatar name={player.name} avatar={player.avatar} size="xl" />
               <strong>{player.name}</strong>
-              <span>{player.score} ball</span>
+              <span>{tx('pages.brain-ring.points', { value1: player.score })}</span>
               {match.status === 'ACTIVE' && (
-                <small>{player.answered ? 'Javob berildi' : 'O‘ylayapti'}</small>
+                <small>
+                  {player.answered
+                    ? tx('pages.brain-ring.answered')
+                    : tx('pages.brain-ring.thinking')}
+                </small>
               )}
             </Card>
           ))}
@@ -137,26 +169,23 @@ export default function BrainRing() {
             <Swords size={42} />
             <h2>
               {match.guestId === user!.id
-                ? 'Do‘stingiz sizni bellashuvga taklif qildi!'
-                : 'Do‘stingiz javobini kutyapmiz'}
+                ? tx('pages.brain-ring.yourFriendHasInvitedYouToAMatch')
+                : tx('pages.brain-ring.waitingForYourFriendsResponse')}
             </h2>
-            <p>
-              5 ta savol · har savolga 20 soniya · to‘g‘ri javobga 10 ball. Taklif 5 daqiqa ichida
-              qabul qilinadi.
-            </p>
+            <p>{tx('pages.brain-ring.5Questions20SecondsPerQuestion10Points')}</p>
             <div className="play-actions">
               {match.guestId === user!.id ? (
                 <>
                   <Button busy={busy} onClick={() => void act('accept')}>
-                    Qabul qilish
+                    {tx('pages.brain-ring.accept')}
                   </Button>
                   <Button variant="secondary" disabled={busy} onClick={() => void act('decline')}>
-                    Rad etish
+                    {tx('pages.brain-ring.decline')}
                   </Button>
                 </>
               ) : (
                 <Button variant="secondary" busy={busy} onClick={() => void act('cancel')}>
-                  Taklifni bekor qilish
+                  {tx('pages.brain-ring.cancelInvitation')}
                 </Button>
               )}
             </div>
@@ -165,18 +194,21 @@ export default function BrainRing() {
           <Card className="brain-question">
             <div className="play-round-heading">
               <span>
-                {match.roundIndex + 1} / {match.total} savol
+                {tx('pages.brain-ring.question', {
+                  value1: match.roundIndex + 1,
+                  value2: match.total,
+                })}
               </span>
               <span className="brain-timer">
                 <Clock3 size={18} />
-                {remaining} s
+                {tx('pages.brain-ring.s', { value1: remaining })}
               </span>
             </div>
             <ProgressBar value={(match.roundIndex / match.total) * 100} />
             {match.phase === 'COUNTDOWN' ? (
               <div className="brain-countdown">
                 <strong>{remaining}</strong>
-                <h2>Tayyorlaning!</h2>
+                <h2>{tx('pages.brain-ring.getReady')}</h2>
               </div>
             ) : (
               <>
@@ -200,17 +232,21 @@ export default function BrainRing() {
                   >
                     <strong>
                       {match.feedback.correct
-                        ? 'To‘g‘ri javob! +10 ball'
-                        : 'Bu safar ball olinmadi'}
+                        ? tx('pages.brain-ring.correct10Points')
+                        : tx('pages.brain-ring.noPointsThisTime')}
                     </strong>
-                    <p>Javob: {match.feedback.correctAnswer}</p>
+                    <p>
+                      {tx('pages.admin.content.answer', {
+                        value1: match.feedback.correctAnswer ?? '',
+                      })}
+                    </p>
                     <p>{match.feedback.explanation}</p>
-                    <small>Keyingi savol avtomatik ochiladi.</small>
+                    <small>{tx('pages.brain-ring.theNextQuestionOpensAutomatically')}</small>
                   </div>
                 ) : match.ownValue ? (
                   <p className="brain-saved" role="status">
                     <CheckCircle2 size={20} />
-                    Javobingiz saqlandi. Do‘stingizni kutyapmiz.
+                    {tx('pages.brain-ring.yourAnswerIsSavedWaitingForYourFriend')}
                   </p>
                 ) : (
                   <Button
@@ -232,7 +268,7 @@ export default function BrainRing() {
                       }
                     }}
                   >
-                    Javobni yuborish
+                    {tx('pages.brain-ring.submitAnswer')}
                   </Button>
                 )}
               </>
@@ -244,27 +280,27 @@ export default function BrainRing() {
             <h2>
               {match.status === 'FINISHED'
                 ? match.winnerId === user!.id
-                  ? 'G‘alaba sizniki!'
+                  ? tx('pages.brain-ring.youWon')
                   : !match.winnerId
-                    ? 'Durang!'
-                    : 'Yaxshi bellashuv bo‘ldi!'
+                    ? tx('pages.brain-ring.itsATie')
+                    : tx('pages.brain-ring.aGreatMatch')
                 : statusNames[match.status]}
             </h2>
             <p>
               {own.score} : {opponent.score}
             </p>
             <Link className="btn btn-primary" to="/brain-ring">
-              Yangi bellashuv
+              {tx('pages.brain-ring.newMatch')}
             </Link>
           </Card>
         )}
         {error && (
           <p role="alert" className="form-error">
-            {error}
+            {localizeText(error)}
           </p>
         )}
         <p className="play-note">
-          Bellashuv ballari alohida hisoblanadi. Darslardagi XP va natijalaringiz saqlanadi.
+          {tx('pages.brain-ring.matchPointsAreTrackedSeparatelyYourLessonXp')}
         </p>
       </div>
     );
@@ -285,30 +321,40 @@ export default function BrainRing() {
     <div className="play-space">
       <PageHeader
         title="Brain Ring"
-        description="Do‘stingizni tanlang va bilimda online bellashing."
+        description={tx('pages.brain-ring.chooseAFriendAndChallengeThemOnline')}
       />
       <Card className="brain-invite-form">
-        <h2>Kim bilan bellashamiz?</h2>
+        <h2>{tx('pages.brain-ring.whoWillYouChallenge')}</h2>
         {peers.length ? (
           <>
             <ComboboxField
-              label="Do‘stingiz"
+              label={tx('pages.brain-ring.yourFriend')}
               value={opponentId}
               onChange={setOpponentId}
               options={peers.map((entry) => ({
                 value: entry.user.id,
-                label: `${entry.user.name} · ${entry.user.grade}-sinf`,
+                get label() {
+                  return tx('pages.admin.classes.grade', {
+                    value1: entry.user.name,
+                    value2: entry.user.grade ?? '',
+                  });
+                },
               }))}
             />
             <ComboboxField
-              label="Fan"
+              label={tx('pages.admin.videos.subject')}
               value={subjectId}
               onChange={setSubjectId}
               options={[
-                { value: 'all', label: 'Aralash savollar' },
+                {
+                  value: 'all',
+                  get label() {
+                    return tx('pages.brain-ring.mixedQuestions');
+                  },
+                },
                 ...(subjects.data ?? []).map((subject) => ({
                   value: subject.id,
-                  label: subject.title,
+                  label: localizeText(subject.title),
                 })),
               ]}
             />
@@ -331,25 +377,25 @@ export default function BrainRing() {
                 }
               }}
             >
-              Bellashuvga taklif qilish
+              {tx('pages.brain-ring.inviteToAMatch')}
             </Button>
           </>
         ) : (
           <EmptyState
-            title="Hali do‘stlar yo‘q"
-            description="Avval do‘stlik so‘rovini yuboring va qabul qilinishini kuting."
+            title={tx('pages.brain-ring.noFriendsYet')}
+            description={tx('pages.brain-ring.sendAFriendRequestFirstAndWaitFor')}
           />
         )}
         <Link className="text-link" to="/friends">
-          Do‘stlarimga o‘tish →
+          {tx('pages.brain-ring.goToMyFriends')}
         </Link>
         {error && (
           <p role="alert" className="form-error">
-            {error}
+            {localizeText(error)}
           </p>
         )}
       </Card>
-      <h2 className="play-section-title">Bellashuvlarim</h2>
+      <h2 className="play-section-title">{tx('pages.brain-ring.myMatches')}</h2>
       {matches.data.length ? (
         <div className="brain-match-list">
           {matches.data.map((match) => {
@@ -364,7 +410,7 @@ export default function BrainRing() {
           })}
         </div>
       ) : (
-        <EmptyState title="Birinchi bellashuvni boshlang" />
+        <EmptyState title={tx('pages.brain-ring.startYourFirstMatch')} />
       )}
     </div>
   );

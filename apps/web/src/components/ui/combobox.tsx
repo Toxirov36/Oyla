@@ -1,3 +1,4 @@
+import { translate as tx, useI18n as usePageLocale } from '../../i18n';
 import {
   createContext,
   forwardRef,
@@ -15,6 +16,7 @@ const AnchorContext = createContext<RefObject<HTMLDivElement | null> | undefined
 export function Combobox<Value, Multiple extends boolean | undefined = false, Item = Value>(
   props: Primitive.Root.Props<Value, Multiple, Item>,
 ) {
+  usePageLocale();
   const anchor = useRef<HTMLDivElement>(null);
   return (
     <AnchorContext.Provider value={anchor}>
@@ -30,6 +32,7 @@ export const ComboboxInput = forwardRef<HTMLInputElement, InputProps>(function C
   { className = '', showClear = false, ...props },
   ref,
 ) {
+  usePageLocale();
   const anchor = useContext(AnchorContext);
   return (
     <div
@@ -39,11 +42,18 @@ export const ComboboxInput = forwardRef<HTMLInputElement, InputProps>(function C
     >
       <Primitive.Input {...props} ref={ref} className="combobox-input" />
       {showClear && (
-        <Primitive.Clear className="combobox-button" aria-label="Tanlovni tozalash">
+        <Primitive.Clear
+          className="combobox-button"
+          aria-label={tx('pages.ui.combobox.clearSelection')}
+        >
           <X size={16} />
         </Primitive.Clear>
       )}
-      <Primitive.Trigger className="combobox-button" aria-label="Variantlarni ochish" tabIndex={-1}>
+      <Primitive.Trigger
+        className="combobox-button"
+        aria-label={tx('pages.ui.combobox.openOptions')}
+        tabIndex={-1}
+      >
         <ChevronDown size={16} className="combobox-chevron" aria-hidden="true" />
       </Primitive.Trigger>
     </div>
@@ -53,6 +63,7 @@ type ContentProps = Omit<ComponentPropsWithRef<typeof Primitive.Popup>, 'classNa
   className?: string;
 };
 export function ComboboxContent({ className = '', children, ...props }: ContentProps) {
+  usePageLocale();
   const container = useContext(ComboboxPortalContext);
   const anchor = useContext(AnchorContext);
   return (
@@ -75,6 +86,7 @@ export function ComboboxContent({ className = '', children, ...props }: ContentP
   );
 }
 export function ComboboxEmpty(props: Primitive.Empty.Props) {
+  usePageLocale();
   return <Primitive.Empty {...props} className="combobox-empty" />;
 }
 export const ComboboxList = Primitive.List;
@@ -83,6 +95,7 @@ export function ComboboxItem({
   className = '',
   ...props
 }: Omit<Primitive.Item.Props, 'className'> & { className?: string }) {
+  usePageLocale();
   return (
     <Primitive.Item {...props} className={`combobox-item ${className}`}>
       <span>{children}</span>

@@ -1,7 +1,8 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { api, refreshSession, setToken } from './api';
-import type { User } from './types';
+import type { Profile, User } from './types';
+import { getLocale, selectLocale, storedLocale, type Locale } from '../i18n';
 
 interface AuthState {
   user: User | null;
@@ -12,6 +13,7 @@ interface AuthState {
   ) => Promise<void>;
   signOut: () => Promise<void>;
   reloadUser: () => Promise<void>;
+  changeLocale: (locale: Locale) => Promise<void>;
 }
 const AuthContext = createContext<AuthState | null>(null);
 export const homeFor = (user: User) =>
@@ -20,17 +22,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const cache = useQueryClient();
+  const sessionEpoch = useRef(0);
+  const restoreLocale = async (account: User) => {
+    const stored = storedLocale();
+    if (!stored?.manual) {
+      try {
+        await selectLocale(account.preferredLocale ?? 'uz', false);
+      } catch {
+        // A temporarily unavailable translation bundle must not block the account.
+      }
+      return account;
+    }
+    if (stored.locale === (account.preferredLocale ?? 'uz')) return account;
+    try {
+      const profile = await api<Profile>('/users/me/profile', {
+        method: 'PATCH',
+        body: { preferredLocale: stored.locale },
+      });
+      return profile.user;
+    } catch {
+      // A preference sync failure must not prevent a successful sign-in.
+      return account;
+    }
+  };
   useEffect(() => {
     let alive = true;
+    const epoch = sessionEpoch.current;
     refreshSession()
-      .then((session) => {
-        if (alive) setUser(session.user);
+      .then(async (session) => {
+        if (!alive || epoch !== sessionEpoch.current) return;
+        const account = await restoreLocale(session.user);
+        if (alive && epoch === sessionEpoch.current) setUser(account);
       })
       .catch(() => {})
       .finally(() => {
         if (alive) setLoading(false);
       });
     const expired = () => {
+      sessionEpoch.current++;
       setUser(null);
       cache.clear();
     };
@@ -46,10 +75,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       { method: 'POST', body: data },
     );
     cache.clear();
+    sessionEpoch.current++;
     setToken(result.accessToken);
-    setUser(result.user);
+    setUser(await restoreLocale(result.user));
   };
   const signOut = async () => {
+    sessionEpoch.current++;
     try {
       await api('/auth/logout', { method: 'POST' });
     } finally {
@@ -59,10 +90,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
   const reloadUser = async () => {
-    setUser(await api<User>('/auth/me'));
+    const epoch = sessionEpoch.current;
+    const account = await api<User>('/auth/me');
+    if (epoch === sessionEpoch.current) setUser(account);
+  };
+  const changeLocale: AuthState['changeLocale'] = async (locale) => {
+    await selectLocale(locale);
+    if (!user) return;
+    const epoch = sessionEpoch.current;
+    const profile = await api<Profile>('/users/me/profile', {
+      method: 'PATCH',
+      body: { preferredLocale: locale },
+    });
+    if (epoch !== sessionEpoch.current || locale !== getLocale()) return;
+    setUser((current) => (current?.id === profile.user.id ? profile.user : current));
+    cache.setQueryData(['profile'], profile);
   };
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signOut, reloadUser }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signOut, reloadUser, changeLocale }}>
       {children}
     </AuthContext.Provider>
   );

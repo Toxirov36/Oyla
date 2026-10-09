@@ -17,6 +17,7 @@ export class ProfileService {
       select: {
         id: true,
         name: true,
+        preferredLocale: true,
         avatarId: true,
         avatar: { select: avatarSelect },
         photo: { select: photoSelect },
@@ -101,8 +102,8 @@ export class ProfileService {
 
   async update(actor: Actor, dto: UpdateProfileDto) {
     // Identity comes only from the authenticated session; role/grade/email are not editable here.
-    if (dto.name === undefined && dto.avatarId === undefined)
-      throw new BadRequestException('Ism yoki avatar tanlang.');
+    if (dto.name === undefined && dto.avatarId === undefined && dto.preferredLocale === undefined)
+      throw new BadRequestException('Ism, avatar yoki til tanlang.');
     await this.db.withUserLock(actor.id, async (tx) => {
       if (dto.avatarId) {
         if (!(await tx.avatar.findFirst({ where: { id: dto.avatarId, active: true } })))

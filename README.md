@@ -33,6 +33,8 @@ Administrators open **O‘quv kontenti → Mashqlar katalogi** (`/admin/exercise
 
 ## Local development with Docker infrastructure
 
+The interface supports Uzbek, Russian and English across student, teacher and administrator pages, including editors, tables, filters and system messages. Choose a language on the sign-in page or next to the header avatar. Guest choices are saved in the browser; signed-in choices are saved on the account. Apply migrations and regenerate Prisma before starting the updated API. Standard catalog titles and badges are localized for display. Authored lesson explanations, questions and media content retain their source language; lessons show a notice when another interface language is selected. Content translation and authoring work is tracked in [the localization plan](docs/LOCALIZATION_PLAN.md).
+
 Prerequisites: Node.js 24 LTS, npm, Docker with a running Linux engine. Ports: web 5173, API 3001, PostgreSQL 55432, Redis 56379.
 
 ```powershell
@@ -146,6 +148,8 @@ Development Swagger: **http://localhost:3001/api/docs**. Health: `/api/v1/health
 ```
 
 Frontend access tokens stay in memory. On reload/expiry the HttpOnly cookie rotates through `/auth/refresh`. Session revocation and current database role are checked on every authenticated request. Public registration always creates a student; administrators provision staff. Users are deactivated rather than deleting learning history. Referenced content is archived instead of deleting historical records. Lesson publishing requires a published question; student visibility also requires published topic/course/subject and the correct grade.
+
+Google sign-in uses the backend OAuth callback. Configure `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REDIRECT_URI` in the API environment (or use `CLIENT_ID` / `CLIENT_SECRET` for the first two). For local development, register and set `http://localhost:3001/api/v1/auth/google/callback`; production uses `https://hr-recruiter.ddns.net/api/v1/auth/google/callback`. Apply database migrations before deploying. Google signup creates a student account using the grade selected on the signup page; existing accounts with the same verified Google email are linked automatically.
 
 ## Docker application and deployment
 

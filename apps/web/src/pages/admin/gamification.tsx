@@ -1,3 +1,6 @@
+import { localizeText } from '../../i18n';
+import { formatNumber } from '../../lib/locale';
+import { translate as tx, useI18n as usePageLocale } from '../../i18n';
 import { Zap, Pencil, Plus, Trash2, Award } from 'lucide-react';
 import type { GameConfig, Level, Badge } from '../../lib/types';
 import type { EditorSpec } from '../../components/entity-editor';
@@ -14,10 +17,11 @@ export function AdminGamification({
   onEditor: (spec: EditorSpec) => void;
   onDelete: (value: { endpoint: string; title: string }) => void;
 }) {
+  usePageLocale();
   return (
     <>
       <div className="section-title">
-        <h2>XP qoidalari</h2>
+        <h2>{tx('pages.admin.gamification.xpRules')}</h2>
         <Zap size={20} />
       </div>
       <div className="xp-rules-grid">
@@ -30,44 +34,63 @@ export function AdminGamification({
               {
                 (
                   {
-                    LESSON_COMPLETED: 'Dars yakunlash',
-                    CORRECT_ANSWER: 'To‘g‘ri javob',
-                    DAILY_CHALLENGE: 'Kunlik challenge bonusi',
-                    STREAK_7: '7 kunlik streak',
+                    get LESSON_COMPLETED() {
+                      return tx('pages.admin.gamification.lessonCompletion');
+                    },
+                    get CORRECT_ANSWER() {
+                      return tx('pages.admin.gamification.correctAnswer');
+                    },
+                    get DAILY_CHALLENGE() {
+                      return tx('pages.admin.gamification.dailyChallengeBonus');
+                    },
+                    get STREAK_7() {
+                      return tx('pages.admin.gamification.7dayStreak');
+                    },
                   } as Record<string, string>
                 )[rule.key]
               }
             </h3>
-            <strong className="xp-amount">+{rule.amount} XP</strong>
+            <strong className="xp-amount">
+              {tx('pages.admin.gamification.xp', { value1: rule.amount })}
+            </strong>
             <Button
               variant="secondary"
               onClick={() =>
                 onEditor({
-                  title: 'XP qoidasini tahrirlash',
+                  get title() {
+                    return tx('pages.admin.gamification.editXpRule');
+                  },
                   endpoint: `/admin/xp-rules`,
                   id: rule.key,
                   fields: [
-                    { key: 'amount', label: 'XP miqdori', kind: 'number', min: 0, max: 10000 },
+                    {
+                      key: 'amount',
+                      get label() {
+                        return tx('pages.admin.gamification.xpAmount');
+                      },
+                      kind: 'number',
+                      min: 0,
+                      max: 10000,
+                    },
                   ],
                   values: { amount: rule.amount },
                 })
               }
             >
               <Pencil size={16} />
-              O‘zgartirish
+              {tx('pages.admin.gamification.change')}
             </Button>
           </Card>
         ))}
       </div>
       <p className="formula-note">
-        O‘zgarishlar keyingi yakunlangan faoliyatlarga ta’sir qiladi. Avval berilgan XP tarixi
-        saqlanadi.
+        {tx('pages.admin.gamification.changesApplyToFutureCompletedActivitiesPreviouslyEarned')}
       </p>
       <div className="section-title">
-        <h2>Darajalar</h2>
+        <h2>{tx('pages.admin.gamification.levels')}</h2>
         <Button variant="secondary" onClick={() => onEdit('levels')}>
           <Plus size={16} />
-          Daraja
+          {tx('pages.admin.gamification.level')}
         </Button>
       </div>
       <Card>
@@ -75,10 +98,10 @@ export function AdminGamification({
           <table>
             <thead>
               <tr>
-                <th>Daraja</th>
-                <th>Nomi</th>
-                <th>XP chegarasi</th>
-                <th>Amallar</th>
+                <th>{tx('pages.admin.gamification.level')}</th>
+                <th>{tx('pages.admin.avatars.name')}</th>
+                <th>{tx('pages.admin.gamification.xpThreshold')}</th>
+                <th>{tx('pages.admin.gamification.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -87,19 +110,23 @@ export function AdminGamification({
                   <td>
                     <span className="level-table-number">{level.number}</span>
                   </td>
-                  <td>{level.title}</td>
-                  <td>{level.threshold.toLocaleString()} XP</td>
+                  <td>{localizeText(level.title)}</td>
+                  <td>
+                    {tx('pages.admin.gamification.xpVariant60', {
+                      value1: formatNumber(level.threshold),
+                    })}
+                  </td>
                   <td>
                     <Button
                       variant="ghost"
-                      aria-label="Darajani tahrirlash"
+                      aria-label={tx('pages.admin.gamification.editLevel')}
                       onClick={() => onEdit('levels', level)}
                     >
                       <Pencil size={16} />
                     </Button>
                     <Button
                       variant="ghost"
-                      aria-label="Darajani o‘chirish"
+                      aria-label={tx('pages.admin.gamification.deleteLevel')}
                       disabled={level.number === 1}
                       onClick={() => {
                         onDelete({ endpoint: `/admin/levels/${level.id}`, title: level.title });
@@ -115,10 +142,10 @@ export function AdminGamification({
         </div>
       </Card>
       <div className="section-title">
-        <h2>Nishonlar</h2>
+        <h2>{tx('navigation.badges')}</h2>
         <Button variant="secondary" onClick={() => onEdit('badges')}>
           <Plus size={16} />
-          Nishon
+          {tx('pages.admin.gamification.badge')}
         </Button>
       </div>
       <div className="admin-badge-grid">
@@ -133,11 +160,11 @@ export function AdminGamification({
             <div className="content-actions">
               <Button variant="secondary" onClick={() => onEdit('badges', badge)}>
                 <Pencil size={16} />
-                Tahrirlash
+                {tx('pages.admin.avatars.edit')}
               </Button>
               <Button
                 variant="ghost"
-                aria-label="Nishonni o‘chirish"
+                aria-label={tx('pages.admin.gamification.deleteBadge')}
                 onClick={() => {
                   onDelete({ endpoint: `/admin/badges/${badge.id}`, title: badge.title });
                 }}

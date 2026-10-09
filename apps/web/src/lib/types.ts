@@ -10,6 +10,7 @@ export interface AvatarOption {
   position?: number;
 }
 export interface User {
+  preferredLocale?: 'uz' | 'ru' | 'en';
   avatarId?: string | null;
   avatar?: AvatarOption | null;
   id: string;
@@ -178,6 +179,12 @@ export interface Assignment {
   deadline: string;
   class: { id: string; name: string; _count?: { students: number } };
   lesson: { id: string; title: string };
+  attachments?: { id: string; name: string; contentType: string; size: number }[];
+  students?: {
+    id: string;
+    name: string;
+    submission: { score: number; late: boolean; createdAt: string } | null;
+  }[];
   submissions: {
     score: number;
     late: boolean;

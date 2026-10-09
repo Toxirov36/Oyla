@@ -5,24 +5,29 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { api, clearSession, errorText } from '../lib/api';
 import { Button, Card } from './ui';
+import { useI18n } from '../i18n';
 
 export const newPasswordSchema = z
   .string()
-  .min(10, 'Parol kamida 10 ta belgidan iborat bo‘lsin.')
-  .max(128, 'Parol 128 ta belgidan oshmasin.');
+  .min(10, 'validation.passwordMinForm')
+  .max(128, 'validation.passwordMax');
 const schema = z
   .object({
-    currentPassword: z.string().min(1, 'Hozirgi parolni kiriting.').max(128),
+    currentPassword: z
+      .string()
+      .min(1, 'validation.currentPassword')
+      .max(128, 'validation.passwordMax'),
     newPassword: newPasswordSchema,
     confirmPassword: z.string(),
   })
   .refine((value) => value.newPassword === value.confirmPassword, {
     path: ['confirmPassword'],
-    message: 'Parollar bir xil bo‘lsin.',
+    message: 'validation.passwordMatch',
   });
 export function ChangePasswordForm() {
+  const { t } = useI18n();
   const navigate = useNavigate();
-  const [error, setError] = useState('');
+  const [error, setError] = useState<unknown>(null);
   const {
     register,
     handleSubmit,
@@ -32,23 +37,21 @@ export function ChangePasswordForm() {
     setError('');
     try {
       await api('/users/me/password', { method: 'POST', body: { currentPassword, newPassword } });
-      clearSession('Parolingiz o‘zgartirildi. Yangi parol bilan tizimga kiring.');
+      clearSession('password.changed');
       navigate('/login', {
         replace: true,
-        state: { message: 'Parolingiz o‘zgartirildi. Yangi parol bilan tizimga kiring.' },
+        state: { message: 'password.changed' },
       });
     } catch (e) {
-      setError(errorText(e));
+      setError(e);
     }
   });
   return (
     <Card className="profile-details">
-      <h2>Parolni almashtirish</h2>
-      <p className="card-subtitle">
-        Parol yangilanganda barcha qurilmalarda qayta kirish talab etiladi.
-      </p>
+      <h2>{t('password.title')}</h2>
+      <p className="card-subtitle">{t('password.description')}</p>
       <form className="profile-form" onSubmit={submit} noValidate>
-        <label htmlFor="current-password">Hozirgi parol</label>
+        <label htmlFor="current-password">{t('password.current')}</label>
         <input
           id="current-password"
           type="password"
@@ -58,10 +61,10 @@ export function ChangePasswordForm() {
         />
         {errors.currentPassword && (
           <small className="field-error" role="alert">
-            {errors.currentPassword.message}
+            {t(errors.currentPassword.message!)}
           </small>
         )}
-        <label htmlFor="new-password">Yangi parol</label>
+        <label htmlFor="new-password">{t('password.new')}</label>
         <input
           id="new-password"
           type="password"
@@ -71,10 +74,10 @@ export function ChangePasswordForm() {
         />
         {errors.newPassword && (
           <small className="field-error" role="alert">
-            {errors.newPassword.message}
+            {t(errors.newPassword.message!)}
           </small>
         )}
-        <label htmlFor="confirm-password">Yangi parolni takrorlang</label>
+        <label htmlFor="confirm-password">{t('password.confirm')}</label>
         <input
           id="confirm-password"
           type="password"
@@ -84,17 +87,17 @@ export function ChangePasswordForm() {
         />
         {errors.confirmPassword && (
           <small className="field-error" role="alert">
-            {errors.confirmPassword.message}
+            {t(errors.confirmPassword.message!)}
           </small>
         )}
-        {error && (
+        {!!error && (
           <p className="form-error" role="alert">
-            {error}
+            {errorText(error)}
           </p>
         )}
         <div className="profile-save">
           <Button type="submit" busy={isSubmitting}>
-            Parolni yangilash
+            {t('password.update')}
           </Button>
         </div>
       </form>

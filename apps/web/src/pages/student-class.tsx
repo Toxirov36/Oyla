@@ -1,3 +1,5 @@
+import { localizeText } from '../i18n';
+import { translate as tx, useI18n as usePageLocale } from '../i18n';
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -10,6 +12,7 @@ import { ComboboxField } from '../components/combobox-field';
 import { StudentAssignments } from '../components/student-assignments';
 
 export default function StudentClassPage() {
+  usePageLocale();
   const { user } = useAuth();
   const [params, setParams] = useSearchParams();
   const cache = useQueryClient();
@@ -37,7 +40,7 @@ export default function StudentClassPage() {
           method: 'PATCH',
           body: {},
         });
-        setMessage(`${member.name} bilan do‘stlik o‘rnatildi.`);
+        setMessage(tx('pages.student-class.youAreNowFriendsWith', { value1: member.name }));
       } else {
         const result = await api<{ state: string }>('/friends/classmates', {
           method: 'POST',
@@ -45,10 +48,10 @@ export default function StudentClassPage() {
         });
         setMessage(
           result.state === 'ACCEPTED'
-            ? `${member.name} allaqachon do‘stingiz.`
+            ? tx('pages.student-class.isAlreadyYourFriend', { value1: member.name })
             : result.state === 'INCOMING'
-              ? 'Bu sinfdoshingizdan kelgan so‘rovni qabul qilishingiz mumkin.'
-              : `${member.name} ga do‘stlik so‘rovi yuborildi.`,
+              ? tx('pages.student-class.youCanAcceptThisClassmatesRequest')
+              : tx('pages.student-class.friendRequestSentTo', { value1: member.name }),
         );
       }
       await Promise.all([
@@ -69,18 +72,18 @@ export default function StudentClassPage() {
   return (
     <>
       <PageHeader
-        eyebrow="BIR SINFMIZ — BIRGA O‘RGANAMIZ"
-        title="Mening sinfim"
-        description="Sinfingiz, sinfdoshlaringiz va o‘qituvchingiz bergan topshiriqlar."
+        eyebrow={tx('pages.student-class.oneClassLearningTogether')}
+        title={tx('navigation.class')}
+        description={tx('pages.student-class.yourClassClassmatesAndTeachersAssignments')}
       />
       {!classes.data.length ? (
         <Card>
           <EmptyState
-            title="Hali sinfga biriktirilmagansiz"
-            description="Administrator sizni sinfga qo‘shganda uning ma’lumotlari shu yerda ko‘rinadi."
+            title={tx('profile.noClass')}
+            description={tx('pages.student-class.yourClassDetailsWillAppearHereOnceAn')}
             action={
               <Link className="btn btn-primary" to="/subjects">
-                Mustaqil o‘rganish
+                {tx('pages.student-class.independentLearning')}
               </Link>
             }
           />
@@ -90,11 +93,16 @@ export default function StudentClassPage() {
           {classes.data.length > 1 && (
             <div className="student-class-picker">
               <ComboboxField
-                label="Sinfni tanlash"
+                label={tx('pages.student-class.selectClass')}
                 disabled={!!busy}
                 options={classes.data.map((group) => ({
                   value: group.id,
-                  label: `${group.name} · ${group.grade}-sinf`,
+                  get label() {
+                    return tx('pages.admin.classes.grade', {
+                      value1: group.name,
+                      value2: group.grade,
+                    });
+                  },
                 }))}
                 value={classId}
                 onChange={(id) => {
@@ -117,13 +125,17 @@ export default function StudentClassPage() {
                     <GraduationCap size={28} />
                   </span>
                   <div className="student-class-info">
-                    <span className="eyebrow">SINF HAQIDA</span>
+                    <span className="eyebrow">{tx('pages.student-class.aboutTheClass')}</span>
                     <h2>{detail.data.name}</h2>
                     <p>
-                      {detail.data.grade}-sinf · {detail.data.studentCount} o‘quvchi
+                      {tx('pages.student-class.gradeStudents', {
+                        value1: detail.data.grade,
+                        value2: detail.data.studentCount,
+                      })}
                     </p>
                     <p>
-                      O‘qituvchi: <strong>{detail.data.teacher.name}</strong>
+                      {tx('pages.student-class.teacher')}
+                      <strong>{detail.data.teacher.name}</strong>
                     </p>
                   </div>
                   <Link
@@ -131,12 +143,12 @@ export default function StudentClassPage() {
                     to={`/leaderboard?scope=class&classId=${detail.data.id}`}
                   >
                     <Trophy size={18} />
-                    Sinf reytingi
+                    {tx('pages.student-class.classRanking')}
                   </Link>
                 </Card>
                 {error && (
                   <p className="form-error" role="alert">
-                    {error}
+                    {localizeText(error)}
                   </p>
                 )}
                 {message && (
@@ -145,10 +157,10 @@ export default function StudentClassPage() {
                   </p>
                 )}
                 <div className="section-title">
-                  <h2>Sinfdoshlar</h2>
+                  <h2>{tx('pages.student-class.classmates')}</h2>
                   <span className="pill">
                     <Users size={15} />
-                    {detail.data.studentCount} o‘quvchi
+                    {tx('pages.admin.classes.students', { value1: detail.data.studentCount })}
                   </span>
                 </div>
                 <Card className="classmate-list">
@@ -158,7 +170,9 @@ export default function StudentClassPage() {
                       <div className="friend-person">
                         <strong>
                           {member.name}
-                          {member.isMe && <small className="classmate-me">Siz</small>}
+                          {member.isMe && (
+                            <small className="classmate-me">{tx('pages.student-class.you')}</small>
+                          )}
                         </strong>
                       </div>
                       {!member.isMe && (
@@ -166,17 +180,17 @@ export default function StudentClassPage() {
                           {member.friendship?.state === 'FRIENDS' ? (
                             <span className="pill status-completed">
                               <Check size={15} />
-                              Do‘stingiz
+                              {tx('pages.brain-ring.yourFriend')}
                             </span>
                           ) : member.friendship?.state === 'OUTGOING' ? (
-                            <span className="pill">So‘rov yuborilgan</span>
+                            <span className="pill">{tx('pages.student-class.requestSent')}</span>
                           ) : (
                             <Button
                               variant="secondary"
                               disabled={!!busy}
                               busy={busy === member.id}
                               onClick={() => void friendshipAction(member)}
-                              aria-label={`${member.name}: ${member.friendship?.state === 'INCOMING' ? 'so‘rovni qabul qilish' : 'do‘stlikka taklif qilish'}`}
+                              aria-label={`${member.name}: ${member.friendship?.state === 'INCOMING' ? tx('pages.student-class.acceptRequest') : tx('pages.student-class.sendFriendRequestVariant331')}`}
                             >
                               {member.friendship?.state === 'INCOMING' ? (
                                 <Check size={16} />
@@ -184,8 +198,8 @@ export default function StudentClassPage() {
                                 <UserPlus size={16} />
                               )}
                               {member.friendship?.state === 'INCOMING'
-                                ? 'Qabul qilish'
-                                : 'Do‘stlikka taklif qilish'}
+                                ? tx('pages.brain-ring.accept')
+                                : tx('pages.student-class.sendFriendRequest')}
                             </Button>
                           )}
                         </div>
@@ -193,13 +207,13 @@ export default function StudentClassPage() {
                     </div>
                   ))}
                   <Link to="/friends" className="text-link classmates-manage">
-                    Do‘stlik so‘rovlarini boshqarish
+                    {tx('pages.student-class.manageFriendRequests')}
                   </Link>
                 </Card>
                 <div className="section-title">
-                  <h2>Sinf topshiriqlari</h2>
+                  <h2>{tx('pages.student-class.classAssignments')}</h2>
                   <span className="subtle">
-                    Sizning bajarish holatingiz · vaqt Toshkent bo‘yicha
+                    {tx('pages.student-class.yourProgressTashkentTime')}
                   </span>
                 </div>
                 <StudentAssignments assignments={detail.data.assignments} />

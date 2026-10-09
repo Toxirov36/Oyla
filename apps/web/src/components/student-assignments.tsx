@@ -1,10 +1,14 @@
+import { localizeText } from '../i18n';
+import { translate as tx, useI18n as usePageLocale } from '../i18n';
 import { Link } from 'react-router-dom';
 import { BookOpen, CheckCircle2, Clock3 } from 'lucide-react';
 import type { Assignment } from '../lib/types';
 import { tashkentDate } from '../lib/locale';
 import { Card, EmptyState, dateLabel } from './ui';
+import { AssignmentAttachments } from './assignment-attachments';
 
 export function StudentAssignments({ assignments }: { assignments: Assignment[] }) {
+  usePageLocale();
   return assignments.length ? (
     <div className="assignment-grid">
       {assignments.map((a) => {
@@ -18,32 +22,39 @@ export function StudentAssignments({ assignments }: { assignments: Assignment[] 
               </span>
               <span className={`pill ${a.submissions.length ? 'status-completed' : ''}`}>
                 {a.submissions.length
-                  ? 'Bajarilgan'
+                  ? tx('common.completed')
                   : new Date(a.deadline) < new Date()
-                    ? 'Muddat o‘tgan'
-                    : 'Bajarish kerak'}
+                    ? tx('pages.student-assignments.overdue')
+                    : tx('pages.student-assignments.toDo')}
               </span>
             </div>
             <h3>{a.title}</h3>
-            <p>{a.lesson.title}</p>
+            <p>{localizeText(a.lesson.title)}</p>
+            <AssignmentAttachments attachments={a.attachments} />
             <div className="assignment-meta">
               <Clock3 size={16} />
               <time dateTime={a.deadline}>
-                {dateLabel(a.deadline)}, {time} gacha
+                {tx('pages.student-assignments.due', {
+                  value1: dateLabel(a.deadline),
+                  value2: time,
+                })}
               </time>{' '}
               · {a.class.name}
             </div>
             {a.submissions[0] && (
               <p className="submission-score">
-                Natija: <strong>{a.submissions[0].score}%</strong>
-                {a.submissions[0].late ? ' · kech topshirilgan' : ''}
+                {tx('pages.student-assignments.result')}
+                <strong>{a.submissions[0].score}%</strong>
+                {a.submissions[0].late ? tx('pages.student-assignments.submittedLate') : ''}
               </p>
             )}
             <Link
               to={`/lessons/${a.lesson.id}`}
               className={`btn ${a.submissions.length ? 'btn-secondary' : 'btn-primary'}`}
             >
-              {a.submissions.length ? 'Darsni takrorlash' : 'Topshiriqni boshlash'}
+              {a.submissions.length
+                ? tx('pages.student-assignments.reviewLesson')
+                : tx('pages.student-assignments.startAssignment')}
             </Link>
           </Card>
         );
@@ -52,11 +63,13 @@ export function StudentAssignments({ assignments }: { assignments: Assignment[] 
   ) : (
     <Card>
       <EmptyState
-        title="Hozircha topshiriqlar yo‘q"
-        description="O‘qituvchingiz topshiriq berganda shu yerda ko‘rinadi."
+        title={tx('pages.student-assignments.noAssignmentsYet')}
+        description={tx(
+          'pages.student-assignments.assignmentsAppearHereWhenYourTeacherAssignsThem',
+        )}
         action={
           <Link to="/subjects" className="btn btn-primary">
-            Mustaqil o‘rganish
+            {tx('pages.student-class.independentLearning')}
           </Link>
         }
       />

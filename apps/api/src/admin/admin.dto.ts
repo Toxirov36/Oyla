@@ -66,7 +66,6 @@ export class TopicDto {
   @Optional()
   @IsEnum(ContentStatus)
   status?: ContentStatus;
-  @ApiPropertyOptional() @Optional() @IsInt() @Min(0) @Max(10000) position?: number;
 }
 export class UpdateTopicDto extends PartialType(TopicDto, { skipNullProperties: false }) {}
 export class LessonDto {

@@ -22,32 +22,34 @@ import { Button } from './ui';
 import { NotificationBell } from './notification-bell';
 import { HeaderUserMenu } from './header-user-menu';
 import { brand } from '../lib/brand';
+import { useI18n } from '../i18n';
+import { LanguageSwitcher } from './language-switcher';
 
 const studentNav = [
-  { to: '/dashboard', label: 'Bosh sahifa', icon: House },
-  { to: '/subjects', label: 'Mening fanlarim', icon: BookOpen },
-  { to: '/challenge', label: 'Kunlik challenge', icon: Zap },
-  { to: '/progress', label: 'Mening progressim', icon: ChartNoAxesCombined },
-  { to: '/my-class', label: 'Mening sinfim', icon: GraduationCap },
-  { to: '/leaderboard', label: 'Reyting', icon: Trophy },
-  { to: '/friends', label: 'Do‘stlarim', icon: Users },
-  { to: '/badges', label: 'Nishonlar', icon: Award },
-  { to: '/assignments', label: 'Topshiriqlar', icon: ClipboardList },
-  { to: '/games', label: 'O‘yinlar', icon: Gamepad2 },
-  { to: '/videos', label: 'Videodarslar', icon: Clapperboard },
+  { to: '/dashboard', label: 'navigation.home', icon: House },
+  { to: '/subjects', label: 'navigation.subjects', icon: BookOpen },
+  { to: '/challenge', label: 'navigation.challenge', icon: Zap },
+  { to: '/progress', label: 'navigation.progress', icon: ChartNoAxesCombined },
+  { to: '/my-class', label: 'navigation.class', icon: GraduationCap },
+  { to: '/leaderboard', label: 'navigation.leaderboard', icon: Trophy },
+  { to: '/friends', label: 'navigation.friends', icon: Users },
+  { to: '/badges', label: 'navigation.badges', icon: Award },
+  { to: '/assignments', label: 'navigation.assignments', icon: ClipboardList },
+  { to: '/games', label: 'navigation.games', icon: Gamepad2 },
+  { to: '/videos', label: 'navigation.videos', icon: Clapperboard },
 ];
 const teacherNav = [
-  { to: '/teacher', label: 'Mening sinflarim', icon: GraduationCap },
-  { to: '/teacher/assignments', label: 'Topshiriqlar', icon: ClipboardList },
+  { to: '/teacher', label: 'navigation.classes', icon: GraduationCap },
+  { to: '/teacher/assignments', label: 'navigation.assignments', icon: ClipboardList },
 ];
 const adminNav = [
-  { to: '/admin', label: 'Umumiy ko‘rinish', icon: House },
-  { to: '/admin/content', label: 'O‘quv kontenti', icon: Layers },
-  { to: '/admin/users', label: 'Foydalanuvchilar', icon: Users },
-  { to: '/admin/classes', label: 'Sinflar', icon: GraduationCap },
-  { to: '/admin/gamification', label: 'Gamifikatsiya', icon: Settings2 },
-  { to: '/admin/avatars', label: 'Avatarlar katalogi', icon: UserRound },
-  { to: '/admin/videos', label: 'Videodarslar', icon: Clapperboard },
+  { to: '/admin', label: 'navigation.overview', icon: House },
+  { to: '/admin/content', label: 'navigation.content', icon: Layers },
+  { to: '/admin/users', label: 'navigation.users', icon: Users },
+  { to: '/admin/classes', label: 'navigation.adminClasses', icon: GraduationCap },
+  { to: '/admin/gamification', label: 'navigation.gamification', icon: Settings2 },
+  { to: '/admin/avatars', label: 'navigation.avatars', icon: UserRound },
+  { to: '/admin/videos', label: 'navigation.videos', icon: Clapperboard },
 ];
 const adminTeacherNav = [...adminNav, ...teacherNav];
 export function Logo() {
@@ -79,6 +81,7 @@ export function Logo() {
   );
 }
 export function AppShell() {
+  const { t } = useI18n();
   const { user, signOut } = useAuth();
   const [menu, setMenu] = useState(false);
   const nav =
@@ -91,24 +94,28 @@ export function AppShell() {
           : adminNav;
   const roleLabel =
     user!.role === 'STUDENT'
-      ? `${user!.student?.grade}-sinf o‘quvchisi`
+      ? t('role.studentGrade', { grade: user!.student?.grade })
       : user!.role === 'TEACHER'
-        ? 'O‘qituvchi'
+        ? t('role.TEACHER')
         : user!.teacherAccess
-          ? 'Administrator · O‘qituvchi'
-          : 'Administrator';
+          ? t('role.adminTeacher')
+          : t('role.ADMIN');
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main">
-        Asosiy tarkibga o‘tish
+        {t('navigation.skip')}
       </a>
       <aside className={`sidebar ${menu ? 'mobile-open' : ''}`}>
-        <Link to={homeFor(user!)} className="brand" aria-label={`${brand.name} bosh sahifa`}>
+        <Link
+          to={homeFor(user!)}
+          className="brand"
+          aria-label={t('navigation.homeLabel', { brand: brand.name })}
+        >
           <Logo />
         </Link>
-        <p className="brand-tagline">{brand.tagline}</p>
-        <div className="nav-label">SIZNING MAYDONINGIZ</div>
-        <nav aria-label="Asosiy navigatsiya">
+        <p className="brand-tagline">{t('brand.tagline')}</p>
+        <div className="nav-label">{t('navigation.area')}</div>
+        <nav aria-label={t('navigation.main')}>
           {nav.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
@@ -117,7 +124,7 @@ export function AppShell() {
               onClick={() => setMenu(false)}
             >
               <Icon size={20} />
-              <span>{label}</span>
+              <span>{t(label)}</span>
             </NavLink>
           ))}
         </nav>
@@ -128,15 +135,16 @@ export function AppShell() {
             <Button
               variant="ghost"
               className="mobile-menu"
-              aria-label="Menyuni ochish"
+              aria-label={t('navigation.openMenu')}
               aria-expanded={menu}
               onClick={() => setMenu(!menu)}
             >
               <Menu size={22} />
             </Button>
-            <span className="platform-label">BILIM UCHUN YANGI MAYDON</span>
+            <span className="platform-label">{t('navigation.platformLabel')}</span>
           </div>
           <div className="topbar-actions">
+            <LanguageSwitcher />
             <NotificationBell />
             <HeaderUserMenu
               name={user!.name}
@@ -155,19 +163,23 @@ export function AppShell() {
           <span>
             © {new Date().getFullYear()} {brand.name}
           </span>
-          <span>Bilimingiz — eng katta imkoniyatingiz.</span>
+          <span>{t('navigation.footer')}</span>
         </footer>
       </div>
-      <nav className="bottom-nav" aria-label="Mobil navigatsiya">
+      <nav className="bottom-nav" aria-label={t('navigation.mobile')}>
         {nav.slice(0, 4).map(({ to, label, icon: Icon }) => (
           <NavLink to={to} key={to} end={['/dashboard', '/teacher', '/admin'].includes(to)}>
             <Icon size={21} />
-            <span>{label.split(' ').at(-1)}</span>
+            <span>{t(label).split(' ').at(-1)}</span>
           </NavLink>
         ))}
-        <button onClick={() => setMenu(!menu)} aria-label="Barcha sahifalar" aria-expanded={menu}>
+        <button
+          onClick={() => setMenu(!menu)}
+          aria-label={t('navigation.allPages')}
+          aria-expanded={menu}
+        >
           <Menu size={21} />
-          <span>Menyu</span>
+          <span>{t('navigation.menu')}</span>
         </button>
       </nav>
     </div>

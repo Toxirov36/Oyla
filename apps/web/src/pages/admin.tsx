@@ -1,3 +1,5 @@
+import { localizeText } from '../i18n';
+import { translate as tx, useI18n as usePageLocale } from '../i18n';
 import { QuestionEditor } from '../components/exercises/question-editor';
 import { AdminClasses } from './admin/classes';
 import { AdminGamification } from './admin/gamification';
@@ -30,20 +32,46 @@ import { Button, ErrorState, Loading, Modal, PageHeader, StatusPill } from '../c
 import { EntityEditor, type EditorField, type EditorSpec } from '../components/entity-editor';
 
 const statuses = [
-  { value: 'DRAFT', label: 'Qoralama' },
-  { value: 'PUBLISHED', label: 'Chop etilgan' },
-  { value: 'ARCHIVED', label: 'Arxiv' },
+  {
+    value: 'DRAFT',
+    get label() {
+      return tx('common.draft');
+    },
+  },
+  {
+    value: 'PUBLISHED',
+    get label() {
+      return tx('common.published');
+    },
+  },
+  {
+    value: 'ARCHIVED',
+    get label() {
+      return tx('common.archived');
+    },
+  },
 ];
 const statusField: EditorField = {
   key: 'status',
-  label: 'Holat',
+  get label() {
+    return tx('pages.admin.users.status');
+  },
   kind: 'select',
   options: statuses,
 };
-const titleField: EditorField = { key: 'title', label: 'Nomi', min: 2, max: 100 };
+const titleField: EditorField = {
+  key: 'title',
+  get label() {
+    return tx('pages.admin.avatars.name');
+  },
+  min: 2,
+  max: 100,
+};
 const positionField: EditorField = {
   key: 'position',
-  label: 'Tartib raqami',
+  get label() {
+    return tx('pages.admin.avatars.displayOrder');
+  },
   kind: 'number',
   min: 0,
   max: 10000,
@@ -57,6 +85,7 @@ export default function AdminPage({
 }: {
   mode?: 'overview' | 'users' | 'content' | 'gamification' | 'classes';
 }) {
+  usePageLocale();
   const cache = useQueryClient();
   const [params] = useSearchParams();
   const [userEditor, setUserEditor] = useState<{ user?: User } | null>(null);
@@ -132,13 +161,22 @@ export default function AdminPage({
   const createContent = (kind: ContentKind, item?: ContentEntity, parentId?: string) => {
     const tree = content.data || [];
     const courses = tree.flatMap((s) =>
-      s.courses.map((c) => ({ ...c, label: `${s.title} / ${c.grade}-sinf / ${c.title}` })),
+      s.courses.map((c) => ({
+        ...c,
+        get label() {
+          return tx('pages.admin.grade', {
+            value1: localizeText(s.title),
+            value2: c.grade,
+            value3: localizeText(c.title),
+          });
+        },
+      })),
     );
     const topics = courses.flatMap((c) =>
-      c.topics.map((t) => ({ ...t, label: `${c.label} / ${t.title}` })),
+      c.topics.map((t) => ({ ...t, label: `${c.label} / ${localizeText(t.title)}` })),
     );
     const lessons = topics.flatMap((t) =>
-      t.lessons.map((l) => ({ ...l, label: `${t.label} / ${l.title}` })),
+      t.lessons.map((l) => ({ ...l, label: `${t.label} / ${localizeText(l.title)}` })),
     );
     if (kind === 'questions') {
       setQuestionEditor({
@@ -156,37 +194,63 @@ export default function AdminPage({
       key,
       label,
       kind: 'select',
-      options: values.map((v) => ({ value: v.id, label: v.label || v.title || '' })),
-      schema: z.uuid('Tanlang.'),
+      options: values.map((v) => ({ value: v.id, label: v.label || localizeText(v.title) })),
+      schema: z.uuid(tx('pages.admin.chooseAnOption')),
     });
     let fields: EditorField[];
     let values = entityValues(item);
     const names = {
-      subjects: 'Fan',
-      courses: 'Kurs',
-      topics: 'Mavzu',
-      lessons: 'Dars',
-      questions: 'Savol',
+      get subjects() {
+        return tx('pages.admin.videos.subject');
+      },
+      get courses() {
+        return tx('pages.admin.course');
+      },
+      get topics() {
+        return tx('pages.admin.content.topic');
+      },
+      get lessons() {
+        return tx('pages.admin.content.lesson');
+      },
+      get questions() {
+        return tx('pages.admin.question');
+      },
     };
     if (kind === 'subjects')
       fields = [
         titleField,
         {
           key: 'slug',
-          label: 'Qisqa nom (lotincha)',
+          get label() {
+            return tx('pages.admin.shortNameLatinLetters');
+          },
           schema: z
             .string()
-            .regex(/^[a-z][a-z0-9-]{1,59}$/, 'Kichik lotin harflari va chiziqcha ishlating.'),
+            .regex(/^[a-z][a-z0-9-]{1,59}$/, tx('pages.admin.useLowercaseLatinLettersAndHyphens')),
         },
-        { key: 'description', label: 'Tavsif', kind: 'textarea', max: 1000 },
+        {
+          key: 'description',
+          get label() {
+            return tx('pages.admin.videos.description');
+          },
+          kind: 'textarea',
+          max: 1000,
+        },
         statusField,
         positionField,
       ];
     else if (kind === 'courses') {
       fields = [
-        select('subjectId', 'Fan', tree),
+        select('subjectId', tx('pages.admin.videos.subject'), tree),
         titleField,
-        { key: 'grade', label: 'Sinf', kind: 'select', options: grades },
+        {
+          key: 'grade',
+          get label() {
+            return tx('pages.admin.users.grade');
+          },
+          kind: 'select',
+          options: grades,
+        },
         statusField,
         positionField,
       ];
@@ -197,28 +261,59 @@ export default function AdminPage({
         ...(item && 'grade' in item ? { grade: String(item.grade) } : {}),
       };
     } else if (kind === 'topics') {
-      fields = [select('courseId', 'Kurs', courses), titleField, statusField, positionField];
+      fields = [
+        select('courseId', tx('pages.admin.course'), courses),
+        titleField,
+        statusField,
+      ];
       values = { courseId: parentId, ...values };
     } else if (kind === 'lessons') {
       fields = [
-        select('topicId', 'Mavzu', topics),
+        select('topicId', tx('pages.admin.content.topic'), topics),
         { ...titleField, max: 150 },
         {
           key: 'explanation',
-          label: 'Tushuntirish',
+          get label() {
+            return tx('lesson.explanation');
+          },
           kind: 'textarea',
           min: 20,
-          help: 'Abzaslarni bo‘sh satr bilan ajrating.',
+          get help() {
+            return tx('pages.admin.separateParagraphsWithABlankLine');
+          },
         },
-        { key: 'example', label: 'Yechilgan misol', kind: 'textarea', min: 10, max: 10000 },
-        { key: 'duration', label: 'Davomiylik (daqiqa)', kind: 'number', min: 1, max: 180 },
+        {
+          key: 'example',
+          get label() {
+            return tx('pages.admin.workedExample');
+          },
+          kind: 'textarea',
+          min: 10,
+          max: 10000,
+        },
+        {
+          key: 'duration',
+          get label() {
+            return tx('pages.admin.durationMinutes');
+          },
+          kind: 'number',
+          min: 1,
+          max: 180,
+        },
         {
           key: 'prerequisiteId',
-          label: 'Avval bajariladigan dars',
+          get label() {
+            return tx('pages.admin.prerequisiteLesson');
+          },
           kind: 'select',
           optional: true,
           options: [
-            { value: '', label: 'Shartsiz ochiq' },
+            {
+              value: '',
+              get label() {
+                return tx('pages.admin.noPrerequisite');
+              },
+            },
             ...lessons
               .filter((l) => l.id !== item?.id)
               .map((l) => ({ value: l.id, label: l.label })),
@@ -226,14 +321,18 @@ export default function AdminPage({
         },
         {
           key: 'unlockScore',
-          label: 'Oldingi darsdagi minimal natija (%)',
+          get label() {
+            return tx('pages.admin.minimumScoreOnThePreviousLesson');
+          },
           kind: 'number',
           min: 0,
           max: 100,
         },
         {
           key: 'masteryScore',
-          label: 'Darsni o‘zlashtirish uchun minimal natija (%)',
+          get label() {
+            return tx('pages.admin.minimumScoreToMasterTheLesson');
+          },
           kind: 'number',
           min: 0,
           max: 100,
@@ -253,7 +352,11 @@ export default function AdminPage({
       return;
     }
     setEditor({
-      title: `${names[kind]} ${item ? 'tahrirlash' : 'yaratish'}`,
+      get title() {
+        return tx(item ? 'pages.admin.editEntity' : 'pages.admin.createEntity', {
+          entity: names[kind],
+        });
+      },
       endpoint: `/admin/${kind}`,
       fields,
       id: item?.id,
@@ -274,14 +377,16 @@ export default function AdminPage({
       <StatusPill status={item.status} />
       <Button
         variant="ghost"
-        aria-label={`${'title' in item ? item.title : 'Savol'} tahrirlash`}
+        aria-label={tx('pages.admin.users.edit', {
+          value1: 'title' in item ? item.title : tx('pages.admin.question'),
+        })}
         onClick={() => createContent(kind, item)}
       >
         <Pencil size={16} />
       </Button>
       <Button
         variant="ghost"
-        aria-label="O‘chirish"
+        aria-label={tx('notifications.remove')}
         onClick={() => {
           setError('');
           setDeletion({
@@ -298,31 +403,64 @@ export default function AdminPage({
     const fields: EditorField[] =
       kind === 'levels'
         ? [
-            { key: 'number', label: 'Daraja raqami', kind: 'number', min: 1, max: 1000 },
+            {
+              key: 'number',
+              get label() {
+                return tx('pages.admin.levelNumber');
+              },
+              kind: 'number',
+              min: 1,
+              max: 1000,
+            },
             titleField,
-            { key: 'threshold', label: 'Boshlanish XP chegarasi', kind: 'number', min: 0 },
+            {
+              key: 'threshold',
+              get label() {
+                return tx('pages.admin.startingXpThreshold');
+              },
+              kind: 'number',
+              min: 0,
+            },
           ]
         : [
             titleField,
-            { key: 'slug', label: 'Qisqa nom', schema: z.string().regex(/^[a-z][a-z0-9-]{1,59}$/) },
+            {
+              key: 'slug',
+              get label() {
+                return tx('pages.admin.shortName');
+              },
+              schema: z.string().regex(/^[a-z][a-z0-9-]{1,59}$/),
+            },
             {
               key: 'description',
-              label: 'Qanday olish mumkin?',
+              get label() {
+                return tx('pages.admin.howToEarnIt');
+              },
               kind: 'textarea',
               min: 3,
               max: 500,
             },
-            { key: 'criterion', label: 'Mezon', kind: 'select', options: criterions },
+            {
+              key: 'criterion',
+              get label() {
+                return tx('pages.admin.criterion');
+              },
+              kind: 'select',
+              options: criterions,
+            },
             {
               key: 'threshold',
-              label: 'Kerakli natijalar soni',
+              get label() {
+                return tx('pages.admin.requiredNumberOfResults');
+              },
               kind: 'number',
               min: 1,
               max: 100000,
             },
           ];
     setEditor({
-      title: kind === 'levels' ? 'Darajani sozlash' : 'Nishonni sozlash',
+      title:
+        kind === 'levels' ? tx('pages.admin.configureLevel') : tx('pages.admin.configureBadge'),
       endpoint: `/admin/${kind}`,
       fields,
       id: item?.id,
@@ -332,16 +470,32 @@ export default function AdminPage({
   const editUser = (user?: User) => setUserEditor({ user });
   const editClass = (group?: AdminClass) =>
     setEditor({
-      title: group ? 'Sinfni tahrirlash' : 'Yangi sinf',
+      title: group ? tx('pages.admin.classes.editClass') : tx('pages.admin.newClass'),
       endpoint: '/admin/classes',
       id: group?.id,
       values: { ...entityValues(group), grade: String(group?.grade || 6) },
       fields: [
-        { key: 'name', label: 'Sinf nomi', min: 2, max: 80 },
-        { key: 'grade', label: 'Bosqich', kind: 'select', options: grades },
+        {
+          key: 'name',
+          get label() {
+            return tx('pages.admin.className');
+          },
+          min: 2,
+          max: 80,
+        },
+        {
+          key: 'grade',
+          get label() {
+            return tx('pages.admin.gradeLevel');
+          },
+          kind: 'select',
+          options: grades,
+        },
         {
           key: 'teacherId',
-          label: 'O‘qituvchi',
+          get label() {
+            return tx('role.TEACHER');
+          },
           kind: 'select',
           schema: z.uuid(),
           options: (staff.data?.items || [])
@@ -354,40 +508,60 @@ export default function AdminPage({
   return (
     <>
       <PageHeader
-        eyebrow="PLATFORMA BOSHQARUVI"
+        eyebrow={tx('pages.admin.platformManagement')}
         title={
           {
-            overview: `${brand.name} bir qarashda`,
-            users: 'Foydalanuvchilar',
-            content: 'Bilim kutubxonasi',
-            gamification: 'O‘rganishni rag‘batlantiring',
-            classes: 'Sinflar va o‘qituvchilar',
+            get overview() {
+              return tx('pages.admin.atAGlance', { value1: brand.name });
+            },
+            get users() {
+              return tx('navigation.users');
+            },
+            get content() {
+              return tx('pages.admin.learningLibrary');
+            },
+            get gamification() {
+              return tx('pages.admin.encourageLearning');
+            },
+            get classes() {
+              return tx('pages.admin.classesAndTeachers');
+            },
           }[mode]
         }
         description={
           {
-            overview: 'Haqiqiy faoliyat, kontent va o‘quv natijalari.',
-            users: 'O‘quvchi va o‘qituvchi hisoblarini boshqaring.',
-            content: 'Fan → sinf → kurs → mavzu → dars → savol. Kontentni shu yerdan chop eting.',
-            gamification: 'XP qoidalari, darajalar va nishonlar.',
-            classes: 'Sinf yarating, o‘qituvchini va o‘quvchilarni biriktiring.',
+            get overview() {
+              return tx('pages.admin.currentActivityContentAndLearningResults');
+            },
+            get users() {
+              return tx('pages.admin.manageStudentAndTeacherAccounts');
+            },
+            get content() {
+              return tx('pages.admin.subjectGradeCourseTopicLessonQuestionPublishContent');
+            },
+            get gamification() {
+              return tx('pages.admin.xpRulesLevelsAndBadges');
+            },
+            get classes() {
+              return tx('pages.admin.createAClassAndAssignItsTeacherAnd');
+            },
           }[mode]
         }
         action={
           mode === 'users' ? (
             <Button onClick={() => editUser()}>
               <Plus size={18} />
-              Foydalanuvchi
+              {tx('pages.admin.users.user')}
             </Button>
           ) : mode === 'content' ? (
             <Button onClick={() => createContent('subjects')}>
               <Plus size={18} />
-              Fan qo‘shish
+              {tx('pages.admin.addSubject')}
             </Button>
           ) : mode === 'classes' ? (
             <Button onClick={() => editClass()}>
               <Plus size={18} />
-              Sinf yaratish
+              {tx('pages.admin.createClass')}
             </Button>
           ) : undefined
         }
@@ -440,7 +614,7 @@ export default function AdminPage({
         onOpenChange={(open) => {
           if (!open) setUserEditor(null);
         }}
-        title={userEditor?.user ? 'Foydalanuvchini tahrirlash' : 'Yangi foydalanuvchi'}
+        title={userEditor?.user ? tx('pages.admin.editUser') : tx('pages.admin.newUser')}
       >
         {userEditor && <UserEditor user={userEditor.user} close={() => setUserEditor(null)} />}
       </Modal>
@@ -449,7 +623,7 @@ export default function AdminPage({
         onOpenChange={(open) => {
           if (!open) setResetUser(null);
         }}
-        title="Parolni tiklash"
+        title={tx('recovery.reset')}
       >
         {resetUser && <AdminPasswordReset key={resetUser.id} user={resetUser} />}
       </Modal>
@@ -458,7 +632,11 @@ export default function AdminPage({
         onOpenChange={(open) => {
           if (!open) setQuestionEditor(null);
         }}
-        title={questionEditor?.question ? 'Savol tahrirlash' : 'Savol yaratish'}
+        title={
+          questionEditor?.question
+            ? tx('pages.admin.editQuestion')
+            : tx('pages.admin.createQuestion')
+        }
         wide
       >
         {questionEditor && (
@@ -470,7 +648,7 @@ export default function AdminPage({
         onOpenChange={(open) => {
           if (!open) setEditor(null);
         }}
-        title={editor?.title || ''}
+        title={localizeText(editor?.title)}
         wide={mode === 'content'}
       >
         {editor && (
@@ -486,20 +664,20 @@ export default function AdminPage({
         onOpenChange={(open) => {
           if (!open) setDeletion(null);
         }}
-        title="Amalni tasdiqlang"
+        title={tx('pages.admin.confirmAction')}
         description={deletion?.title || ''}
       >
         <p className="delete-notice">
-          Bog‘langan kontent o‘chirilmasligi mumkin. Zarur bo‘lsa kontentni arxivlang.
+          {tx('pages.admin.linkedContentMayPreventDeletionArchiveTheContent')}
         </p>
         {error && (
           <div className="form-error" role="alert">
-            {error}
+            {localizeText(error)}
           </div>
         )}
         <div className="modal-actions">
           <Button variant="secondary" onClick={() => setDeletion(null)}>
-            Bekor qilish
+            {tx('common.cancel')}
           </Button>
           <Button
             variant="danger"
@@ -517,7 +695,7 @@ export default function AdminPage({
               }
             }}
           >
-            Tasdiqlash
+            {tx('pages.admin.confirm')}
           </Button>
         </div>
       </Modal>
@@ -526,19 +704,19 @@ export default function AdminPage({
         onOpenChange={(open) => {
           if (!open) setMembership(null);
         }}
-        title={`${membership?.name || ''} o‘quvchilari`}
-        description="Sinf bosqichiga mos o‘quvchilarni belgilang."
+        title={tx('pages.admin.studentsIn', { value1: membership?.name || '' })}
+        description={tx('pages.admin.selectStudentsInTheMatchingGrade')}
       >
         <label className="search-input">
           <Search size={17} />
           <input
-            aria-label="O‘quvchini qidirish"
-            placeholder="Ism yoki email..."
+            aria-label={tx('pages.admin.searchStudents')}
+            placeholder={tx('pages.admin.nameOrEmail')}
             value={memberSearch}
             onChange={(e) => setMemberSearch(e.target.value)}
           />
         </label>
-        <p className="subtle">{memberIds.length} ta tanlangan</p>
+        <p className="subtle">{tx('pages.admin.selected', { value1: memberIds.length })}</p>
         <div className="membership-list">
           {allUsers.data?.items
             .filter(
@@ -566,12 +744,12 @@ export default function AdminPage({
         </div>
         {error && (
           <div className="form-error" role="alert">
-            {error}
+            {localizeText(error)}
           </div>
         )}
         <div className="modal-actions">
           <Button variant="secondary" onClick={() => setMembership(null)}>
-            Bekor qilish
+            {tx('common.cancel')}
           </Button>
           <Button
             busy={deleteBusy}
@@ -591,7 +769,7 @@ export default function AdminPage({
               }
             }}
           >
-            Saqlash
+            {tx('pages.admin.avatars.save')}
           </Button>
         </div>
       </Modal>

@@ -1,3 +1,4 @@
+import { translate as tx } from '../i18n';
 import type { AvatarOption, Feedback, Question, Status } from './types';
 export interface BrainMatch {
   id: string;
@@ -57,7 +58,13 @@ export interface VideoLesson {
   animation: AnimationDefinition | null;
 }
 export const subjectNames: Record<string, string> = {
-  mathematics: 'Matematika',
-  english: 'Ingliz tili',
-  informatics: 'Informatika',
+  get mathematics() {
+    return tx('subject.mathematics');
+  },
+  get english() {
+    return tx('subject.english');
+  },
+  get informatics() {
+    return tx('subject.informatics');
+  },
 };

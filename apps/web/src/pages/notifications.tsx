@@ -1,3 +1,4 @@
+import { translate as tx, useI18n as usePageLocale } from '../i18n';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCheck, ChevronLeft, ChevronRight, Search } from 'lucide-react';
@@ -23,6 +24,7 @@ import {
 } from '../components/notifications/primitives';
 
 export default function NotificationsPage() {
+  usePageLocale();
   const [page, setPage] = useState(1);
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [type, setType] = useState<NotificationType | ''>('');
@@ -64,8 +66,10 @@ export default function NotificationsPage() {
     <div className="notice-page notice-surface">
       <PageHeader
         className="notification-page-header"
-        title="Bildirishnomalar"
-        description={`${count.data?.unreadCount ?? query.data?.unreadCount ?? 0} ta o‘qilmagan · Hisobingizdagi so‘nggi yangiliklar`}
+        title={tx('notifications.title')}
+        description={tx('pages.notifications.unreadLatestUpdatesForYourAccount', {
+          value1: count.data?.unreadCount ?? query.data?.unreadCount ?? 0,
+        })}
         action={
           <button
             className="notice-page-read-all"
@@ -75,7 +79,7 @@ export default function NotificationsPage() {
             }}
           >
             <CheckCheck size={17} />
-            Barchasini o‘qish
+            {tx('notifications.readAll')}
           </button>
         }
       />
@@ -91,8 +95,8 @@ export default function NotificationsPage() {
               <label className="notice-search">
                 <Search size={16} />
                 <input
-                  aria-label="Bildirishnomalarni qidirish"
-                  placeholder="Qidirish…"
+                  aria-label={tx('pages.notifications.searchNotifications')}
+                  placeholder={tx('pages.notifications.search')}
                   value={search}
                   onChange={(e) => {
                     setSearch(e.target.value);
@@ -101,14 +105,14 @@ export default function NotificationsPage() {
                 />
               </label>
               <select
-                aria-label="Bildirishnoma turi"
+                aria-label={tx('pages.notifications.notificationType')}
                 value={type}
                 onChange={(e) => {
                   setType(e.target.value as NotificationType | '');
                   setPage(1);
                 }}
               >
-                <option value="">Barcha turlar</option>
+                <option value="">{tx('pages.notifications.allTypes')}</option>
                 {notificationTypes.map((item) => (
                   <option key={item.value} value={item.value}>
                     {item.label}
@@ -153,12 +157,12 @@ export default function NotificationsPage() {
             <NotificationEmptyState unreadOnly={unreadOnly} />
           )}
         </NotificationFilters>
-        <nav className="notice-pagination" aria-label="Bildirishnomalar sahifalari">
-          <span>{query.data?.total || 0} ta bildirishnoma</span>
+        <nav className="notice-pagination" aria-label={tx('pages.notifications.notificationPages')}>
+          <span>{tx('pages.notifications.notifications', { value1: query.data?.total || 0 })}</span>
           <div>
             <button
               className="notice-icon-button"
-              aria-label="Oldingi sahifa"
+              aria-label={tx('pages.notifications.previousPage')}
               disabled={page === 1 || query.isPending}
               onClick={() => setPage(page - 1)}
             >
@@ -169,7 +173,7 @@ export default function NotificationsPage() {
             </span>
             <button
               className="notice-icon-button"
-              aria-label="Keyingi sahifa"
+              aria-label={tx('pages.notifications.nextPage')}
               disabled={page * 20 >= (query.data?.total || 0) || query.isPending}
               onClick={() => setPage(page + 1)}
             >

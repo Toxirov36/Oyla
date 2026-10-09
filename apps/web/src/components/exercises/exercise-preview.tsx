@@ -1,3 +1,5 @@
+import { localizeText } from '../../i18n';
+import { translate as tx, useI18n as usePageLocale } from '../../i18n';
 import { useState } from 'react';
 import { api, errorText } from '../../lib/api';
 import type { Feedback, Question } from '../../lib/types';
@@ -14,6 +16,7 @@ export function ExercisePreview({
   definition: PreviewDefinition;
   mode?: string;
 }) {
+  usePageLocale();
   const [value, setValue] = useState('');
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [error, setError] = useState('');
@@ -35,12 +38,14 @@ export function ExercisePreview({
   } as Question;
   return (
     <div className="exercise-preview">
-      <span className="pill">Sinab ko‘rish · XP berilmaydi</span>
+      <span className="pill">{tx('pages.exercises.exercise-preview.previewModeNoXpAwarded')}</span>
       {game && (
         <div className="game-progress">
           <span className="game-character">{mode === 'BOSS_BATTLE' ? '🛡️' : '🚀'}</span>
           <div>
-            <strong>{mode === 'BOSS_BATTLE' ? 'Mavzu sinovi' : 'Bilim parvozi'}</strong>
+            <strong>
+              {mode === 'BOSS_BATTLE' ? tx('lesson.bossBattle') : tx('lesson.miniGame')}
+            </strong>
             <ProgressBar
               value={((mode === 'BOSS_BATTLE' ? 3 - round : round) / 3) * 100}
               tone="mint"
@@ -69,7 +74,7 @@ export function ExercisePreview({
           )}
           {error && (
             <p role="alert" className="form-error">
-              {error}
+              {localizeText(error)}
             </p>
           )}
           <div className="modal-actions">
@@ -83,7 +88,9 @@ export function ExercisePreview({
                 }}
               >
                 {' '}
-                {game && feedback.correct ? 'Davom etish' : 'Qayta sinash'}
+                {game && feedback.correct
+                  ? tx('common.continue')
+                  : tx('pages.exercises.exercise-preview.tryAgain')}
               </Button>
             ) : (
               <Button
@@ -107,15 +114,15 @@ export function ExercisePreview({
                   }
                 }}
               >
-                Tekshirish
+                {tx('pages.exercises.exercise-preview.check')}
               </Button>
             )}
           </div>
         </>
       ) : (
         <>
-          <h3>Sinov yakunlandi!</h3>
-          <p>Uchta topshiriq bajarildi. O‘quvchi darsida natija serverda saqlanadi.</p>
+          <h3>{tx('pages.exercises.exercise-preview.previewCompleted')}</h3>
+          <p>{tx('pages.exercises.exercise-preview.threeTasksCompletedInAStudentLessonResults')}</p>
           <Button
             type="button"
             onClick={() => {
@@ -124,7 +131,7 @@ export function ExercisePreview({
               setFeedback(null);
             }}
           >
-            Yana boshlash
+            {tx('pages.exercises.exercise-preview.startAgain')}
           </Button>
         </>
       )}

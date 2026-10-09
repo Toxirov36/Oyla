@@ -1,3 +1,4 @@
+import { translate as tx, localizeText } from '../i18n';
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -19,7 +20,8 @@ import {
 import { api, ApiError, errorText } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import type { Profile } from '../lib/types';
-import { tashkentDate } from '../lib/locale';
+import { formatNumber, tashkentDate } from '../lib/locale';
+import { useI18n } from '../i18n';
 import { ChangePasswordForm } from '../components/change-password';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 import { AvatarPicker } from '../components/avatar-picker';
@@ -38,18 +40,14 @@ import {
 } from '../components/ui';
 
 const schema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(2, 'Ism kamida 2 ta belgidan iborat bo‘lsin.')
-    .max(80, 'Ism 80 ta belgidan oshmasin.'),
+  name: z.string().trim().min(2, 'validation.nameMin').max(80, 'validation.nameMax'),
 });
-const roles = { STUDENT: 'O‘quvchi', TEACHER: 'O‘qituvchi', ADMIN: 'Administrator' };
 
 function ProfileForm({ profile }: { profile: Profile }) {
+  const { t } = useI18n();
   const { reloadUser } = useAuth();
   const cache = useQueryClient();
-  const [error, setError] = useState('');
+  const [error, setError] = useState<unknown>(null);
   const [saved, setSaved] = useState(false);
   const {
     register,
@@ -75,7 +73,7 @@ function ProfileForm({ profile }: { profile: Profile }) {
       await cache.invalidateQueries({ predicate: (query) => query.queryKey[0] !== 'profile' });
       setSaved(true);
     } catch (e) {
-      setError(errorText(e));
+      setError(e);
       if (e instanceof ApiError)
         for (const field of e.fields)
           if (field.field === 'name') fieldError('name', { message: field.messages.join(' ') });
@@ -83,10 +81,10 @@ function ProfileForm({ profile }: { profile: Profile }) {
   });
   return (
     <Card className="profile-details">
-      <h2>Hisob ma’lumotlari</h2>
-      <p className="card-subtitle">Ismingiz sinfingiz va o‘quv natijalaringizda ko‘rinadi.</p>
+      <h2>{t('profile.account')}</h2>
+      <p className="card-subtitle">{t('profile.nameHelp')}</p>
       <form onSubmit={submit} className="profile-form" noValidate>
-        <label htmlFor="profile-name">Ism va familiya</label>
+        <label htmlFor="profile-name">{t('profile.name')}</label>
         <input
           id="profile-name"
           autoComplete="name"
@@ -96,38 +94,37 @@ function ProfileForm({ profile }: { profile: Profile }) {
         />
         {errors.name && (
           <small id="profile-name-error" className="field-error" role="alert">
-            {errors.name.message}
+            {t(errors.name.message!)}
           </small>
         )}
-        <label htmlFor="profile-email">Email manzili</label>
+        <label htmlFor="profile-email">{t('profile.email')}</label>
         <input id="profile-email" type="email" value={profile.user.email} readOnly />
-        <p className="field-help">
-          Email hisob identifikatori sifatida ishlatiladi. O‘zgartirish uchun administratorga
-          murojaat qiling.
-        </p>
+        <p className="field-help">{t('profile.emailHelp')}</p>
         {profile.user.role === 'STUDENT' && profile.user.student && (
           <>
-            <label htmlFor="profile-grade">Sinfingiz</label>
-            <input id="profile-grade" value={`${profile.user.student.grade}-sinf`} readOnly />
-            <p className="field-help">
-              Sinfni administrator boshqaradi, shunda darslar va topshiriqlar mos keladi.
-            </p>
+            <label htmlFor="profile-grade">{t('auth.grade')}</label>
+            <input
+              id="profile-grade"
+              value={t('common.grade', { grade: profile.user.student.grade })}
+              readOnly
+            />
+            <p className="field-help">{t('profile.gradeHelp')}</p>
           </>
         )}
-        {error && (
+        {!!error && (
           <div className="form-error" role="alert">
-            {error}
+            {errorText(error)}
           </div>
         )}
         {saved && (
           <p className="profile-success" role="status">
             <CheckCircle2 size={18} />
-            Profilingiz saqlandi.
+            {t('profile.saved')}
           </p>
         )}
         <div className="profile-save">
           <Button type="submit" busy={isSubmitting} disabled={!isDirty}>
-            O‘zgarishlarni saqlash
+            {t('profile.save')}
           </Button>
         </div>
       </form>
@@ -136,6 +133,7 @@ function ProfileForm({ profile }: { profile: Profile }) {
 }
 
 export default function ProfilePage() {
+  const { t } = useI18n();
   const location = useLocation();
   const query = useQuery({
     queryKey: ['profile'],
@@ -166,40 +164,53 @@ export default function ProfilePage() {
   return (
     <>
       <PageHeader
-        eyebrow="SIZNING SHAXSIY MAYDONINGIZ"
-        title="Mening profilim"
-        description="Hisobingiz, o‘rganish yo‘lingiz va qo‘lga kiritgan natijalaringiz."
+        eyebrow={t('profile.eyebrow')}
+        title={t('profile.title')}
+        description={t('profile.description')}
       />
       <div className="profile-layout">
         <div className="profile-main">
           <Card className="profile-identity">
-            <div className="relative inline-flex">
+            <div className="profile-identity-avatar-wrap">
               <Avatar size="2xl" className="profile-avatar" aria-hidden="true">
                 {profile.user.avatar && <AvatarImage src={profile.user.avatar.imageUrl} alt="" />}
                 <AvatarFallback variant="gradient">{initial}</AvatarFallback>
               </Avatar>
             </div>
-            <div>
-              <span className="pill">{roles[profile.user.role]}</span>
-              <h2>{profile.user.name}</h2>
-              <p>
-                <Mail size={15} />
-                {profile.user.email}
-              </p>
-              <p>
-                <CalendarDays size={15} />
-                {dateLabel(profile.user.createdAt)}{' '}
-                {tashkentDate(profile.user.createdAt).getUTCFullYear()} dan beri {brand.name}da
-              </p>
-              <AvatarPicker profile={profile} />
-              <ProfilePhoto profile={profile} />
+            <div className="profile-identity-info">
+              <div className="profile-identity-header">
+                <span className={`pill role-${profile.user.role.toLowerCase()}`}>
+                  {t(`role.${profile.user.role}`)}
+                </span>
+                <h2>{profile.user.name}</h2>
+              </div>
+              <div className="profile-identity-meta">
+                <p>
+                  <Mail size={15} className="profile-meta-icon" />
+                  <span>{profile.user.email}</span>
+                </p>
+                <p>
+                  <CalendarDays size={15} className="profile-meta-icon" />
+                  <span>
+                    {dateLabel(profile.user.createdAt)}{' '}
+                    {t('profile.memberSince', {
+                      year: tashkentDate(profile.user.createdAt).getUTCFullYear(),
+                      brand: brand.name,
+                    })}
+                  </span>
+                </p>
+              </div>
+              <div className="profile-identity-actions">
+                <AvatarPicker profile={profile} />
+                <ProfilePhoto profile={profile} />
+              </div>
             </div>
           </Card>
           <section
             id="profile-settings"
             className="profile-settings-section"
             tabIndex={-1}
-            aria-label="Profil sozlamalari"
+            aria-label={t('profile.settings')}
           >
             <ProfileForm profile={profile} />
             <ChangePasswordForm />
@@ -207,18 +218,18 @@ export default function ProfilePage() {
           {student && (
             <div className="stats-grid profile-stats">
               <Stat
-                label="Yakunlangan darslar"
+                label={t('profile.completedLessons')}
                 value={student.completedLessons}
                 icon={<BookOpen size={24} />}
               />
               <Stat
-                label="Qo‘lga kiritilgan nishonlar"
+                label={t('profile.earnedBadges')}
                 value={student.badges}
                 icon={<Award size={24} />}
               />
               <Stat
-                label="Eng uzun streak"
-                value={`${student.longestStreak} kun`}
+                label={t('profile.longestStreak')}
+                value={t('common.days', { count: student.longestStreak })}
                 icon={<Flame size={24} />}
               />
             </div>
@@ -226,13 +237,17 @@ export default function ProfilePage() {
           {teacher && (
             <div className="stats-grid profile-stats">
               <Stat
-                label="Mening sinflarim"
+                label={t('navigation.classes')}
                 value={teacher.classes.length}
                 icon={<GraduationCap size={24} />}
               />
-              <Stat label="O‘quvchilarim" value={teacher.students} icon={<Users size={24} />} />
               <Stat
-                label="Berilgan topshiriqlar"
+                label={t('profile.students')}
+                value={teacher.students}
+                icon={<Users size={24} />}
+              />
+              <Stat
+                label={t('profile.assignments')}
                 value={teacher.assignments}
                 icon={<BookOpen size={24} />}
               />
@@ -243,33 +258,37 @@ export default function ProfilePage() {
           {student && (
             <Card>
               <div className="card-heading">
-                <h3>Bilim darajangiz</h3>
+                <h3>{t('profile.level')}</h3>
                 <Zap size={22} className="purple-text" />
               </div>
               <div className="profile-level">
                 <span className="level-circle">
-                  <span>DARAJA</span>
+                  <span>{t('profile.levelLabel')}</span>
                   <strong>{student.level}</strong>
                 </span>
                 <div>
-                  <strong>{student.levelTitle}</strong>
-                  <p>{student.totalXp.toLocaleString()} XP</p>
+                  <strong>{localizeText(student.levelTitle)}</strong>
+                  <p>
+                    {tx('pages.admin.gamification.xpVariant60', {
+                      value1: formatNumber(student.totalXp),
+                    })}
+                  </p>
                 </div>
               </div>
               <ProgressBar value={levelProgress} tone="purple" />
               <p className="card-subtitle">
                 {student.nextLevelThreshold === null
-                  ? 'Eng yuqori darajaga yetdingiz!'
-                  : `Keyingi darajaga ${student.nextLevelThreshold - student.totalXp} XP qoldi.`}
+                  ? t('profile.maxLevel')
+                  : t('profile.nextLevel', { count: student.nextLevelThreshold - student.totalXp })}
               </p>
               <Link className="btn btn-primary full-width" to="/subjects">
-                O‘rganishda davom etish
+                {t('profile.continue')}
               </Link>
             </Card>
           )}
           {(student || teacher) && (
             <Card>
-              <h3>{teacher ? 'Mening sinflarim' : 'Mening sinfim'}</h3>
+              <h3>{t(teacher ? 'navigation.classes' : 'navigation.class')}</h3>
               {student ? (
                 student.classes.length ? (
                   student.classes.map((group) => (
@@ -286,10 +305,7 @@ export default function ProfilePage() {
                     </Link>
                   ))
                 ) : (
-                  <EmptyState
-                    title="Hali sinfga biriktirilmagansiz"
-                    description="Administrator sinfga qo‘shganda shu yerda ko‘rinadi."
-                  />
+                  <EmptyState title={t('profile.noClass')} description={t('profile.noClassHelp')} />
                 )
               ) : teacher?.classes.length ? (
                 teacher.classes.map((group) => (
@@ -302,23 +318,23 @@ export default function ProfilePage() {
                     <div>
                       <strong>{group.name}</strong>
                       <small>
-                        {group._count.students} o‘quvchi · {group.grade}-sinf
+                        {t('profile.classSummary', {
+                          count: group._count.students,
+                          grade: group.grade,
+                        })}
                       </small>
                     </div>
                   </Link>
                 ))
               ) : (
-                <EmptyState title="Hali sinf biriktirilmagan" />
+                <EmptyState title={t('profile.noTeacherClass')} />
               )}
             </Card>
           )}
           <Card className="profile-security">
             <ShieldCheck size={27} />
-            <h3>Hisobingiz himoyalangan</h3>
-            <p>
-              Parol va sessiya ma’lumotlari profil sahifasida ko‘rsatilmaydi. Foydalanib bo‘lgach,
-              umumiy qurilmada hisobdan chiqing.
-            </p>
+            <h3>{t('profile.secure')}</h3>
+            <p>{t('profile.secureHelp')}</p>
           </Card>
         </aside>
       </div>

@@ -1,9 +1,12 @@
+import { localizeText } from '../../i18n';
+import { translate as tx, useI18n as usePageLocale } from '../../i18n';
 import { useState } from 'react';
 import { api, errorText } from '../../lib/api';
 import type { User } from '../../lib/types';
 import { Button, dateLabel } from '../../components/ui';
 
 export function AdminPasswordReset({ user }: { user: User }) {
+  usePageLocale();
   const [result, setResult] = useState<{ resetUrl: string; expiresAt: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -27,13 +30,12 @@ export function AdminPasswordReset({ user }: { user: User }) {
         {user.email}
       </p>
       <p className="field-help">
-        Foydalanuvchining kimligini tekshirgandan so‘ng havolani unga bering. Havola 15 daqiqa amal
-        qiladi va bir marta ishlatiladi. Yangi havola avvalgisini bekor qiladi.
+        {tx('pages.admin.password-reset.shareTheLinkAfterVerifyingTheUsersIdentity')}
       </p>
       {result ? (
         <>
           <label>
-            Tiklash havolasi
+            {tx('pages.admin.password-reset.recoveryLink')}
             <input
               type="text"
               readOnly
@@ -42,8 +44,9 @@ export function AdminPasswordReset({ user }: { user: User }) {
             />
           </label>
           <p className="field-help">
-            {dateLabel(result.expiresAt)} gacha amal qiladi. Parol tiklanganda barcha sessiyalar
-            tugaydi.
+            {tx('pages.admin.password-reset.validUntilResettingThePasswordEndsAllSessions', {
+              value1: dateLabel(result.expiresAt),
+            })}
           </p>
           <Button
             onClick={async () => {
@@ -51,22 +54,22 @@ export function AdminPasswordReset({ user }: { user: User }) {
                 await navigator.clipboard.writeText(result.resetUrl);
                 setCopied(true);
               } catch {
-                setError('Havolani tanlab, Ctrl+C bilan nusxalang.');
+                setError(tx('pages.admin.password-reset.selectTheLinkAndCopyItWithCtrlc'));
               }
             }}
           >
-            Havolani nusxalash
+            {tx('pages.admin.password-reset.copyLink')}
           </Button>
-          {copied && <p role="status">Havola nusxalandi.</p>}
+          {copied && <p role="status">{tx('pages.admin.password-reset.linkCopied')}</p>}
         </>
       ) : (
         <Button onClick={() => void issue()} busy={busy}>
-          Bir martalik havola yaratish
+          {tx('pages.admin.password-reset.createASingleuseLink')}
         </Button>
       )}
       {error && (
         <p className="form-error" role="alert">
-          {error}
+          {localizeText(error)}
         </p>
       )}
     </div>

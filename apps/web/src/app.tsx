@@ -1,4 +1,6 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
+import { useI18n } from './i18n';
+import { applyBrand } from './lib/brand';
 import { Navigate, Route, Routes, Outlet, useLocation } from 'react-router-dom';
 import { homeFor, useAuth } from './lib/auth';
 import type { Role } from './lib/types';
@@ -47,6 +49,10 @@ function Home() {
   return loading ? <Loading /> : <Navigate to={user ? homeFor(user) : '/login'} replace />;
 }
 export default function App() {
+  const { t, locale } = useI18n();
+  useEffect(() => {
+    applyBrand({ tagline: t('brand.tagline'), description: t('brand.description') });
+  }, [t, locale]);
   return (
     <Suspense fallback={<Loading />}>
       <Routes>
@@ -97,10 +103,10 @@ export default function App() {
           path="*"
           element={
             <EmptyState
-              title="Sahifa topilmadi"
+              title={t('app.notFound')}
               action={
                 <a className="btn btn-primary" href="/">
-                  Bosh sahifaga qaytish
+                  {t('app.backHome')}
                 </a>
               }
             />

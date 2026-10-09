@@ -1,8 +1,12 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
+import { IsIn, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
 import { Optional, Trim } from '../common/dto';
 
 export class UpdateProfileDto {
+  @ApiPropertyOptional({ enum: ['uz', 'ru', 'en'] })
+  @Optional()
+  @IsIn(['uz', 'ru', 'en'])
+  preferredLocale?: 'uz' | 'ru' | 'en';
   @ApiPropertyOptional({ format: 'uuid' }) @Optional() @IsUUID('4') avatarId?: string;
   @ApiPropertyOptional({ minLength: 2, maxLength: 80, example: 'Ali Valiyev' })
   @Trim()

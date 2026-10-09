@@ -1,4 +1,7 @@
+import { localizeText } from '../i18n';
+import { useI18n } from '../i18n';
 import { useEffect, useState } from 'react';
+import { Camera } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Profile } from '../lib/types';
 import { api, errorText } from '../lib/api';
@@ -6,6 +9,7 @@ import { useAuth } from '../lib/auth';
 import { Button, Modal } from './ui';
 
 export function ProfilePhoto({ profile }: { profile: Profile }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>();
@@ -49,6 +53,7 @@ export function ProfilePhoto({ profile }: { profile: Profile }) {
     <>
       <Button
         variant="secondary"
+        className="profile-action-btn"
         onClick={() => {
           setError('');
           setSaved(false);
@@ -56,11 +61,12 @@ export function ProfilePhoto({ profile }: { profile: Profile }) {
           setOpen(true);
         }}
       >
-        Profil rasmi
+        <Camera size={15} className="btn-icon" />
+        {t('profile.photo')}
       </Button>
       {saved && (
         <p role="status" className="profile-success">
-          Profil rasmi yangilandi.
+          {t('profile.photoSaved')}
         </p>
       )}
       <Modal
@@ -71,11 +77,11 @@ export function ProfilePhoto({ profile }: { profile: Profile }) {
             if (!value) setFile(null);
           }
         }}
-        title="Profil rasmi"
-        description="5 MB gacha JPG, PNG yoki WebP rasm tanlang."
+        title={t('profile.photo')}
+        description={t('profile.photoHelp')}
       >
         <label className="photo-file-input">
-          Rasm tanlash
+          {t('profile.choosePhoto')}
           <input
             type="file"
             accept="image/jpeg,image/png,image/webp"
@@ -88,7 +94,7 @@ export function ProfilePhoto({ profile }: { profile: Profile }) {
                 !['image/jpeg', 'image/png', 'image/webp'].includes(selected.type) ||
                 selected.size > 5 * 1024 * 1024
               ) {
-                setError('5 MB gacha JPG, PNG yoki WebP rasm tanlang.');
+                setError(t('profile.photoHelp'));
                 setFile(null);
                 return;
               }
@@ -96,20 +102,20 @@ export function ProfilePhoto({ profile }: { profile: Profile }) {
             }}
           />
         </label>
-        {preview && <img className="photo-preview" src={preview} alt="Yangi profil rasmi" />}
+        {preview && <img className="photo-preview" src={preview} alt={t('profile.newPhoto')} />}
         {error && (
           <p role="alert" className="form-error">
-            {error}
+            {localizeText(error)}
           </p>
         )}
         <div className="modal-actions">
           {profile.user.avatar?.imageUrl.startsWith('/api/v1/profile-photos/') && (
             <Button variant="secondary" disabled={busy} onClick={() => void update(true)}>
-              Rasmni olib tashlash
+              {t('profile.removePhoto')}
             </Button>
           )}
           <Button disabled={!file} busy={busy} onClick={() => void update()}>
-            Rasmni saqlash
+            {t('profile.savePhoto')}
           </Button>
         </div>
       </Modal>

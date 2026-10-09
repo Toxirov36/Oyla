@@ -1,3 +1,4 @@
+import { useI18n } from '../../i18n';
 import { useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
@@ -19,6 +20,7 @@ import {
 } from './primitives';
 
 export function NotificationsPanel({ close, title }: { close: () => void; title?: ReactNode }) {
+  const { t } = useI18n();
   const [unreadOnly, setUnreadOnly] = useState(false);
   const query = useNotifications({ limit: 10, unreadOnly });
   const count = useNotificationCount();
@@ -83,7 +85,7 @@ export function NotificationsPanel({ close, title }: { close: () => void; title?
       </div>
       <footer className="notice-footer">
         <Link to="/notifications" onClick={close}>
-          Barcha bildirishnomalarni ko‘rish
+          {t('notifications.viewAll')}
           <ArrowRight size={16} />
         </Link>
       </footer>

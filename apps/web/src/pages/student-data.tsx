@@ -1,3 +1,6 @@
+import { localizeText } from '../i18n';
+import { formatNumber } from '../lib/locale';
+import { translate as tx, useI18n as usePageLocale } from '../i18n';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Award, BookOpen, Flame, LockKeyhole, Target, Trophy, Zap } from 'lucide-react';
@@ -22,6 +25,7 @@ export default function StudentDataPage({
 }: {
   mode: 'progress' | 'badges' | 'leaderboard' | 'assignments';
 }) {
+  usePageLocale();
   const [params, setParams] = useSearchParams();
   const scope =
     params.get('scope') === 'friends'
@@ -70,46 +74,54 @@ export default function StudentDataPage({
     return (
       <>
         <PageHeader
-          eyebrow="HAR BIR QADAM HISOBDA"
-          title="Mening progressim"
-          description="Haqiqiy natijalaringiz. Qayerdan boshladingiz va qayerga yetdingiz."
+          eyebrow={tx('pages.student-data.everyStepCounts')}
+          title={tx('navigation.progress')}
+          description={tx('pages.student-data.yourRealResultsFromWhereYouStartedTo')}
         />
         <div className="stats-grid">
           <Stat
-            label="Yakunlangan darslar"
+            label={tx('profile.completedLessons')}
             value={`${d.completedLessons} / ${d.totalLessons}`}
             icon={<BookOpen size={25} />}
           />
-          <Stat label="Jami XP" value={d.totalXp.toLocaleString()} icon={<Zap size={25} />} />
           <Stat
-            label="Hozirgi streak"
-            value={`${d.streak} kun`}
+            label={tx('pages.student-data.totalXp')}
+            value={formatNumber(d.totalXp)}
+            icon={<Zap size={25} />}
+          />
+          <Stat
+            label={tx('pages.student-data.currentStreak')}
+            value={tx('pages.student-data.days', { value1: d.streak })}
             icon={<Flame size={25} />}
-            detail={`Eng uzun: ${d.longestStreak} kun`}
+            detail={tx('pages.student-data.longestStreakDays', { value1: d.longestStreak })}
           />
         </div>
         <div className="two-column">
           <Card>
             <div className="card-heading">
-              <h2>Fanlar bo‘yicha</h2>
+              <h2>{tx('pages.student-data.bySubject')}</h2>
               <Target size={22} />
             </div>
             {d.subjects.map((s) => (
               <div className="subject-progress-row" key={s.id}>
                 <div className="progress-label">
-                  <strong>{s.title}</strong>
+                  <strong>{localizeText(s.title)}</strong>
                   <span>
-                    {s.completed}/{s.total} dars · {s.progress}%
+                    {tx('pages.student-data.lessonProgress', {
+                      completed: s.completed,
+                      total: s.total,
+                      progress: s.progress,
+                    })}
                   </span>
                 </div>
                 <ProgressBar value={s.progress} tone={subjectStyle(s.slug).tone} />
-                <small>O‘zlashtirish: {s.mastery}%</small>
+                <small>{tx('pages.student-data.mastery', { value1: s.mastery })}</small>
               </div>
             ))}
           </Card>
           <Card>
-            <h2>Oxirgi 7 kun</h2>
-            <p className="card-subtitle">O‘quv faoliyati orqali olingan XP</p>
+            <h2>{tx('pages.student-data.last7Days')}</h2>
+            <p className="card-subtitle">{tx('pages.student-data.xpEarnedThroughLearning')}</p>
             <div className="chart-wrap">
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={d.activity}>
@@ -123,7 +135,10 @@ export default function StudentDataPage({
                   <YAxis tickLine={false} axisLine={false} allowDecimals={false} />
                   <Tooltip
                     labelFormatter={(day) => String(day)}
-                    formatter={(v) => [`${v} XP`, 'Faollik']}
+                    formatter={(v) => [
+                      tx('pages.admin.gamification.xpVariant60', { value1: String(v ?? '') }),
+                      tx('pages.student-data.activity'),
+                    ]}
                   />
                   <Bar dataKey="xp" fill="var(--primary)" radius={[6, 6, 0, 0]} />
                 </BarChart>
@@ -132,32 +147,36 @@ export default function StudentDataPage({
           </Card>
         </div>
         <div className="section-title">
-          <h2>Mavzularni o‘zlashtirish</h2>
-          <span className="subtle">Eng yaxshi natijalar asosida</span>
+          <h2>{tx('pages.student-data.topicMastery')}</h2>
+          <span className="subtle">{tx('pages.student-data.basedOnYourBestResults')}</span>
         </div>
         <div className="topic-progress-grid">
           {d.topics.map((t) => (
             <Card key={t.id}>
-              <span className="eyebrow">{t.subject}</span>
-              <h3>{t.title}</h3>
+              <span className="eyebrow">{localizeText(t.subject)}</span>
+              <h3>{localizeText(t.title)}</h3>
               <div className="progress-label">
-                <span>O‘zlashtirish</span>
+                <span>{tx('pages.student-data.masteryVariant348')}</span>
                 <strong>{t.mastery}%</strong>
               </div>
               <ProgressBar value={t.mastery} tone="mint" />
               <p className="subtle">
-                {t.completed} / {t.total} dars yakunlangan
+                {tx('pages.student-data.lessonsCompleted', {
+                  value1: t.completed,
+                  value2: t.total,
+                })}
               </p>
             </Card>
           ))}
         </div>
         <p className="formula-note">
-          {d.completedLessons} ta dars yakunlangan, {d.masteredLessons ?? 0} tasi belgilangan
-          o‘zlashtirish maqsadiga yetgan.
+          {tx('pages.student-data.lessonsCompletedMasteryTargetReached', {
+            value1: d.completedLessons,
+            value2: d.masteredLessons ?? 0,
+          })}
         </p>
         <p className="formula-note">
-          Progress — yakunlangan darslar ulushi. O‘zlashtirish — har bir yakunlangan darsdagi eng
-          yaxshi natijalaringiz o‘rtachasi.
+          {tx('pages.student-data.progressIsTheShareOfCompletedLessonsMastery')}
         </p>
       </>
     );
@@ -166,9 +185,9 @@ export default function StudentDataPage({
     return (
       <>
         <PageHeader
-          eyebrow="HARAKATINGIZ — YUTUG‘INGIZ"
-          title="Mening nishonlarim"
-          description="Bilim yo‘lidagi kichik va katta g‘alabalaringiz."
+          eyebrow={tx('pages.student-data.yourEffortYourSuccess')}
+          title={tx('pages.student-data.myBadges')}
+          description={tx('pages.student-data.yourSmallAndBigVictoriesOnTheLearning')}
         />
         <div className="badge-grid">
           {badges.data?.map((b) => (
@@ -177,14 +196,17 @@ export default function StudentDataPage({
                 {b.unlockedAt ? <Award size={53} /> : <LockKeyhole size={45} />}
               </div>
               <span className={`pill ${b.unlockedAt ? 'status-completed' : ''}`}>
-                {b.unlockedAt ? 'QO‘LGA KIRITILDI' : 'OLDINDA YANGI MAQSAD'}
+                {b.unlockedAt ? tx('pages.student-data.earned') : tx('pages.student-data.nextGoal')}
               </span>
-              <h3>{b.title}</h3>
-              <p>{b.description}</p>
+              <h3>{localizeText(b.title)}</h3>
+              <p>{localizeText(b.description)}</p>
               <small>
                 {b.unlockedAt
                   ? dateLabel(b.unlockedAt)
-                  : `${b.threshold} ${b.criterion === 'STREAK' ? 'kun' : 'ta natija'}`}
+                  : tx(
+                      b.criterion === 'STREAK' ? 'common.days' : 'pages.student-data.resultCount',
+                      { count: b.threshold },
+                    )}
               </small>
             </Card>
           ))}
@@ -195,9 +217,9 @@ export default function StudentDataPage({
     return (
       <>
         <PageHeader
-          eyebrow="BIRGA O‘RGANAMIZ, BIRGA O‘SAMIZ"
-          title="Bilimdonlar reytingi"
-          description="Reyting serverda hisoblangan XPga asoslanadi. Har bir yangi bilim muhim."
+          eyebrow={tx('pages.student-data.learnTogetherGrowTogether')}
+          title={tx('pages.student-data.learnerRankings')}
+          description={tx('pages.student-data.rankingsUseXpCalculatedByTheServerEvery')}
         />
         <div className="segmented">
           <Button
@@ -205,37 +227,37 @@ export default function StudentDataPage({
             onClick={() => setScope('weekly')}
           >
             <Trophy size={17} />
-            Haftalik
+            {tx('pages.student-data.weekly')}
           </Button>
           <Button
             variant={scope === 'class' ? 'primary' : 'ghost'}
             onClick={() => setScope('class')}
           >
-            Mening sinfim
+            {tx('navigation.class')}
           </Button>
           <Button
             variant={scope === 'friends' ? 'primary' : 'ghost'}
             onClick={() => setScope('friends')}
           >
-            Do‘stlar
+            {tx('pages.student-data.friends')}
           </Button>
         </div>
         <Card className="full-leaderboard">
           <div className="leaderboard-heading">
-            <span>O‘quvchi</span>
-            <span>To‘plangan XP</span>
+            <span>{tx('role.STUDENT')}</span>
+            <span>{tx('pages.student-data.earnedXp')}</span>
           </div>
           <LeaderboardPreview rows={ranking.data || []} />
         </Card>
         <p className="formula-note">
           {scope === 'class'
-            ? 'Sinf reytingi shu sinfning faol o‘quvchilari barcha davrda to‘plagan XP asosida hisoblanadi.'
-            : 'Haftalik reyting dushanbadan boshlanadi (Toshkent vaqti). Avvalgi XP tarixi saqlanadi.'}
+            ? tx('pages.student-data.classRankingsUseTheAlltimeXpOfActive')
+            : tx('pages.student-data.weeklyRankingsStartOnMondayTashkentTimePrevious')}
         </p>
         {scope === 'friends' && (
           <p className="formula-note">
-            Reytingga siz va faqat qabul qilingan faol do‘stlaringiz kiradi.{' '}
-            <Link to="/friends">Do‘stlarimni boshqarish</Link>
+            {tx('pages.student-data.theRankingIncludesYouAndYourAcceptedActive')}
+            <Link to="/friends">{tx('pages.student-data.manageMyFriends')}</Link>
           </p>
         )}
       </>
@@ -243,9 +265,9 @@ export default function StudentDataPage({
   return (
     <>
       <PageHeader
-        eyebrow="O‘QITUVCHINGIZDAN SIZ UCHUN"
-        title="Mening topshiriqlarim"
-        description="Darslarni yakunlang, bilimni mustahkamlang va natijangizni ko‘ring."
+        eyebrow={tx('pages.student-data.fromYourTeacher')}
+        title={tx('pages.student-data.myAssignments')}
+        description={tx('pages.student-data.completeLessonsPracticeWhatYouLearnAndSee')}
       />
       <StudentAssignments assignments={assignments.data || []} />
     </>

@@ -60,8 +60,11 @@ function mount(profile = fixture(), options: { anonymous?: boolean; failProfile?
       if (failProfile)
         return Response.json({ message: 'Profilni yuklashda xatolik.' }, { status: 503 });
       if (init?.method === 'PATCH') {
-        const body = JSON.parse(String(init.body)) as { name: string };
-        current = { ...current, user: { ...current.user, name: body.name } };
+        const body = JSON.parse(String(init.body)) as {
+          name?: string;
+          preferredLocale?: 'uz' | 'ru' | 'en';
+        };
+        current = { ...current, user: { ...current.user, ...body } };
       }
       return Response.json(current);
     }
@@ -87,6 +90,24 @@ function mount(profile = fixture(), options: { anonymous?: boolean; failProfile?
   };
 }
 describe('profile page', () => {
+  it('switches the interface language without losing an unsaved profile name', async () => {
+    const { user, fetcher } = mount();
+    const name = await screen.findByLabelText('Ism va familiya');
+    await user.clear(name);
+    await user.type(name, 'Unsaved profile name');
+    await user.selectOptions(screen.getByLabelText('Interfeys tili'), 'en');
+    expect(await screen.findByRole('heading', { name: 'My profile' })).toBeVisible();
+    await waitFor(() => expect(screen.getByLabelText('Interface language')).toBeEnabled());
+    expect(screen.getByLabelText('Full name')).toHaveValue('Unsaved profile name');
+    expect(screen.getByRole('button', { name: 'Save changes' })).toBeEnabled();
+    expect(localStorage.getItem('bilify.locale')).toBe('en');
+    expect(
+      fetcher.mock.calls.some(
+        ([, init]) =>
+          init?.method === 'PATCH' && String(init.body).includes('"preferredLocale":"en"'),
+      ),
+    ).toBe(true);
+  });
   it('loads real-shaped student metrics and keeps email/grade read only', async () => {
     mount();
     expect(await screen.findByRole('heading', { name: 'Mening profilim' })).toBeVisible();

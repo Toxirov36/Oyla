@@ -1,0 +1,41 @@
+{
+  "uz": {
+    "sessionExpired": "Tizimga qayta kiring.",
+    "connection": "Xizmat bilan bog‘lanishda xatolik.",
+    "unexpected": "Xatolik yuz berdi.",
+    "AUTH_INVALID_CREDENTIALS": "Email yoki parol noto‘g‘ri.",
+    "AUTH_EMAIL_EXISTS": "Bu email bilan foydalanuvchi mavjud.",
+    "AUTH_SESSION_MISSING": "Sessiya mavjud emas.",
+    "AUTH_SESSION_EXPIRED": "Sessiya yakunlangan.",
+    "AUTH_SESSION_CHANGED": "Sessiya yangilangan.",
+    "AUTH_ACCOUNT_CHANGED": "Hisob o‘zgargan. Tizimga qayta kiring.",
+    "VALIDATION_ERROR": "Kiritilgan ma’lumotlarni tekshiring.",
+    "RECOVERY_REQUESTED": "Agar faol hisob mavjud bo‘lsa, administratorga so‘rov yuborildi. Tiklash havolasini olish uchun administratorga murojaat qiling."
+  },
+  "ru": {
+    "sessionExpired": "Войдите в систему снова.",
+    "connection": "Не удалось связаться с сервисом.",
+    "unexpected": "Произошла ошибка.",
+    "AUTH_INVALID_CREDENTIALS": "Неверный email или пароль.",
+    "AUTH_EMAIL_EXISTS": "Пользователь с таким email уже существует.",
+    "AUTH_SESSION_MISSING": "Сеанс отсутствует.",
+    "AUTH_SESSION_EXPIRED": "Сеанс завершён.",
+    "AUTH_SESSION_CHANGED": "Сеанс обновлён.",
+    "AUTH_ACCOUNT_CHANGED": "Аккаунт изменён. Войдите снова.",
+    "VALIDATION_ERROR": "Проверьте введённые данные.",
+    "RECOVERY_REQUESTED": "Если аккаунт существует, администратор рассмотрит запрос на восстановление."
+  },
+  "en": {
+    "sessionExpired": "Please sign in again.",
+    "connection": "Could not connect to the service.",
+    "unexpected": "Something went wrong.",
+    "AUTH_INVALID_CREDENTIALS": "Incorrect email or password.",
+    "AUTH_EMAIL_EXISTS": "An account with this email already exists.",
+    "AUTH_SESSION_MISSING": "No session found.",
+    "AUTH_SESSION_EXPIRED": "Your session has expired.",
+    "AUTH_SESSION_CHANGED": "Your session has been updated.",
+    "AUTH_ACCOUNT_CHANGED": "Your account has changed. Please sign in again.",
+    "VALIDATION_ERROR": "Check the information you entered.",
+    "RECOVERY_REQUESTED": "If the account exists, an administrator will review the reset request."
+  }
+}

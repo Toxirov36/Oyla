@@ -35,7 +35,6 @@ export class VideoDto {
   @Optional() @IsIn(animations.map((animation) => animation.key)) animationKey?: string;
   @Optional() @IsString() @Matches(/^[A-Za-z0-9_-]{11}$/) youtubeId?: string;
   @Optional() @IsEnum(ContentStatus) status?: ContentStatus;
-  @Optional() @IsInt() @Min(0) @Max(10000) position?: number;
 }
 export class UpdateVideoDto extends PartialType(VideoDto, { skipNullProperties: false }) {}
 @Injectable()
@@ -67,7 +66,7 @@ export class VideosService {
     if (!video) throw new NotFoundException('Videodars topilmadi.');
     return this.presentation(video);
   }
-  private checked(dto: VideoDto) {
+  private checked(dto: VideoDto & { position: number }) {
     const animation = animations.find((item) => item.key === dto.animationKey);
     if (
       dto.kind === 'ANIMATION'
@@ -82,19 +81,40 @@ export class VideosService {
     };
   }
   create(dto: VideoDto) {
-    return this.db.videoLesson.create({ data: this.checked(dto) });
+    return this.db.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(64202, ${dto.grade})::text`;
+      const lastVideo = await tx.videoLesson.aggregate({
+        where: { grade: dto.grade },
+        _max: { position: true },
+      });
+      return tx.videoLesson.create({
+        data: this.checked({ ...dto, position: (lastVideo._max.position ?? -1) + 1 }),
+      });
+    });
   }
   async update(id: string, dto: UpdateVideoDto) {
-    const current = await this.db.videoLesson.findUnique({ where: { id } });
-    if (!current) throw new NotFoundException('Videodars topilmadi.');
-    return this.db.videoLesson.update({
-      where: { id },
-      data: this.checked({
-        ...current,
-        ...dto,
-        animationKey: dto.animationKey ?? current.animationKey ?? undefined,
-        youtubeId: dto.youtubeId ?? current.youtubeId ?? undefined,
-      }),
+    return this.db.$transaction(async (tx) => {
+      const current = await tx.videoLesson.findUnique({ where: { id } });
+      if (!current) throw new NotFoundException('Videodars topilmadi.');
+      let position = current.position;
+      if (dto.grade !== undefined && dto.grade !== current.grade) {
+        await tx.$queryRaw`SELECT pg_advisory_xact_lock(64202, ${dto.grade})::text`;
+        const lastVideo = await tx.videoLesson.aggregate({
+          where: { grade: dto.grade },
+          _max: { position: true },
+        });
+        position = (lastVideo._max.position ?? -1) + 1;
+      }
+      return tx.videoLesson.update({
+        where: { id },
+        data: this.checked({
+          ...current,
+          ...dto,
+          position,
+          animationKey: dto.animationKey ?? current.animationKey ?? undefined,
+          youtubeId: dto.youtubeId ?? current.youtubeId ?? undefined,
+        }),
+      });
     });
   }
   async catalog(actor: Actor) {

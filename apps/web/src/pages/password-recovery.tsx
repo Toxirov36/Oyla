@@ -7,20 +7,23 @@ import { api, clearSession, errorText } from '../lib/api';
 import { Button, Card } from '../components/ui';
 import { Logo } from '../components/shell';
 import { newPasswordSchema } from '../components/change-password';
+import { useI18n } from '../i18n';
+import { LanguageSwitcher } from '../components/language-switcher';
 
-const requestSchema = z.object({ email: z.email('Email manzilini to‘g‘ri kiriting.') });
+const requestSchema = z.object({ email: z.email('validation.email') });
 const resetSchema = z
   .object({ newPassword: newPasswordSchema, confirmPassword: z.string() })
   .refine((value) => value.newPassword === value.confirmPassword, {
     path: ['confirmPassword'],
-    message: 'Parollar bir xil bo‘lsin.',
+    message: 'validation.passwordMatch',
   });
 export default function PasswordRecoveryPage({ reset = false }: { reset?: boolean }) {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [token] = useState(
     () => new URLSearchParams(window.location.hash.slice(1)).get('token') || '',
   );
-  const [error, setError] = useState('');
+  const [error, setError] = useState<unknown>(null);
   const [message, setMessage] = useState('');
   const requestForm = useForm<z.infer<typeof requestSchema>>({
     resolver: zodResolver(requestSchema),
@@ -41,45 +44,46 @@ export default function PasswordRecoveryPage({ reset = false }: { reset?: boolea
   const request = requestForm.handleSubmit(async (values) => {
     setError('');
     try {
-      const response = await api<{ message: string }>('/auth/password-reset/request', {
+      await api('/auth/password-reset/request', {
         method: 'POST',
         body: values,
       });
-      setMessage(response.message);
+      setMessage('errors.RECOVERY_REQUESTED');
     } catch (e) {
-      setError(errorText(e));
+      setError(e);
     }
   });
   const confirm = resetForm.handleSubmit(async ({ newPassword }) => {
     setError('');
     try {
       await api('/auth/password-reset/confirm', { method: 'POST', body: { token, newPassword } });
-      clearSession('Parolingiz tiklandi. Yangi parol bilan tizimga kiring.');
+      clearSession('password.restored');
       navigate('/login', {
         replace: true,
-        state: { message: 'Parolingiz tiklandi. Yangi parol bilan tizimga kiring.' },
+        state: { message: 'password.restored' },
       });
     } catch (e) {
-      setError(errorText(e));
+      setError(e);
     }
   });
   return (
     <main className="recovery-page">
+      <div className="recovery-language">
+        <LanguageSwitcher />
+      </div>
       <Link to="/login" className="brand">
         <Logo />
       </Link>
       <Card>
-        <span className="eyebrow">HISOBINGIZGA QAYTING</span>
-        <h1>{reset ? 'Yangi parol yarating' : 'Parolni unutdingizmi?'}</h1>
+        <span className="eyebrow">{t('recovery.eyebrow')}</span>
+        <h1>{t(reset ? 'recovery.newPassword' : 'auth.forgotPassword')}</h1>
         <p className="card-subtitle">
-          {reset
-            ? 'Yangi parol kamida 10 ta belgidan iborat bo‘lsin.'
-            : 'Emailingizni kiriting. Administrator shaxsingizni tekshirib, bir martalik tiklash havolasini beradi.'}
+          {reset ? t('recovery.resetDescription') : t('recovery.requestDescription')}
         </p>
         {reset ? (
           token ? (
             <form className="profile-form" onSubmit={confirm} noValidate>
-              <label htmlFor="reset-password">Yangi parol</label>
+              <label htmlFor="reset-password">{t('password.new')}</label>
               <input
                 id="reset-password"
                 type="password"
@@ -89,10 +93,10 @@ export default function PasswordRecoveryPage({ reset = false }: { reset?: boolea
               />
               {resetForm.formState.errors.newPassword && (
                 <small className="field-error" role="alert">
-                  {resetForm.formState.errors.newPassword.message}
+                  {t(resetForm.formState.errors.newPassword.message!)}
                 </small>
               )}
-              <label htmlFor="reset-confirm">Yangi parolni takrorlang</label>
+              <label htmlFor="reset-confirm">{t('password.confirm')}</label>
               <input
                 id="reset-confirm"
                 type="password"
@@ -102,25 +106,25 @@ export default function PasswordRecoveryPage({ reset = false }: { reset?: boolea
               />
               {resetForm.formState.errors.confirmPassword && (
                 <small className="field-error" role="alert">
-                  {resetForm.formState.errors.confirmPassword.message}
+                  {t(resetForm.formState.errors.confirmPassword.message!)}
                 </small>
               )}
               <Button type="submit" busy={resetForm.formState.isSubmitting}>
-                Parolni tiklash
+                {t('recovery.reset')}
               </Button>
             </form>
           ) : (
             <p className="form-error" role="alert">
-              Tiklash havolasi mavjud emas. Administrator bergan havolani qayta oching.
+              {t('recovery.noToken')}
             </p>
           )
         ) : message ? (
           <p role="status" className="profile-success">
-            {message}
+            {t(message)}
           </p>
         ) : (
           <form className="profile-form" onSubmit={request} noValidate>
-            <label htmlFor="recovery-email">Email manzilingiz</label>
+            <label htmlFor="recovery-email">{t('auth.email')}</label>
             <input
               id="recovery-email"
               type="email"
@@ -130,21 +134,21 @@ export default function PasswordRecoveryPage({ reset = false }: { reset?: boolea
             />
             {requestForm.formState.errors.email && (
               <small className="field-error" role="alert">
-                {requestForm.formState.errors.email.message}
+                {t(requestForm.formState.errors.email.message!)}
               </small>
             )}
             <Button type="submit" busy={requestForm.formState.isSubmitting}>
-              Tiklashni so‘rash
+              {t('recovery.request')}
             </Button>
           </form>
         )}
-        {error && (
+        {!!error && (
           <p className="form-error" role="alert">
-            {error}
+            {errorText(error)}
           </p>
         )}
         <p className="auth-switch">
-          <Link to="/login">Tizimga kirishga qaytish</Link>
+          <Link to="/login">{t('recovery.back')}</Link>
         </p>
       </Card>
     </main>

@@ -1,11 +1,22 @@
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { ValidationError } from 'class-validator';
 
-function flatten(errors: ValidationError[], prefix = ''): { field: string; messages: string[] }[] {
+function flatten(
+  errors: ValidationError[],
+  prefix = '',
+): { field: string; messages: string[]; codes: string[] }[] {
   return errors.flatMap((error) => {
     const field = prefix ? `${prefix}.${error.property}` : error.property;
     return [
-      ...(error.constraints ? [{ field, messages: Object.values(error.constraints) }] : []),
+      ...(error.constraints
+        ? [
+            {
+              field,
+              messages: Object.values(error.constraints),
+              codes: Object.keys(error.constraints),
+            },
+          ]
+        : []),
       ...flatten(error.children || [], field),
     ];
   });

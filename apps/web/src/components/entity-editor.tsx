@@ -1,3 +1,5 @@
+import { localizeText } from '../i18n';
+import { translate as tx, useI18n as usePageLocale } from '../i18n';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
@@ -26,6 +28,7 @@ export interface EditorSpec {
   serialize?: (values: Record<string, unknown>) => unknown;
 }
 export function EntityEditor({ spec, close }: { spec: EditorSpec; close: () => void }) {
+  usePageLocale();
   const [error, setError] = useState('');
   const cache = useQueryClient();
   const defaults = Object.fromEntries(
@@ -62,14 +65,17 @@ export function EntityEditor({ spec, close }: { spec: EditorSpec; close: () => v
           ? z.boolean()
           : field.kind === 'number'
             ? z
-                .number('Sonni kiriting.')
+                .number(tx('pages.entity-editor.enterANumber'))
                 .int()
                 .min(field.min ?? 0)
                 .max(field.max ?? 10000000)
             : z
                 .string()
                 .trim()
-                .min(field.optional ? 0 : (field.min ?? 1), 'Bu maydonni to‘ldiring.')
+                .min(
+                  field.optional ? 0 : (field.min ?? 1),
+                  tx('pages.entity-editor.fillInThisField'),
+                )
                 .max(field.max ?? 30000));
       if (field.optional) schema = schema.optional();
       shape[field.key] = schema;
@@ -98,7 +104,7 @@ export function EntityEditor({ spec, close }: { spec: EditorSpec; close: () => v
     <form className="editor-form" onSubmit={submit} noValidate>
       {spec.fields.map((field) => (
         <label key={field.key} className={field.kind === 'checkbox' ? 'checkbox-field' : ''}>
-          {field.label}
+          {localizeText(field.label)}
           {field.kind === 'select' ? (
             <Controller
               name={field.key}
@@ -111,7 +117,7 @@ export function EntityEditor({ spec, close }: { spec: EditorSpec; close: () => v
                   onBlur={input.onBlur}
                   inputRef={input.ref}
                   name={input.name}
-                  label={field.label}
+                  label={localizeText(field.label)}
                   invalid={fieldState.invalid}
                 />
               )}
@@ -137,25 +143,25 @@ export function EntityEditor({ spec, close }: { spec: EditorSpec; close: () => v
               aria-invalid={!!errors[field.key]}
             />
           )}{' '}
-          {field.help && <small className="field-help">{field.help}</small>}
+          {field.help && <small className="field-help">{localizeText(field.help)}</small>}
           {errors[field.key] && (
             <small className="field-error" role="alert">
-              {String(errors[field.key]?.message)}
+              {localizeText(String(errors[field.key]?.message))}
             </small>
           )}
         </label>
       ))}
       {error && (
         <div className="form-error" role="alert">
-          {error}
+          {localizeText(error)}
         </div>
       )}
       <div className="modal-actions">
         <Button type="button" variant="secondary" onClick={close}>
-          Bekor qilish
+          {tx('common.cancel')}
         </Button>
         <Button type="submit" busy={isSubmitting}>
-          Saqlash
+          {tx('pages.admin.avatars.save')}
         </Button>
       </div>
     </form>
