@@ -9,7 +9,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "concurrently -k -n api,web \"npm run dev -w @oyla/api\" \"npm run dev -w @oyla/web\"",
+    "dev": "node scripts/local-redis.mjs && concurrently -k -n api,web \"npm run dev -w @oyla/api\" \"npm run dev -w @oyla/web\"",
     "build": "npm run build --workspaces",
     "typecheck": "npm run typecheck --workspaces && tsc -p tsconfig.tools.json",
     "lint": "eslint apps scripts tests playwright.config.ts",
@@ -23,6 +23,7 @@
     "db:seed": "npm run db:seed -w @oyla/api",
     "infra": "docker compose up -d postgres redis",
     "local:postgres": "node scripts/local-postgres.mjs",
+    "local:redis": "node scripts/local-redis.mjs",
     "db:seed:interactive": "npm run db:seed:interactive -w @oyla/api"
   },
   "overrides": {

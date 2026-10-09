@@ -12,12 +12,7 @@ import {
   GraduationCap,
   BookOpen,
 } from 'lucide-react';
-import {
-  Avatar,
-  AvatarBadge,
-  AvatarFallback,
-  AvatarImage,
-} from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -111,7 +106,6 @@ export function HeaderUserMenu({
               {avatarUrl && <AvatarImage src={avatarUrl} alt="" />}
               <AvatarFallback variant="gradient">{initial}</AvatarFallback>
             </Avatar>
-            <AvatarBadge status="online" pulse aria-hidden="true" />
           </div>
           <span className="user-menu-info">
             <span className="user-menu-name" title={name}>

@@ -7,10 +7,8 @@ import {
   GraduationCap,
   House,
   Layers,
-  LogOut,
   Menu,
   Settings2,
-  Sparkles,
   Trophy,
   Users,
   ClipboardList,
@@ -37,12 +35,10 @@ const studentNav = [
   { to: '/assignments', label: 'Topshiriqlar', icon: ClipboardList },
   { to: '/games', label: 'O‘yinlar', icon: Gamepad2 },
   { to: '/videos', label: 'Videodarslar', icon: Clapperboard },
-  { to: '/profile', label: 'Mening profilim', icon: UserRound },
 ];
 const teacherNav = [
   { to: '/teacher', label: 'Mening sinflarim', icon: GraduationCap },
   { to: '/teacher/assignments', label: 'Topshiriqlar', icon: ClipboardList },
-  { to: '/profile', label: 'Mening profilim', icon: UserRound },
 ];
 const adminNav = [
   { to: '/admin', label: 'Umumiy ko‘rinish', icon: House },
@@ -52,9 +48,8 @@ const adminNav = [
   { to: '/admin/gamification', label: 'Gamifikatsiya', icon: Settings2 },
   { to: '/admin/avatars', label: 'Avatarlar katalogi', icon: UserRound },
   { to: '/admin/videos', label: 'Videodarslar', icon: Clapperboard },
-  { to: '/profile', label: 'Mening profilim', icon: UserRound },
 ];
-const adminTeacherNav = [...adminNav.slice(0, -1), ...teacherNav.slice(0, 2), adminNav.at(-1)!];
+const adminTeacherNav = [...adminNav, ...teacherNav];
 export function Logo() {
   return (
     <span className="logo" role="img" aria-label={brand.name}>
@@ -126,17 +121,6 @@ export function AppShell() {
             </NavLink>
           ))}
         </nav>
-        <div className="sidebar-note">
-          <div className="note-star">
-            <Sparkles size={21} />
-          </div>
-          <strong>Har bir qadam muhim.</strong>
-          <p>Bugungi kichik harakat — ertangi katta natija.</p>
-        </div>
-        <Button variant="ghost" className="logout" onClick={() => void signOut()}>
-          <LogOut size={18} />
-          Chiqish
-        </Button>
       </aside>
       <div className="main-shell">
         <div className="topbar">
@@ -151,8 +135,6 @@ export function AppShell() {
               <Menu size={22} />
             </Button>
             <span className="platform-label">BILIM UCHUN YANGI MAYDON</span>
-            <span className="live-dot" />
-            <span className="desktop-only">{brand.name} platformasi</span>
           </div>
           <div className="topbar-actions">
             <NotificationBell />

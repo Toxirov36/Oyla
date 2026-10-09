@@ -21,7 +21,7 @@ import { useAuth } from '../lib/auth';
 import type { Profile } from '../lib/types';
 import { tashkentDate } from '../lib/locale';
 import { ChangePasswordForm } from '../components/change-password';
-import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from '../components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 import { AvatarPicker } from '../components/avatar-picker';
 import { ProfilePhoto } from '../components/profile-photo';
 import { brand } from '../lib/brand';
@@ -178,7 +178,6 @@ export default function ProfilePage() {
                 {profile.user.avatar && <AvatarImage src={profile.user.avatar.imageUrl} alt="" />}
                 <AvatarFallback variant="gradient">{initial}</AvatarFallback>
               </Avatar>
-              <AvatarBadge status="online" pulse aria-hidden="true" />
             </div>
             <div>
               <span className="pill">{roles[profile.user.role]}</span>

@@ -93,13 +93,15 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
             <span className="illustration-plus plus-one">+</span>
             <span className="illustration-plus plus-two">+</span>
           </div>
-          <div className="auth-subjects">
-            <span>01 Matematika</span>
-            <span>02 Ingliz tili</span>
-            <span>03 Informatika</span>
-          </div>
+          {register && (
+            <div className="auth-subjects">
+              <span>01 Matematika</span>
+              <span>02 Ingliz tili</span>
+              <span>03 Informatika</span>
+            </div>
+          )}
         </div>
-        <small>{brandTitle}</small>
+        {register && <small>{brandTitle}</small>}
       </section>
       <section className="auth-form-side">
         <div className="auth-form">
@@ -194,10 +196,12 @@ export default function AuthPage({ register = false }: { register?: boolean }) {
               {notice}
             </p>
           )}
-          <div className="auth-trust">
-            <Check size={15} />
-            Bilimingiz va natijalaringiz xavfsiz saqlanadi.
-          </div>
+          {register && (
+            <div className="auth-trust">
+              <Check size={15} />
+              Bilimingiz va natijalaringiz xavfsiz saqlanadi.
+            </div>
+          )}
         </div>
       </section>
     </div>

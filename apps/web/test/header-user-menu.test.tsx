@@ -26,7 +26,7 @@ describe('HeaderUserMenu and Avatar redesign', () => {
     expect(fallback).toHaveTextContent('D');
 
     const badge = trigger.querySelector('[data-slot="avatar-badge"]');
-    expect(badge).toBeInTheDocument();
+    expect(badge).not.toBeInTheDocument();
 
     expect(trigger).toHaveTextContent('Dilshodbek Toxirov');
     expect(trigger).toHaveTextContent('Administrator · O‘qituvchi');
