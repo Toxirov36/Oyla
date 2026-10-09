@@ -5,7 +5,7 @@
  */
 import { existsSync } from 'node:fs';
 import { resolve, join } from 'node:path';
-import { execFileSync, spawn } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { createConnection } from 'node:net';
 
 const REDIS_PORT = 56379;
