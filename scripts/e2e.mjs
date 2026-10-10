@@ -237,9 +237,12 @@ try {
       classId: group.id,
       lessonId: lesson.id,
       title: 'Integration homework',
-      deadline: new Date(Date.now() + 86400000).toISOString(),
     },
   });
+  assert.equal(
+    new Date(assignment.deadline).getTime() - new Date(assignment.createdAt).getTime(),
+    86400000,
+  );
   const foreign = (await admin.request('/admin/classes')).find(
     (c) => c.teacherId !== teacherLogin.user.id,
   );
@@ -252,7 +255,6 @@ try {
         classId: foreign.id,
         lessonId: lesson.id,
         title: 'Unauthorized assignment',
-        deadline: new Date(Date.now() + 86400000).toISOString(),
       },
     });
   }

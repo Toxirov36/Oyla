@@ -172,7 +172,6 @@ export async function verifyTeachingAndFriends({
       classId: group.id,
       lessonId: weak.id,
       title: 'Focused practice',
-      deadline: new Date(Date.now() + 86400000).toISOString(),
     },
   });
   assert.equal(
