@@ -79,6 +79,8 @@ const positionField: EditorField = {
 type ContentKind = 'subjects' | 'courses' | 'topics' | 'lessons' | 'questions';
 type ContentEntity = AdminSubject | AdminCourse | AdminTopic | AdminLesson | AdminQuestion;
 const entityValues = (value?: object): Record<string, unknown> => (value ? { ...value } : {});
+const isEligibleClassStudent = (user: User, grade: number | undefined) =>
+  user.role === 'STUDENT' && user.active === true && user.student?.grade === grade;
 
 export default function AdminPage({
   mode = 'overview',
@@ -576,7 +578,11 @@ export default function AdminPage({
             setError('');
             setMemberSearch('');
             setMembership(group);
-            setMemberIds(group.students.map((s) => s.studentId));
+            setMemberIds(
+              group.students
+                .filter(({ student }) => isEligibleClassStudent(student, group.grade))
+                .map(({ studentId }) => studentId),
+            );
           }}
           onDelete={requestDeletion}
         />
@@ -691,9 +697,7 @@ export default function AdminPage({
         <p className="subtle">{tx('pages.admin.selected', { value1: memberIds.length })}</p>
         <div className="membership-list">
           {allUsers.data?.items
-            .filter(
-              (u) => u.role === 'STUDENT' && u.active && u.student?.grade === membership?.grade,
-            )
+            .filter((user) => isEligibleClassStudent(user, membership?.grade))
             .map((user) => (
               <label key={user.id}>
                 <input
