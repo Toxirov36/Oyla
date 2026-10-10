@@ -6,7 +6,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 
@@ -178,12 +177,6 @@ export function LanguageSwitcher({ className = '' }: { className?: string }) {
           collisionPadding={12}
           className="lang-dropdown-content"
         >
-          <div className="lang-dropdown-header">
-            <span>{t('language.label')}</span>
-          </div>
-
-          <DropdownMenuSeparator className="lang-dropdown-sep" />
-
           <div className="lang-options-list" role="radiogroup" aria-label={t('language.label')}>
             {locales.map((value) => {
               const meta = languageMeta[value];

@@ -19,6 +19,7 @@ const Games = lazy(() => import('./pages/games'));
 const BrainRing = lazy(() => import('./pages/brain-ring'));
 const Videos = lazy(() => import('./pages/videos'));
 const AdminVideos = lazy(() => import('./pages/admin/videos'));
+const AdminMemory = lazy(() => import('./pages/admin/memory'));
 const Profile = lazy(() => import('./pages/profile'));
 const Friends = lazy(() => import('./pages/friends'));
 const StudentClass = lazy(() => import('./pages/student-class'));
@@ -90,6 +91,7 @@ export default function App() {
             </Route>
             <Route element={<Protected role="ADMIN" />}>
               <Route path="/admin/videos" element={<AdminVideos />} />
+              <Route path="/admin/memory" element={<AdminMemory />} />
               <Route path="/admin/avatars" element={<AdminAvatars />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/admin/exercises" element={<ExerciseCatalog />} />

@@ -20,7 +20,7 @@ Only new match/photo GET requests use the separate `play-read` rate window, cont
 
 ## Games and videos
 
-The standalone **Bilim bog‘i** memory game uses four educational pairs per selected subject and grade. Cards flip, matched flowers grow, and replay reshuffles the board. Word/picture, irregular-verb, fraction/percentage/equation and device/algorithm pairs vary by grade. Its local move count does not change learning history or award XP.
+The standalone **Bilim bog‘i** memory game now has three server-persisted stages with four, five and six educational pairs. The API checks guesses, resumes active rounds after refresh and prepares the next deck in the background. Gemini selects combinations from a curated grade/subject bank; no administrator approval is needed, while `/admin/memory` can pause generation and archive a faulty deck. Curated decks keep the game playable without Gemini. Moves and stage progress do not award XP or change lesson results. See [the implementation and limits](AI_MEMORY_GARDEN_PLAN.md).
 
 Nine original animations cover mathematics, English and informatics for each of grades 5, 6 and 7. Each has four timed scenes with captions, play/pause/restart and chapter selection; optional browser narration reads the captions. Reduced-motion preferences are honored. Native animation scenes work without a third-party video service. One grade-5 English video from [British Council LearnEnglish Kids](https://www.youtube.com/watch?v=synTxcnHyrA) demonstrates the YouTube source option. External embeds load only after the user selects play and provide an external link fallback.
 

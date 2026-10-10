@@ -115,7 +115,17 @@ export function AdminContent({
                             </Button>
                           </div>
                           <div className="content-excerpt">
-                            <p>{lesson.explanation.slice(0, 240)}...</p>
+                            {lesson.youtubeId ? (
+                              <a
+                                href={`https://www.youtube.com/watch?v=${lesson.youtubeId}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                YouTube
+                              </a>
+                            ) : (
+                              <p>{lesson.explanation.slice(0, 240)}...</p>
+                            )}
                           </div>
                           {lesson.questions.map((question, i) => (
                             <div className="content-question" key={question.id}>

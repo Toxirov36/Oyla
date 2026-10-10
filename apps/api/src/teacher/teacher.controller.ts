@@ -41,8 +41,8 @@ export class TeacherController {
       limits: {
         fileSize: MAX_ASSIGNMENT_ATTACHMENT_BYTES,
         files: MAX_ASSIGNMENT_ATTACHMENTS,
-        fields: 4,
-        parts: 9,
+        fields: 3,
+        parts: 8,
       },
     }),
   )

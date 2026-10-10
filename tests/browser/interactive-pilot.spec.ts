@@ -183,7 +183,6 @@ test('teacher type analysis counts first answers, distinguishes mastery and assi
         classId: group.id,
         lessonId: child.id,
         title: 'Qo‘shimcha mashq',
-        deadline: new Date(Date.now() + 86400000).toISOString(),
       },
     });
     expect(assignment.status()).toBe(201);

@@ -4,6 +4,7 @@ import { AdminUsersController } from './users.controller';
 import { AdminContentController } from './content.controller';
 import { AdminGamificationController } from './gamification.controller';
 import { AdminClassesController } from './classes.controller';
+import { AiQuestionGenerationService } from './ai-question-generation.service';
 @Module({
   controllers: [
     AdminUsersController,
@@ -11,6 +12,6 @@ import { AdminClassesController } from './classes.controller';
     AdminGamificationController,
     AdminClassesController,
   ],
-  providers: [AdminService],
+  providers: [AdminService, AiQuestionGenerationService],
 })
 export class AdminModule {}

@@ -7,6 +7,8 @@ import { exerciseAnalysis } from './exercise-analytics';
 import { CreateAssignmentDto } from './teacher.dto';
 import { AssignmentStorage, IncomingAssignmentFile } from './assignment-storage';
 
+const ASSIGNMENT_DURATION_MS = 24 * 60 * 60 * 1000;
+
 const studentSelect = {
   id: true,
   name: true,
@@ -244,9 +246,6 @@ export class TeacherService {
       }))
     )
       throw new BadRequestException('Sinfga mos chop etilgan darsni tanlang.');
-    const deadline = new Date(dto.deadline);
-    if (deadline <= new Date() || !/(?:Z|[+-]\d{2}:\d{2})$/.test(dto.deadline))
-      throw new BadRequestException('Kelajakdagi muddatni vaqt zonasi bilan kiriting.');
     const prepared = await this.assignmentStorage.prepare(files);
     const uploaded: string[] = [];
     try {
@@ -255,12 +254,14 @@ export class TeacherService {
         uploaded.push(file.key);
       }
       return await this.db.$transaction(async (tx) => {
+        const createdAt = new Date();
         const assignment = await tx.assignment.create({
           data: {
             classId: dto.classId,
             lessonId: dto.lessonId,
             title: dto.title,
-            deadline,
+            createdAt,
+            deadline: new Date(createdAt.getTime() + ASSIGNMENT_DURATION_MS),
             attachments: prepared.length
               ? {
                   create: prepared.map(({ key, originalName, contentType, size }) => ({

@@ -15,6 +15,7 @@ import {
   Globe,
   Lightbulb,
   Plus,
+  Play,
   Sparkles,
   Trophy,
   Zap,
@@ -118,12 +119,14 @@ export default function DashboardPage() {
                   <h3>{localizeText(next.title)}</h3>
                   <div className="hero-meta">
                     <span>
-                      <Clock3 size={15} />
-                      {t('common.minutes', { count: next.duration })}
+                      {next.duration > 0 ? <Clock3 size={15} /> : <Play size={15} />}
+                      {next.duration > 0
+                        ? t('common.minutes', { count: next.duration })
+                        : t('lesson.video')}
                     </span>
                     <span>
                       <BookOpen size={15} />
-                      {t('dashboard.understandPractice')}
+                      {t(next.duration > 0 ? 'dashboard.understandPractice' : 'dashboard.videoPractice')}
                     </span>
                   </div>
                   <Link className="btn btn-white" to={`/lessons/${next.id}`}>

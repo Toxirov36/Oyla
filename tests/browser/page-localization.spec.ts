@@ -117,7 +117,7 @@ test('teacher pages and assignment forms are localized', async ({ page, learner 
     await page.getByRole('button', { name: 'Assign task', exact: true }).click();
     const dialog = page.getByRole('dialog');
     await expect(dialog.getByLabel('Assignment title', { exact: true })).toBeVisible();
-    await expect(dialog.getByLabel('Due date', { exact: true })).toBeVisible();
+    await expect(dialog).toContainText('Students have 24 hours after the assignment is created.');
     await dialog.getByRole('button', { name: 'Assign task', exact: true }).click();
     await expect(dialog.getByText('Select a lesson.', { exact: true })).toBeVisible();
   } finally {

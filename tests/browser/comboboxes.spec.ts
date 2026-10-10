@@ -120,9 +120,7 @@ test('teacher class combobox resets the previous lesson and saves a matching gra
     await lesson.fill('Matematika');
     await page.getByRole('option').first().click();
     await dialog.getByLabel('Topshiriq nomi', { exact: true }).fill(title);
-    await dialog
-      .getByLabel('Topshirish muddati', { exact: true })
-      .fill(new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 16));
+    await expect(dialog).toContainText('24 soat ichida');
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true);
@@ -133,6 +131,7 @@ test('teacher class combobox resets the previous lesson and saves a matching gra
       include: { lesson: { include: { topic: { include: { course: true } } } } },
     });
     expect(assignment.lesson.topic.course.grade).toBe(7);
+    expect(assignment.deadline.getTime() - assignment.createdAt.getTime()).toBe(86400000);
   } finally {
     await db.class.deleteMany({ where: { teacherId: teacher.id } });
     await db.user.deleteMany({ where: { id: teacher.id } });

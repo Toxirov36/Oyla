@@ -2,7 +2,7 @@
 
 ## Specification analysis
 
-Students in grades 5–7 learn Mathematics, English, and Informatics through explanations, examples, practice, and challenges. Teachers own classes, monitor actual performance, and assign lessons with deadlines. Administrators manage users, the content hierarchy, publishing, XP rules, levels, and badges. The Uzbek UI always provides a next learning action.
+Students in grades 5–7 learn Mathematics, English, and Informatics through explanations, examples, practice, and challenges. Teachers own classes, monitor actual performance, and assign lessons with automatic 24-hour deadlines. Administrators manage users, the content hierarchy, publishing, XP rules, levels, and badges. The Uzbek UI always provides a next learning action.
 
 The server is authoritative for correctness, scores, XP, mastery, streaks, and badges. Login does not count as learning. Each lesson reward and daily reward can be claimed once. Published parents are required for student visibility. AI tutor, parent/sponsor dashboards, duels, physical rewards, and other grades are excluded. Weekly, class, and private accepted-friends leaderboards are included.
 

@@ -42,7 +42,10 @@ export class AssignmentStorage {
     for (const file of files) {
       if (!file.buffer?.length || file.size > MAX_ASSIGNMENT_ATTACHMENT_BYTES)
         throw new BadRequestException('Har bir fayl 15 MB dan kichik bo‘lishi kerak.');
-      const cleanName = file.originalname.replace(/\\/g, '/').split('/').pop()?.replace(/[\u0000-\u001f\u007f]/g, '').trim();
+      const cleanName = Array.from(file.originalname.replace(/\\/g, '/').split('/').pop() ?? '')
+        .filter((char) => char.charCodeAt(0) > 31 && char.charCodeAt(0) !== 127)
+        .join('')
+        .trim();
       if (!cleanName) throw new BadRequestException('Fayl nomi noto‘g‘ri.');
       const extension = cleanName.split('.').pop()?.toLowerCase();
       if (extension === 'pdf' && file.buffer.subarray(0, 5).toString() === '%PDF-') {

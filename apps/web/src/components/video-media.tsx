@@ -5,11 +5,41 @@ import { Pause, Play, RotateCcw, Volume2 } from 'lucide-react';
 import type { VideoLesson } from '../lib/play';
 import { Button, ProgressBar } from './ui';
 import { AnimationScene } from './animation-scene';
+
+export function YouTubeVideo({ youtubeId, title }: { youtubeId: string; title: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="youtube-lesson">
+      {open ? (
+        <iframe
+          title={title}
+          src={`https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0`}
+          allow="accelerometer; autoplay; encrypted-media; picture-in-picture"
+          allowFullScreen
+        />
+      ) : (
+        <div className="video-poster">
+          <Play size={54} />
+          <h2>{title}</h2>
+          <Button onClick={() => setOpen(true)}>{tx('pages.video-media.openVideo')}</Button>
+        </div>
+      )}
+      <a
+        className="text-link"
+        href={`https://www.youtube.com/watch?v=${youtubeId}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {tx('pages.video-media.openOnYoutube')}
+      </a>
+    </div>
+  );
+}
+
 export function VideoMedia({ video }: { video: VideoLesson }) {
   usePageLocale();
   const [playing, setPlaying] = useState(false);
   const [elapsed, setElapsed] = useState(0);
-  const [youtube, setYoutube] = useState(false);
   const chapters = video.animation?.chapters ?? [];
   const duration = chapters.length * 12000;
   const index = Math.min(chapters.length - 1, Math.floor(elapsed / 12000));
@@ -31,32 +61,7 @@ export function VideoMedia({ video }: { video: VideoLesson }) {
     [index],
   );
   if (video.kind === 'YOUTUBE')
-    return (
-      <div className="youtube-lesson">
-        {youtube ? (
-          <iframe
-            title={localizeText(video.title)}
-            src={`https://www.youtube-nocookie.com/embed/${video.youtubeId}?rel=0`}
-            allow="accelerometer; autoplay; encrypted-media; picture-in-picture"
-            allowFullScreen
-          />
-        ) : (
-          <div className="video-poster">
-            <Play size={54} />
-            <h2>{localizeText(video.title)}</h2>
-            <Button onClick={() => setYoutube(true)}>{tx('pages.video-media.openVideo')}</Button>
-          </div>
-        )}
-        <a
-          className="text-link"
-          href={`https://www.youtube.com/watch?v=${video.youtubeId}`}
-          target="_blank"
-          rel="noreferrer"
-        >
-          {tx('pages.video-media.openOnYoutube')}
-        </a>
-      </div>
-    );
+    return <YouTubeVideo youtubeId={video.youtubeId!} title={localizeText(video.title)} />;
   if (!chapter) return <p>{tx('pages.video-media.theLessonIsBeingPrepared')}</p>;
   return (
     <div className={`animated-video ${playing ? 'is-playing' : 'is-paused'}`}>

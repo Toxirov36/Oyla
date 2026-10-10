@@ -14,7 +14,7 @@ The [content review](docs/CONTENT_REVIEW.md) records the 7 October 2026 review, 
 
 ## Interactive learning
 
-Students can upload a private profile photo, play the new **Bilim bog‘i** memory game, challenge an accepted friend to a synchronized **Brain Ring**, and watch grade-specific animated lessons or a YouTube source. Administrators manage videos at `/admin/videos`. Existing friendship consent, lesson modes, progress and XP rules are preserved. See [new games, media and profile photos](docs/PLAY_AND_PHOTOS.md).
+Students can upload a private profile photo, play the **Bilim bog‘i** memory game with three progressive stages and automatically prepared Gemini deck variants, challenge an accepted friend to a synchronized **Brain Ring**, and watch grade-specific animated lessons or a YouTube source. Administrators manage videos at `/admin/videos` and monitor generated decks and card reports at `/admin/memory`. The memory game works with curated fallback decks when Gemini is unavailable; it does not award XP. See [the Gemini memory plan](docs/AI_MEMORY_GARDEN_PLAN.md) and [new games, media and profile photos](docs/PLAY_AND_PHOTOS.md).
 
 Profiles offer twelve free local avatars with preview and server-persisted selection. The same avatar appears in the header, friends, class roster and rankings. Administrators manage reviewed assets at `/admin/avatars`; product name, logos, favicon, slogan and main colors are configured in `apps/web/src/lib/brand.ts`. See [avatars and branding](docs/AVATARS_AND_BRANDING.md).
 

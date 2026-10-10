@@ -10,6 +10,7 @@ function stored(): Parameters<typeof canArchiveStarter>[0] {
   const lessonId = seedId('mathematics:5:lesson:0');
   return {
     id: lessonId,
+    youtubeId: null,
     prerequisiteId: null,
     masteryScore: 70,
     unlockScore: 70,

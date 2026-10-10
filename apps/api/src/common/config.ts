@@ -16,6 +16,10 @@ class Environment {
   @IsOptional() @IsString() R2_ACCESS_KEY_ID?: string;
   @IsOptional() @IsString() R2_SECRET_ACCESS_KEY?: string;
   @IsOptional() @IsString() R2_BUCKET_NAME?: string;
+  @IsOptional() @IsString() GEMINI_API_KEY?: string;
+  @IsString() @Matches(/^[a-zA-Z0-9._-]+$/) GEMINI_MODEL = 'gemini-2.5-flash-lite';
+  @IsInt() @Min(0) @Max(10000) MEMORY_AI_DAILY_LIMIT = 100;
+  @IsInt() @Min(0) @Max(10000) AI_QUESTION_DAILY_LIMIT = 20;
   @IsIn(['development', 'test', 'production']) NODE_ENV = 'development';
   @IsIn(['0', '1']) TRUST_PROXY = '0';
   @IsInt() @Min(1) @Max(10000) AUTH_RATE_LIMIT = 20;
@@ -35,6 +39,10 @@ const input = {
   R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID || undefined,
   R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY || undefined,
   R2_BUCKET_NAME: process.env.R2_BUCKET_NAME || undefined,
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY || undefined,
+  GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite',
+  MEMORY_AI_DAILY_LIMIT: Number(process.env.MEMORY_AI_DAILY_LIMIT ?? 100),
+  AI_QUESTION_DAILY_LIMIT: Number(process.env.AI_QUESTION_DAILY_LIMIT ?? 20),
   NODE_ENV: process.env.NODE_ENV || 'development',
   TRUST_PROXY: process.env.TRUST_PROXY || '0',
   AUTH_RATE_LIMIT: Number(process.env.AUTH_RATE_LIMIT || 20),

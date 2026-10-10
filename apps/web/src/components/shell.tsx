@@ -50,6 +50,7 @@ const adminNav = [
   { to: '/admin/gamification', label: 'navigation.gamification', icon: Settings2 },
   { to: '/admin/avatars', label: 'navigation.avatars', icon: UserRound },
   { to: '/admin/videos', label: 'navigation.videos', icon: Clapperboard },
+  { to: '/admin/memory', label: 'navigation.memoryAdmin', icon: Gamepad2 },
 ];
 const adminTeacherNav = [...adminNav, ...teacherNav];
 export function Logo() {

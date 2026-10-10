@@ -10,7 +10,7 @@ import { UserEditor } from './admin/user-editor';
 import { AdminPasswordReset } from './admin/password-reset';
 import { grades, criterions } from './admin/config';
 import { useSearchParams } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import { Pencil, Plus, Search, Trash2 } from 'lucide-react';
@@ -114,10 +114,15 @@ export default function AdminPage({
     queryKey: ['admin', 'users', page, search],
     queryFn: () =>
       api<{ items: User[]; total: number; page: number; limit: number }>(
-        `/admin/users?page=${page}&limit=20&search=${encodeURIComponent(search)}`,
+        `/admin/users?page=${page}&limit=10&search=${encodeURIComponent(search)}`,
       ),
     enabled: mode === 'users',
   });
+  useEffect(() => {
+    if (mode !== 'users' || !users.data) return;
+    const lastPage = Math.max(1, Math.ceil(users.data.total / users.data.limit));
+    if (page > lastPage) setPage(lastPage);
+  }, [mode, page, users.data]);
   const allUsers = useQuery({
     queryKey: ['admin', 'class-users', memberSearch, membership?.grade],
     queryFn: () =>
@@ -268,37 +273,22 @@ export default function AdminPage({
       ];
       values = { courseId: parentId, ...values };
     } else if (kind === 'lessons') {
+      const currentLesson = item as AdminLesson | undefined;
       fields = [
         select('topicId', tx('pages.admin.content.topic'), topics),
         { ...titleField, max: 150 },
         {
-          key: 'explanation',
+          key: 'youtubeUrl',
           get label() {
-            return tx('lesson.explanation');
+            return tx('pages.admin.youtubeVideoLink');
           },
-          kind: 'textarea',
-          min: 20,
+          max: 2048,
+          schema: currentLesson && !currentLesson.youtubeId
+            ? z.union([z.literal(''), z.url(tx('pages.admin.enterValidYoutubeLink'))])
+            : z.url(tx('pages.admin.enterValidYoutubeLink')),
           get help() {
-            return tx('pages.admin.separateParagraphsWithABlankLine');
+            return tx('pages.admin.youtubeVideoLinkHelp');
           },
-        },
-        {
-          key: 'example',
-          get label() {
-            return tx('pages.admin.workedExample');
-          },
-          kind: 'textarea',
-          min: 10,
-          max: 10000,
-        },
-        {
-          key: 'duration',
-          get label() {
-            return tx('pages.admin.durationMinutes');
-          },
-          kind: 'number',
-          min: 1,
-          max: 180,
         },
         {
           key: 'prerequisiteId',
@@ -319,34 +309,15 @@ export default function AdminPage({
               .map((l) => ({ value: l.id, label: l.label })),
           ],
         },
-        {
-          key: 'unlockScore',
-          get label() {
-            return tx('pages.admin.minimumScoreOnThePreviousLesson');
-          },
-          kind: 'number',
-          min: 0,
-          max: 100,
-        },
-        {
-          key: 'masteryScore',
-          get label() {
-            return tx('pages.admin.minimumScoreToMasterTheLesson');
-          },
-          kind: 'number',
-          min: 0,
-          max: 100,
-        },
         ...(item ? [statusField] : []),
-        positionField,
       ];
       values = {
         topicId: parentId,
-        duration: 10,
-        unlockScore: 70,
-        masteryScore: 70,
         ...values,
         prerequisiteId: values.prerequisiteId ?? '',
+        youtubeUrl: currentLesson?.youtubeId
+          ? `https://www.youtube.com/watch?v=${currentLesson.youtubeId}`
+          : '',
       };
     } else {
       return;
@@ -364,6 +335,7 @@ export default function AdminPage({
       serialize: (input) => {
         const body = { ...input };
         if (kind === 'courses') body.grade = Number(body.grade);
+        if (kind === 'lessons' && body.youtubeUrl === '') delete body.youtubeUrl;
         return body;
       },
     });

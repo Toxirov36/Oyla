@@ -71,7 +71,7 @@ export function LessonPath({ subject, dashboard }: { subject: Subject; dashboard
                                   })
                                 : state === 'IN_PROGRESS'
                                   ? t('path.resume')
-                                  : t('path.available', {
+                                  : t(lesson.duration > 0 ? 'path.available' : 'path.availableVideo', {
                                       count: lesson.duration,
                                       action: t(active ? 'path.start' : 'path.practice'),
                                     })}

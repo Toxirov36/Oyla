@@ -208,3 +208,5 @@ export function Stat({
 }
 export const dateLabel = (date: string) => formatDate(date);
 export * from './ui/select';
+export * from './ui/popover';
+export * from './ui/datetime-picker';

@@ -6,6 +6,7 @@ import { Prisma } from '../../generated/prisma/client';
 import * as argon2 from 'argon2';
 import { PrismaService } from '../common/prisma.service';
 import { Actor } from '../common/security';
+import { youtubeVideoId } from './youtube';
 import {
   AdminUserQueryDto,
   BadgeDto,
@@ -294,13 +295,31 @@ export class AdminService {
     return this.db.topic.delete({ where: { id } });
   }
   async createLesson(dto: LessonDto) {
-    await this.validatePrerequisite(undefined, dto);
+    const position = await this.nextLessonPosition(dto.topicId);
+    await this.validatePrerequisite(undefined, dto, position);
     if (dto.status === 'PUBLISHED')
       throw new BadRequestException('Avval darsni qoralama sifatida yarating va savol qo‘shing.');
-    return this.db.lesson.create({ data: { ...dto, prerequisiteId: dto.prerequisiteId || null } });
+    return this.db.lesson.create({
+      data: {
+        topicId: dto.topicId,
+        title: dto.title,
+        youtubeId: dto.youtubeUrl ? youtubeVideoId(dto.youtubeUrl) : null,
+        prerequisiteId: dto.prerequisiteId || null,
+        explanation: '',
+        example: '',
+        duration: 0,
+        position,
+        status: dto.status,
+      },
+    });
   }
   async updateLesson(id: string, dto: UpdateLessonDto) {
-    await this.validatePrerequisite(id, dto);
+    const current = await this.db.lesson.findUniqueOrThrow({ where: { id } });
+    const position =
+      dto.topicId && dto.topicId !== current.topicId
+        ? await this.nextLessonPosition(dto.topicId)
+        : undefined;
+    await this.validatePrerequisite(id, dto, position);
     if (
       dto.status === 'PUBLISHED' &&
       !(await this.db.question.count({ where: { lessonId: id, status: 'PUBLISHED' } }))
@@ -308,15 +327,30 @@ export class AdminService {
       throw new BadRequestException(
         'Darsni chop etish uchun kamida bitta chop etilgan savol kerak.',
       );
+    const { youtubeUrl, ...changes } = dto;
     return this.db.lesson.update({
       where: { id },
       data: {
-        ...dto,
+        ...changes,
+        ...(youtubeUrl !== undefined ? { youtubeId: youtubeVideoId(youtubeUrl) } : {}),
         ...(dto.prerequisiteId !== undefined ? { prerequisiteId: dto.prerequisiteId || null } : {}),
+        ...(position !== undefined ? { position } : {}),
       },
     });
   }
-  private async validatePrerequisite(id: string | undefined, dto: UpdateLessonDto) {
+  private async nextLessonPosition(topicId: string) {
+    const last = await this.db.lesson.findFirst({
+      where: { topicId },
+      orderBy: [{ position: 'desc' }, { id: 'desc' }],
+      select: { position: true },
+    });
+    return (last?.position ?? -1) + 1;
+  }
+  private async validatePrerequisite(
+    id: string | undefined,
+    dto: UpdateLessonDto,
+    targetPosition?: number,
+  ) {
     const current = id ? await this.db.lesson.findUniqueOrThrow({ where: { id } }) : null;
     const prerequisiteId = dto.prerequisiteId ?? current?.prerequisiteId;
     if (!prerequisiteId) return;
@@ -345,7 +379,7 @@ export class AdminService {
       !(
         previous.topic.position < target.position ||
         (previous.topicId === target.id &&
-          previous.position < (dto.position ?? current?.position ?? 0))
+          previous.position < (targetPosition ?? current?.position ?? 0))
       )
     )
       throw new BadRequestException(
@@ -446,9 +480,16 @@ export class AdminService {
     });
   }
   async deleteQuestion(id: string) {
-    if (await this.db.attempt.count({ where: { questionIds: { has: id } } }))
+    const question = await this.db.question.findUniqueOrThrow({ where: { id } });
+    const attemptsCount = await this.db.attempt.count({ where: { questionIds: { has: id } } });
+    if (question.status !== 'ARCHIVED' && attemptsCount > 0)
       throw new BadRequestException('Savol urinishlarda ishlatilgan. Uni arxivlang.');
-    return this.db.question.delete({ where: { id } });
+    return this.db.$transaction(async (tx) => {
+      await tx.attemptAnswer.deleteMany({ where: { questionId: id } });
+      await tx.$executeRaw`UPDATE "Attempt" SET "questionIds" = array_remove("questionIds", ${id}) WHERE ${id} = ANY("questionIds")`;
+      await tx.questionOption.deleteMany({ where: { questionId: id } });
+      return tx.question.delete({ where: { id } });
+    });
   }
   classes() {
     return this.db.class.findMany({

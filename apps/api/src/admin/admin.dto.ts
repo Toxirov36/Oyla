@@ -17,6 +17,7 @@ import {
   IsEnum,
   IsInt,
   IsDefined,
+  IsIn,
   IsNumber,
   IsString,
   IsUUID,
@@ -69,22 +70,22 @@ export class TopicDto {
 }
 export class UpdateTopicDto extends PartialType(TopicDto, { skipNullProperties: false }) {}
 export class LessonDto {
-  @Optional() @IsInt() @Min(0) @Max(100) masteryScore?: number;
   @Optional()
   @IsString()
   @Matches(/^(?:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})?$/i)
   prerequisiteId?: string;
-  @Optional() @IsInt() @Min(0) @Max(100) unlockScore?: number;
   @ApiProperty() @IsUUID('4') topicId!: string;
   @ApiProperty() @Trim() @IsString() @MinLength(2) @MaxLength(150) title!: string;
-  @ApiProperty() @Trim() @IsString() @MinLength(20) @MaxLength(30000) explanation!: string;
-  @ApiProperty() @Trim() @IsString() @MinLength(10) @MaxLength(10000) example!: string;
-  @ApiPropertyOptional() @Optional() @IsInt() @Min(1) @Max(180) duration?: number;
+  @ApiPropertyOptional({ description: 'YouTube video URL' })
+  @Optional()
+  @Trim()
+  @IsString()
+  @MaxLength(2048)
+  youtubeUrl?: string;
   @ApiPropertyOptional({ enum: ContentStatus })
   @Optional()
   @IsEnum(ContentStatus)
   status?: ContentStatus;
-  @ApiPropertyOptional() @Optional() @IsInt() @Min(0) @Max(10000) position?: number;
 }
 export class UpdateLessonDto extends PartialType(LessonDto, { skipNullProperties: false }) {}
 export class OptionDto {
@@ -126,6 +127,15 @@ export class QuestionDto {
   options?: OptionDto[];
 }
 export class UpdateQuestionDto extends PartialType(QuestionDto, { skipNullProperties: false }) {}
+export class GenerateLessonQuestionsDto {
+  @ApiProperty() @IsUUID('4') lessonId!: string;
+  @ApiPropertyOptional({ default: 3, minimum: 1, maximum: 10 })
+  @Optional() @Type(() => Number) @IsInt() @Min(1) @Max(10) count = 3;
+  @ApiPropertyOptional({ enum: Difficulty, default: Difficulty.MEDIUM })
+  @Optional() @IsEnum(Difficulty) difficulty: Difficulty = Difficulty.MEDIUM;
+  @ApiPropertyOptional({ enum: ['uz', 'ru', 'en'], default: 'uz' })
+  @Optional() @IsIn(['uz', 'ru', 'en']) locale: 'uz' | 'ru' | 'en' = 'uz';
+}
 export class PreviewExerciseDto {
   @IsDefined() @ValidateNested() @Type(() => QuestionDto) question!: QuestionDto;
   @IsString() @MinLength(1) @MaxLength(20000) value!: string;

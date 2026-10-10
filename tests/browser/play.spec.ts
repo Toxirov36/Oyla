@@ -246,44 +246,133 @@ test('animated videos are grade-scoped and the mini game completes through visib
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.goto('/games/memory');
   await expect(page.locator('.memory-card')).toHaveCount(8);
-  const remembered = new Map<number, string>();
-  const partner: Record<string, string> = {
-    cat: 'Mushuk',
-    Mushuk: 'cat',
-    dog: 'Kuchuk',
-    Kuchuk: 'dog',
-    rabbit: 'Quyon',
-    Quyon: 'rabbit',
-    fox: 'Tulki',
-    Tulki: 'fox',
-  };
-  for (let turn = 0; turn < 24; turn++) {
-    if (await page.getByRole('heading', { name: 'Bilim bog‘ingiz gulladi!', exact: true }).count())
-      break;
+  const memoryRound = await db.memoryRound.findFirstOrThrow({
+    where: { userId: learner.user.id, subject: 'english', status: 'ACTIVE' },
+    orderBy: { createdAt: 'desc' },
+  });
+  const roundCards = memoryRound.cards as { key: number; text: string }[];
+  for (const [turn, key] of [...new Set(roundCards.map((card) => card.key))].entries()) {
     const cards = page.locator('.memory-card');
-    const count = await cards.count();
-    const remaining: number[] = [];
-    for (let i = 0; i < count; i++)
-      if (!(await cards.nth(i).getAttribute('class'))!.includes('is-matched')) remaining.push(i);
-    if (!remaining.length) break;
-    const left = remaining.find((i) => !remembered.has(i)) ?? remaining[0]!;
+    const pairIndices = roundCards.flatMap((card, index) => card.key === key ? [index] : []);
+    expect(pairIndices).toHaveLength(2);
+    const left = pairIndices[0]!;
+    const right = pairIndices[1]!;
     await cards.nth(left).click();
     await expect(cards.nth(left).locator('span')).toBeVisible();
-    const label = (await cards.nth(left).innerText()).trim();
-    remembered.set(left, label);
-    const right =
-      remaining.find((i) => i !== left && remembered.get(i) === partner[label]) ??
-      remaining.find((i) => i !== left && !remembered.has(i)) ??
-      remaining.find((i) => i !== left)!;
     await cards.nth(right).click();
-    await expect(cards.nth(right).locator('span')).toBeVisible();
-    remembered.set(right, (await cards.nth(right).innerText()).trim());
-    await expect(page.locator('.memory-card.is-open:not(.is-matched)')).toHaveCount(0);
+    if (turn < 3) await expect(page.locator('.memory-card.is-matched')).toHaveCount((turn + 1) * 2);
   }
   await expect(
     page.getByRole('heading', { name: 'Bilim bog‘ingiz gulladi!', exact: true }),
   ).toBeVisible();
   expect(await db.xpTransaction.count({ where: { userId: learner.user.id } })).toBe(0);
+  await page.getByRole('button', { name: 'Keyingi raund', exact: true }).click();
+  await expect(page.locator('.memory-card')).toHaveCount(10);
+  await expect(page.getByText('2-bosqich', { exact: true })).toBeVisible();
+  const nextRound = await db.memoryRound.findFirstOrThrow({
+    where: { userId: learner.user.id, subject: 'english', status: 'ACTIVE' },
+  });
+  await page.reload();
+  await expect(page.locator('.memory-card')).toHaveCount(10);
+  expect((await db.memoryRound.findFirstOrThrow({
+    where: { userId: learner.user.id, subject: 'english', status: 'ACTIVE' },
+  })).id).toBe(nextRound.id);
+});
+
+test('memory rounds reject client authority and count a repeated guess only once', async ({ page, learner }) => {
+  const headers = { Origin: origin, Authorization: `Bearer ${learner.token}` };
+  expect((await page.request.post('/api/v1/memory/rounds', {
+    headers, data: { subject: 'english', grade: 7 },
+  })).status()).toBe(400);
+  expect((await page.request.post('/api/v1/memory/rounds', {
+    headers, data: { subject: 'english', stage: 3 },
+  })).status()).toBe(400);
+  const response = await page.request.post('/api/v1/memory/rounds', {
+    headers, data: { subject: 'english' },
+  });
+  expect(response.status()).toBe(201);
+  const round = await response.json() as { id: string; cards: { id: string; text: string }[] };
+  expect(JSON.stringify(round)).not.toContain('"key"');
+  const saved = await db.memoryRound.findUniqueOrThrow({ where: { id: round.id } });
+  const cards = saved.cards as { id: string; key: number }[];
+  const first = cards[0]!;
+  const second = cards.find((card) => card.key === first.key && card.id !== first.id)!;
+  expect((await page.request.post(`/api/v1/memory/rounds/${round.id}/guesses`, {
+    headers, data: { requestId: randomUUID(), firstId: first.id, secondId: first.id },
+  })).status()).toBe(400);
+  const requestId = randomUUID();
+  const guess = { requestId, firstId: first.id, secondId: second.id };
+  const accepted = await page.request.post(`/api/v1/memory/rounds/${round.id}/guesses`, { headers, data: guess });
+  expect(accepted.status()).toBe(201);
+  expect((await accepted.json()).moves).toBe(1);
+  const repeated = await page.request.post(`/api/v1/memory/rounds/${round.id}/guesses`, { headers, data: guess });
+  expect((await repeated.json()).moves).toBe(1);
+  expect((await db.memoryGuess.count({ where: { roundId: round.id } }))).toBe(1);
+  expect((await page.request.post(`/api/v1/memory/rounds/${round.id}/report`, {
+    headers, data: { reason: 'WRONG_PAIR' },
+  })).status()).toBe(201);
+  expect((await page.request.get('/api/v1/admin/memory/reports', { headers })).status()).toBe(403);
+  let activeId = round.id;
+  for (const expectedPairs of [5, 6]) {
+    const current = await db.memoryRound.findUniqueOrThrow({ where: { id: activeId } });
+    const currentCards = current.cards as { id: string; key: number }[];
+    for (const key of [...new Set(currentCards.map((card) => card.key))]) {
+      if (current.matchedKeys.includes(key)) continue;
+      const pair = currentCards.filter((card) => card.key === key);
+      expect((await page.request.post(`/api/v1/memory/rounds/${activeId}/guesses`, {
+        headers, data: { requestId: randomUUID(), firstId: pair[0]!.id, secondId: pair[1]!.id },
+      })).status()).toBe(201);
+    }
+    const next = await page.request.post('/api/v1/memory/rounds', {
+      headers, data: { subject: 'english' },
+    });
+    const nextRound = await next.json() as { id: string; pairCount: number };
+    expect(nextRound.pairCount).toBe(expectedPairs);
+    activeId = nextRound.id;
+  }
+  expect((await db.memoryProgress.findUniqueOrThrow({
+    where: { userId_subject: { userId: learner.user.id, subject: 'english' } },
+  })).stage).toBe(3);
+  const finalRound = await db.memoryRound.findUniqueOrThrow({ where: { id: activeId } });
+  const finalCards = finalRound.cards as { id: string; key: number }[];
+  for (const key of [...new Set(finalCards.map((card) => card.key))]) {
+    const pair = finalCards.filter((card) => card.key === key);
+    expect((await page.request.post(`/api/v1/memory/rounds/${activeId}/guesses`, {
+      headers, data: { requestId: randomUUID(), firstId: pair[0]!.id, secondId: pair[1]!.id },
+    })).status()).toBe(201);
+  }
+  const replay = await page.request.post('/api/v1/memory/rounds', {
+    headers, data: { subject: 'english', stage: 1 },
+  });
+  expect(replay.status()).toBe(201);
+  expect((await replay.json() as { stage: number; pairCount: number })).toMatchObject({ stage: 1, pairCount: 4 });
+  expect((await db.memoryProgress.findUniqueOrThrow({
+    where: { userId_subject: { userId: learner.user.id, subject: 'english' } },
+  })).stage).toBe(3);
+});
+
+test('admin sees memory card reports without approving generated decks', async ({ page, learner }) => {
+  const headers = { Origin: origin, Authorization: `Bearer ${learner.token}` };
+  const started = await page.request.post('/api/v1/memory/rounds', {
+    headers, data: { subject: 'mathematics' },
+  });
+  const round = await started.json() as { id: string };
+  await page.request.post(`/api/v1/memory/rounds/${round.id}/report`, {
+    headers, data: { reason: 'WRONG_PAIR' },
+  });
+  await db.user.update({ where: { id: learner.user.id }, data: { role: 'ADMIN' } });
+  const login = await page.request.post('/api/v1/auth/login', {
+    headers: { Origin: origin },
+    data: { email: learner.user.email, password: learner.password },
+  });
+  expect(login.status()).toBe(201);
+  await page.goto('/admin/memory');
+  await expect(page.getByRole('heading', { name: 'Bilim bog‘i AI' })).toBeVisible();
+  await expect(page.getByText('Gemini API kaliti sozlanmagan. Zaxira kartalar ishlayapti.')).toBeVisible();
+  await expect(page.getByText('Browser Learner · WRONG_PAIR')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Arxivlash' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Ko‘rib chiqildi' }).click();
+  await expect(page.getByText('Hozircha xabar yo‘q.')).toBeVisible();
 });
 
 test('admin can create, publish and archive a YouTube lesson through the new catalog', async ({

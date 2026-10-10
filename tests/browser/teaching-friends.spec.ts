@@ -89,15 +89,14 @@ test('teacher sees weak topics and unstarted learners, filters and assigns the r
       `Matematika / ${lesson.topic.title} / ${lesson.title}`,
     );
     await dialog.getByLabel('Topshiriq nomi').fill('Mavzu uchun mashq');
-    await dialog
-      .getByLabel('Topshirish muddati')
-      .fill(new Date(Date.now() + 86400000).toISOString().slice(0, 16));
+    await expect(dialog).toContainText('24 soat ichida');
     await dialog.getByRole('button', { name: 'Topshiriq berish', exact: true }).click();
     await expect(dialog).not.toBeVisible();
     const saved = await db.assignment.findFirstOrThrow({
       where: { classId: group.id, title: 'Mavzu uchun mashq' },
     });
     expect(saved.lessonId).toBe(weak);
+    expect(saved.deadline.getTime() - saved.createdAt.getTime()).toBe(86400000);
     expect(weakTopic).toBe(lesson.topicId);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload();

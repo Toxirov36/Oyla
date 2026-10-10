@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { Roles } from '../common/security';
+import { CurrentUser, Roles, type Actor } from '../common/security';
 import { IdDto } from '../common/dto';
 
 import {
@@ -15,14 +15,19 @@ import {
   QuestionDto,
   UpdateQuestionDto,
   PreviewExerciseDto,
+  GenerateLessonQuestionsDto,
 } from './admin.dto';
 import { AdminService } from './admin.service';
+import { AiQuestionGenerationService } from './ai-question-generation.service';
 @ApiTags('Admin')
 @ApiBearerAuth()
 @Roles('ADMIN')
 @Controller('admin')
 export class AdminContentController {
-  constructor(private readonly admin: AdminService) {}
+  constructor(
+    private readonly admin: AdminService,
+    private readonly aiQuestions: AiQuestionGenerationService,
+  ) {}
   @Get('content') content() {
     return this.admin.content();
   }
@@ -67,6 +72,10 @@ export class AdminContentController {
   }
   @Post('questions') createQuestion(@Body() dto: QuestionDto) {
     return this.admin.createQuestion(dto);
+  }
+  @Post('questions/generate')
+  generateQuestions(@Body() dto: GenerateLessonQuestionsDto, @CurrentUser() actor: Actor) {
+    return this.aiQuestions.generate(dto, actor.id);
   }
   @Patch('questions/:id') updateQuestion(@Param() params: IdDto, @Body() dto: UpdateQuestionDto) {
     return this.admin.updateQuestion(params.id, dto);

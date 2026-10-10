@@ -2,7 +2,25 @@ import { translate as tx, useI18n as usePageLocale } from '../../i18n';
 import { Search, ChevronLeft, ChevronRight, Pencil, Trash2, KeyRound } from 'lucide-react';
 import type { User } from '../../lib/types';
 import { Button, Card, EmptyState } from '../../components/ui';
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem } from '../../components/ui/pagination';
 import { roles } from './config';
+
+function pageItems(current: number, total: number): Array<number | 'ellipsis'> {
+  if (total <= 7) return Array.from({ length: total }, (_, index) => index + 1);
+  const numbers = new Set([1, total, current - 1, current, current + 1]);
+  if (current <= 3) [2, 3, 4].forEach((value) => numbers.add(value));
+  if (current >= total - 2) [total - 3, total - 2, total - 1].forEach((value) => numbers.add(value));
+  const ordered = [...numbers].filter((value) => value >= 1 && value <= total).sort((a, b) => a - b);
+  const items: Array<number | 'ellipsis'> = [];
+  for (const value of ordered) {
+    const previous = items.at(-1);
+    if (typeof previous === 'number' && value - previous === 2) items.push(previous + 1);
+    else if (typeof previous === 'number' && value - previous > 2) items.push('ellipsis');
+    items.push(value);
+  }
+  return items;
+}
+
 export function AdminUsers({
   data,
   search,
@@ -13,7 +31,7 @@ export function AdminUsers({
   onDelete,
   onReset,
 }: {
-  data: { items: User[]; total: number };
+  data: { items: User[]; total: number; limit: number };
   search: string;
   page: number;
   onSearch: (value: string) => void;
@@ -23,6 +41,9 @@ export function AdminUsers({
   onReset: (user: User) => void;
 }) {
   usePageLocale();
+  const totalPages = Math.max(1, Math.ceil(data.total / data.limit));
+  const first = data.total ? (page - 1) * data.limit + 1 : 0;
+  const last = Math.min(page * data.limit, data.total);
   return (
     <Card className="data-table-card">
       <div className="filter-bar">
@@ -117,20 +138,40 @@ export function AdminUsers({
         </table>
       </div>
       {!data.items.length && <EmptyState title={tx('pages.admin.users.noSearchResults')} />}
-      <div className="pagination">
-        <Button variant="secondary" disabled={page === 1} onClick={() => onPage(page - 1)}>
-          <ChevronLeft size={17} />
-        </Button>
-        <span>
-          {page} / {Math.max(1, Math.ceil(data.total / 20))}
-        </span>
-        <Button
-          variant="secondary"
-          disabled={page * 20 >= data.total}
-          onClick={() => onPage(page + 1)}
-        >
-          <ChevronRight size={17} />
-        </Button>
+      <div className="admin-users-footer">
+        <span className="subtle">{tx('pages.admin.users.showingRange', { value1: first, value2: last, value3: data.total })}</span>
+        {totalPages > 1 && (
+          <Pagination className="admin-users-pagination" aria-label={tx('pages.admin.users.pagination')}>
+            <PaginationContent>
+              <PaginationItem>
+                <Button type="button" variant="ghost" disabled={page === 1} onClick={() => onPage(page - 1)} aria-label={tx('pages.admin.users.previousPage')}>
+                  <ChevronLeft size={17} />
+                </Button>
+              </PaginationItem>
+              {pageItems(page, totalPages).map((item, index) => (
+                <PaginationItem key={item === 'ellipsis' ? `ellipsis-${index}` : item}>
+                  {item === 'ellipsis' ? <PaginationEllipsis /> : (
+                    <Button
+                      type="button"
+                      variant={item === page ? 'secondary' : 'ghost'}
+                      className={item === page ? 'is-current' : ''}
+                      aria-current={item === page ? 'page' : undefined}
+                      aria-label={tx('pages.admin.users.pageNumber', { value1: item })}
+                      onClick={() => onPage(item)}
+                    >
+                      {item}
+                    </Button>
+                  )}
+                </PaginationItem>
+              ))}
+              <PaginationItem>
+                <Button type="button" variant="ghost" disabled={page >= totalPages} onClick={() => onPage(page + 1)} aria-label={tx('pages.admin.users.nextPage')}>
+                  <ChevronRight size={17} />
+                </Button>
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        )}
       </div>
     </Card>
   );

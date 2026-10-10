@@ -254,6 +254,31 @@
   padding: 28px 0;
   color: var(--success);
 }
+.memory-report {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+.memory-admin-list {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0 28px;
+}
+.memory-admin-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+.memory-admin-row > div:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.memory-admin-row p,
+.memory-admin-list p {
+  margin-top: 8px;
+  color: var(--muted);
+}
 .video-card {
   border: 1px solid var(--border);
   background: var(--card);
@@ -559,6 +584,9 @@
   }
   .memory-card {
     min-height: 120px;
+  }
+  .memory-admin-row {
+    flex-direction: column;
   }
   .learning-scene {
     min-height: 260px;

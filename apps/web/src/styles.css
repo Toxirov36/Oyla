@@ -482,6 +482,9 @@ summary {
   margin-left: 238px;
 }
 .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 15;
   height: 84px;
   padding: 0 40px;
   display: flex;
@@ -618,22 +621,6 @@ summary {
   box-shadow:
     0 16px 36px -4px color-mix(in srgb, var(--navy) 14%, transparent),
     0 4px 12px -2px color-mix(in srgb, var(--navy) 6%, transparent);
-}
-.lang-dropdown-header {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 6px 8px 4px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted);
-}
-.lang-dropdown-sep {
-  margin: 4px -2px 6px;
-  height: 1px;
-  background: var(--border);
 }
 .lang-options-list {
   display: flex;
@@ -1650,20 +1637,32 @@ summary {
   display: flex;
   align-items: center;
   position: relative;
+  width: 100%;
 }
 .password-field input {
+  width: 100%;
   padding-right: 43px;
 }
 .password-field button {
   border: 0;
   position: absolute;
-  right: 12px;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
   color: var(--muted);
   background: transparent;
-  padding: 5px;
-  display: flex;
+  padding: 6px;
+  border-radius: 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   outline: none;
   cursor: pointer;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+.password-field button:hover {
+  color: var(--foreground);
+  background: var(--surface);
 }
 .password-field button:focus,
 .password-field button:focus-visible {
@@ -2493,7 +2492,6 @@ summary {
   margin: 8px 0 0;
   list-style: none;
 }
-.assignment-file-selection li,
 .assignment-attachments li {
   display: flex;
   align-items: center;
@@ -2506,11 +2504,9 @@ summary {
   color: var(--foreground);
   font-size: 11px;
 }
-.assignment-file-selection li > span,
 .assignment-attachments li > span {
   overflow-wrap: anywhere;
 }
-.assignment-file-selection button,
 .assignment-attachments button {
   display: inline-flex;
   align-items: center;
@@ -2523,9 +2519,160 @@ summary {
   font: inherit;
   font-weight: 600;
 }
-.assignment-file-selection button {
+.assignment-files-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.assignment-files-group > label {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--foreground);
+}
+.assignment-dropzone {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 14px 18px;
+  border: 1.5px dashed var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    box-shadow 150ms ease;
+  user-select: none;
+}
+.assignment-dropzone:hover {
+  border-color: var(--primary);
+  background: var(--blue-soft);
+}
+.assignment-dropzone:focus-visible,
+.assignment-dropzone.is-dragging {
+  border-color: var(--primary);
+  border-style: solid;
+  background: var(--blue-soft);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
+  outline: none;
+}
+.assignment-file-hidden-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+.assignment-dropzone-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--foreground);
+  transition: transform 150ms ease, background-color 150ms ease, color 150ms ease;
+}
+.assignment-dropzone:hover .assignment-dropzone-icon,
+.assignment-dropzone.is-dragging .assignment-dropzone-icon {
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+  color: var(--primary);
+  transform: scale(1.05);
+}
+.assignment-dropzone-content {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.assignment-dropzone-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground);
+  line-height: 1.3;
+}
+.assignment-dropzone-help {
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.assignment-files-status {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.assignment-file-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  margin: 6px 0 0;
+  list-style: none;
+}
+.assignment-file-selection li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  transition: border-color 140ms ease;
+}
+.assignment-file-item-info {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  overflow: hidden;
+}
+.assignment-file-icon {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+.assignment-file-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.assignment-file-size {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  background: var(--surface);
+  padding: 2px 7px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.assignment-file-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 140ms ease;
+  flex-shrink: 0;
+  padding: 0;
+}
+.assignment-file-remove:hover {
+  background: var(--red-soft);
   color: var(--destructive);
-  font-size: 17px;
 }
 .assignment-attachments {
   margin-top: 10px;
@@ -2612,6 +2759,47 @@ summary {
   margin-top: 20px;
   font-size: 12px;
   color: var(--muted);
+}
+.admin-users-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+.admin-users-pagination {
+  width: auto;
+  margin: 0;
+}
+.admin-users-pagination [data-slot='pagination-content'] {
+  list-style: none;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin: 0;
+  padding: 0;
+}
+.admin-users-pagination .btn {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 7px 10px;
+}
+.admin-users-pagination .is-current,
+.admin-users-pagination .is-current:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+@media (max-width: 600px) {
+  .admin-users-footer {
+    justify-content: center;
+  }
+  .admin-users-pagination {
+    width: 100%;
+  }
+  .admin-users-pagination [data-slot='pagination-content'] {
+    justify-content: center;
+  }
 }
 .admin-quick-links {
   display: grid;
@@ -4570,4 +4758,17 @@ summary {
   .subject-tile-meta {
     font-size: 9px;
   }
+}
+
+.datetime-picker-popover {
+  box-shadow: 0 16px 40px -8px color-mix(in srgb, var(--navy) 14%, transparent),
+              0 0 0 1px var(--border);
+  border-radius: 18px;
+  background: var(--card);
+}
+.datetime-picker-popover[data-state='open'] {
+  animation: select-content-enter 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.datetime-picker-popover[data-state='closed'] {
+  animation: select-content-exit 140ms ease-in forwards;
 }

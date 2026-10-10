@@ -1,6 +1,6 @@
 import { localizeText } from '../i18n';
 import { translate as tx, useI18n as usePageLocale } from '../i18n';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Controller, useForm } from 'react-hook-form';
@@ -12,10 +12,13 @@ import {
   BookOpen,
   CheckCircle2,
   ClipboardList,
+  FileText,
   GraduationCap,
   Plus,
   Trash2,
+  Upload,
   Users,
+  X,
 } from 'lucide-react';
 import { api, errorText } from '../lib/api';
 import { ComboboxField } from '../components/combobox-field';
@@ -39,8 +42,23 @@ const schema = z.object({
   classId: z.string().min(1, tx('pages.teacher.selectAClass')),
   lessonId: z.string().min(1, tx('pages.teacher.selectALesson')),
   title: z.string().trim().min(2, tx('pages.teacher.enterATitle')).max(100),
-  deadline: z.string().min(1, tx('pages.teacher.setADeadline')),
 });
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function assignmentDeadlineLabel(deadline: string): string {
+  const time = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Tashkent',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).format(new Date(deadline));
+  return `${dateLabel(deadline)}, ${time}`;
+}
+
 function AssignmentForm({
   classes,
   close,
@@ -56,6 +74,21 @@ function AssignmentForm({
   const cache = useQueryClient();
   const [error, setError] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFiles = (files: File[]) => {
+    if (files.length > 5) {
+      setError(tx('pages.teacher.tooManyAssignmentFiles'));
+      return;
+    }
+    if (files.some((file) => file.size > 15 * 1024 * 1024)) {
+      setError(tx('pages.teacher.assignmentFileTooLarge'));
+      return;
+    }
+    setError('');
+    setSelectedFiles(files);
+  };
   const content = useQuery({
     queryKey: ['teacher-content'],
     queryFn: () => api<Subject[]>('/subjects'),
@@ -73,7 +106,6 @@ function AssignmentForm({
       classId: initialClassId || classes[0]?.id || '',
       lessonId: initialLessonId || '',
       title: '',
-      deadline: '',
     },
   });
   const selectedClass = classes.find((c) => c.id === watch('classId'));
@@ -100,7 +132,6 @@ function AssignmentForm({
           body.append('classId', values.classId);
           body.append('lessonId', values.lessonId);
           body.append('title', values.title);
-          body.append('deadline', new Date(values.deadline).toISOString());
           selectedFiles.forEach((file) => body.append('attachments', file));
           await api('/teacher/assignments', {
             method: 'POST',
@@ -180,52 +211,91 @@ function AssignmentForm({
         )}
       </label>
       {content.error && <ErrorState error={content.error} />}
-      <label>
-        {tx('pages.teacher.dueDate')}
-        <input type="datetime-local" {...register('deadline')} />
-        {errors.deadline && (
-          <small className="field-error">{localizeText(errors.deadline.message)}</small>
-        )}
-      </label>
-      <label>
-        {tx('pages.teacher.assignmentFiles')}
-        <input
-          type="file"
-          multiple
-          accept=".pdf,.docx,image/jpeg,image/png,image/webp"
-          onChange={(event) => {
-            const files = Array.from(event.currentTarget.files || []);
-            event.currentTarget.value = '';
-            if (files.length > 5) {
-              setError(tx('pages.teacher.tooManyAssignmentFiles'));
-              return;
+      <p className="text-sm text-[var(--muted)]">{tx('pages.teacher.automaticDeadline')}</p>
+      <div className="assignment-files-group">
+        <label htmlFor="assignment-file-input">
+          {tx('pages.teacher.assignmentFiles')}
+        </label>
+        <div
+          role="button"
+          tabIndex={0}
+          className={`assignment-dropzone ${isDragging ? 'is-dragging' : ''}`}
+          onClick={() => fileInputRef.current?.click()}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              fileInputRef.current?.click();
             }
-            if (files.some((file) => file.size > 15 * 1024 * 1024)) {
-              setError(tx('pages.teacher.assignmentFileTooLarge'));
-              return;
-            }
-            setError('');
-            setSelectedFiles(files);
           }}
-        />
-        <small className="subtle">{tx('pages.teacher.assignmentFilesHelp')}</small>
-      </label>
-      {!!selectedFiles.length && (
-        <ul className="assignment-file-selection">
-          {selectedFiles.map((file, index) => (
-            <li key={`${file.name}-${file.size}-${index}`}>
-              <span>{file.name}</span>
-              <button
-                type="button"
-                aria-label={tx('pages.teacher.removeAssignmentFile', { value1: file.name })}
-                onClick={() => setSelectedFiles((current) => current.filter((_, i) => i !== index))}
-              >
-                ×
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setIsDragging(false);
+            const files = Array.from(e.dataTransfer.files || []);
+            if (files.length) handleFiles(files);
+          }}
+          aria-label={tx('pages.teacher.chooseFiles')}
+        >
+          <input
+            id="assignment-file-input"
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept=".pdf,.docx,image/jpeg,image/png,image/webp"
+            className="assignment-file-hidden-input"
+            onChange={(event) => {
+              const files = Array.from(event.currentTarget.files || []);
+              event.currentTarget.value = '';
+              if (files.length) handleFiles(files);
+            }}
+          />
+          <div className="assignment-dropzone-icon">
+            <Upload size={20} strokeWidth={2.2} />
+          </div>
+          <div className="assignment-dropzone-content">
+            <span className="assignment-dropzone-title">
+              {tx('pages.teacher.chooseFiles')}
+            </span>
+            <span className="assignment-dropzone-help">
+              {tx('pages.teacher.assignmentFilesHelp')}
+            </span>
+          </div>
+        </div>
+
+        {!selectedFiles.length ? (
+          <p className="assignment-files-status">
+            {tx('pages.teacher.noFilesChosen')}
+          </p>
+        ) : (
+          <ul className="assignment-file-selection">
+            {selectedFiles.map((file, index) => (
+              <li key={`${file.name}-${file.size}-${index}`}>
+                <div className="assignment-file-item-info">
+                  <FileText size={16} className="assignment-file-icon" />
+                  <span className="assignment-file-name" title={file.name}>{file.name}</span>
+                  <span className="assignment-file-size">{formatFileSize(file.size)}</span>
+                </div>
+                <button
+                  type="button"
+                  className="assignment-file-remove"
+                  aria-label={tx('pages.teacher.removeAssignmentFile', { value1: file.name })}
+                  title={tx('pages.teacher.removeAssignmentFile', { value1: file.name })}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedFiles((current) => current.filter((_, i) => i !== index));
+                  }}
+                >
+                  <X size={15} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
       {error && (
         <div role="alert" className="form-error">
           {localizeText(error)}
@@ -291,7 +361,7 @@ function AssignmentResults({
               <span className="eyebrow">
                 {tx('pages.teacher.due', {
                   value1: a.class?.name || tx('pages.teacher.assignmentHeading'),
-                  value2: dateLabel(a.deadline),
+                  value2: assignmentDeadlineLabel(a.deadline),
                 })}
               </span>
               <button

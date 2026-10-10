@@ -14,6 +14,7 @@ import {
   Clock3,
   Flame,
   Lightbulb,
+  Play,
   RotateCcw,
   Sparkles,
   Target,
@@ -24,6 +25,7 @@ import { api, errorText } from '../lib/api';
 import type { Attempt, Daily, Lesson, Result } from '../lib/types';
 import { Button, Card, EmptyState, ErrorState, Loading, PageHeader } from '../components/ui';
 import { ContentLanguageNotice } from '../components/content-language-notice';
+import { YouTubeVideo } from '../components/video-media';
 
 export function ResultSummary({
   result,
@@ -153,7 +155,7 @@ export default function LessonPage({ daily = false }: { daily?: boolean }) {
       .then((a) => {
         if (!cancelled) {
           setAttempt(a);
-          setStep(2);
+          setStep(daily ? 2 : query.data?.youtubeId ? 1 : 2);
           if (a.result) setResult(a.result);
         }
       })
@@ -163,7 +165,7 @@ export default function LessonPage({ daily = false }: { daily?: boolean }) {
     return () => {
       cancelled = true;
     };
-  }, [daily, challenge.data?.attemptId, query.data?.attemptId]);
+  }, [daily, challenge.data?.attemptId, query.data?.attemptId, query.data?.youtubeId]);
   const start = async () => {
     setBusy(true);
     setError('');
@@ -175,7 +177,7 @@ export default function LessonPage({ daily = false }: { daily?: boolean }) {
       if (a.result) setResult(a.result);
       else {
         setAttempt(a);
-        setStep(2);
+        setStep(daily ? 2 : query.data?.youtubeId ? 1 : 2);
       }
     } catch (e) {
       setError(errorText(e));
@@ -267,6 +269,18 @@ export default function LessonPage({ daily = false }: { daily?: boolean }) {
   if (query.error) return <ErrorState error={query.error} retry={() => void query.refetch()} />;
   const lesson = query.data;
   if (!lesson) return <EmptyState title={t('lesson.notFound')} />;
+  const videoLesson = Boolean(lesson.youtubeId);
+  const practiceStep = videoLesson ? 1 : 2;
+  const steps = videoLesson
+    ? [
+        { label: t('lesson.video'), icon: Play },
+        { label: t('lesson.practice'), icon: Target },
+      ]
+    : [
+        { label: t('lesson.explanation'), icon: BookOpen },
+        { label: t('lesson.example'), icon: Lightbulb },
+        { label: t('lesson.practice'), icon: Target },
+      ];
   return (
     <>
       <Link to={`/subjects/${lesson.topic.course.subject.id}`} className="back-link">
@@ -274,21 +288,19 @@ export default function LessonPage({ daily = false }: { daily?: boolean }) {
         {localizeText(lesson.topic.course.subject.title)} / {localizeText(lesson.topic.title)}
       </Link>
       <PageHeader
-        eyebrow={t('lesson.meta', { grade: lesson.topic.course.grade, duration: lesson.duration })}
+        eyebrow={videoLesson
+          ? t('lesson.videoMeta', { grade: lesson.topic.course.grade })
+          : t('lesson.meta', { grade: lesson.topic.course.grade, duration: lesson.duration })}
         title={localizeText(lesson.title)}
-        description={t('lesson.description')}
+        description={t(videoLesson ? 'lesson.videoDescription' : 'lesson.description')}
       />
       <ContentLanguageNotice />
       <div className="lesson-steps">
-        {[
-          { label: t('lesson.explanation'), icon: BookOpen },
-          { label: t('lesson.example'), icon: Lightbulb },
-          { label: t('lesson.practice'), icon: Target },
-        ].map(({ label, icon: Icon }, i) => (
+        {steps.map(({ label, icon: Icon }, i) => (
           <button
             key={label}
             className={step === i ? 'active' : step > i ? 'completed' : ''}
-            disabled={i === 2 && !attempt}
+            disabled={i === practiceStep && !attempt}
             onClick={() => setStep(i)}
           >
             <span>{step > i ? <CheckCircle2 size={18} /> : <Icon size={18} />}</span>
@@ -296,23 +308,29 @@ export default function LessonPage({ daily = false }: { daily?: boolean }) {
           </button>
         ))}
       </div>
-      {step === 2 && attempt ? (
+      {step === practiceStep && attempt ? (
         <ExercisePlayer attempt={attempt} setAttempt={setAttempt} onComplete={complete} />
       ) : (
         <Card className="lesson-reading">
-          <span className="eyebrow">{step === 0 ? t('lesson.understand') : t('lesson.try')}</span>
-          <h2>{step === 0 ? t('lesson.concept') : t('lesson.solve')}</h2>
-          <div className={`lesson-prose ${step === 1 ? 'example-prose' : ''}`}>
-            {(step === 0 ? lesson.explanation : lesson.example).split('\n\n').map((p, i) => (
-              <p key={i}>{p}</p>
-            ))}
-          </div>
+          {videoLesson ? (
+            <YouTubeVideo youtubeId={lesson.youtubeId!} title={localizeText(lesson.title)} />
+          ) : (
+            <>
+              <span className="eyebrow">{step === 0 ? t('lesson.understand') : t('lesson.try')}</span>
+              <h2>{step === 0 ? t('lesson.concept') : t('lesson.solve')}</h2>
+              <div className={`lesson-prose ${step === 1 ? 'example-prose' : ''}`}>
+                {(step === 0 ? lesson.explanation : lesson.example).split('\n\n').map((p, i) => (
+                  <p key={i}>{p}</p>
+                ))}
+              </div>
+            </>
+          )}
           {error && (
             <div className="form-error" role="alert">
               {localizeText(error)}
             </div>
           )}
-          {step === 1 && (
+          {(videoLesson || step === 1) && (
             <fieldset className="practice-modes">
               <legend>{t('lesson.mode')}</legend>
               {(
@@ -342,8 +360,15 @@ export default function LessonPage({ daily = false }: { daily?: boolean }) {
                 {t('lesson.backExplanation')}
               </Button>
             )}
-            <Button busy={busy} onClick={step === 0 ? () => setStep(1) : () => void start()}>
-              {step === 0 ? t('lesson.viewExample') : t('lesson.startPractice')}
+            <Button
+              busy={busy}
+              onClick={videoLesson
+                ? attempt ? () => setStep(practiceStep) : () => void start()
+                : step === 0 ? () => setStep(1) : () => void start()}
+            >
+              {videoLesson
+                ? t(attempt ? 'path.resume' : 'lesson.startPractice')
+                : step === 0 ? t('lesson.viewExample') : t('lesson.startPractice')}
               <ArrowRight size={18} />
             </Button>
           </div>

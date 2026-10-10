@@ -114,6 +114,7 @@ export interface Question {
   options: { id: string; text: string; value: string }[];
 }
 export interface Lesson extends LessonSummary {
+  youtubeId: string | null;
   explanation: string;
   example: string;
   topicId: string;
@@ -399,6 +400,7 @@ export interface AdminQuestion extends Question {
 }
 export interface AdminLesson extends LessonSummary {
   topicId: string;
+  youtubeId: string | null;
   explanation: string;
   example: string;
   status: Status;

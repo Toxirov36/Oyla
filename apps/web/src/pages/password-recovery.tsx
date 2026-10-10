@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { Eye, EyeOff } from 'lucide-react';
 import { api, clearSession, errorText } from '../lib/api';
 import { Button, Card } from '../components/ui';
 import { Logo } from '../components/shell';
@@ -29,6 +30,8 @@ export default function PasswordRecoveryPage({ reset = false }: { reset?: boolea
     resolver: zodResolver(requestSchema),
     defaultValues: { email: '' },
   });
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const resetForm = useForm<z.infer<typeof resetSchema>>({
     resolver: zodResolver(resetSchema),
     defaultValues: { newPassword: '', confirmPassword: '' },
@@ -84,26 +87,46 @@ export default function PasswordRecoveryPage({ reset = false }: { reset?: boolea
           token ? (
             <form className="profile-form" onSubmit={confirm} noValidate>
               <label htmlFor="reset-password">{t('password.new')}</label>
-              <input
-                id="reset-password"
-                type="password"
-                autoComplete="new-password"
-                {...resetForm.register('newPassword')}
-                aria-invalid={!!resetForm.formState.errors.newPassword}
-              />
+              <div className="password-field">
+                <input
+                  id="reset-password"
+                  type={showNew ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  {...resetForm.register('newPassword')}
+                  aria-invalid={!!resetForm.formState.errors.newPassword}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNew(!showNew)}
+                  aria-label={t(showNew ? 'auth.hidePassword' : 'auth.showPassword')}
+                  title={t(showNew ? 'auth.hidePassword' : 'auth.showPassword')}
+                >
+                  {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
               {resetForm.formState.errors.newPassword && (
                 <small className="field-error" role="alert">
                   {t(resetForm.formState.errors.newPassword.message!)}
                 </small>
               )}
               <label htmlFor="reset-confirm">{t('password.confirm')}</label>
-              <input
-                id="reset-confirm"
-                type="password"
-                autoComplete="new-password"
-                {...resetForm.register('confirmPassword')}
-                aria-invalid={!!resetForm.formState.errors.confirmPassword}
-              />
+              <div className="password-field">
+                <input
+                  id="reset-confirm"
+                  type={showConfirm ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  {...resetForm.register('confirmPassword')}
+                  aria-invalid={!!resetForm.formState.errors.confirmPassword}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  aria-label={t(showConfirm ? 'auth.hidePassword' : 'auth.showPassword')}
+                  title={t(showConfirm ? 'auth.hidePassword' : 'auth.showPassword')}
+                >
+                  {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
               {resetForm.formState.errors.confirmPassword && (
                 <small className="field-error" role="alert">
                   {t(resetForm.formState.errors.confirmPassword.message!)}
