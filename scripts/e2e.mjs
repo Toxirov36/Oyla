@@ -170,10 +170,11 @@ try {
     body: {
       title: 'Integration lesson',
       topicId: topic.id,
-      explanation: 'Read the explanation and solve each question carefully.',
-      example: '2 plus 2 is equal to 4.',
+      youtubeUrl:
+        'https://www.youtube.com/watch?v=l1RAFNhhB5k&list=RDl1RAFNhhB5k&start_radio=1&pp=oAcB0gcJCTcMAYcqIYzv',
     },
   });
+  assert.equal(lesson.youtubeId, 'l1RAFNhhB5k');
   await student.request(`/lessons/${lesson.id}`, { expected: 404 });
   await admin.request(`/admin/lessons/${lesson.id}`, {
     method: 'PATCH',
