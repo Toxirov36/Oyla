@@ -2,6 +2,7 @@ name: OYLA quality checks
 on:
   push:
   pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:
@@ -87,7 +88,7 @@ jobs:
           retention-days: 7
   images:
     needs: verify
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     timeout-minutes: 25
     permissions:
