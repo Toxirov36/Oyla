@@ -6,7 +6,8 @@ test('registration validates the form and creates the selected grade profile', a
   try {
     await page.goto('/register');
     await page.getByLabel('Ismingiz', { exact: true }).fill('Registration Learner');
-    await page.getByRole('combobox', { name: 'Sinfingiz', exact: true }).selectOption('7');
+    await page.getByRole('combobox', { name: 'Sinfingiz', exact: true }).click();
+    await page.getByRole('option', { name: '7-sinf', exact: true }).click();
     await page.getByLabel('Email manzilingiz', { exact: true }).fill('not-an-email');
     await page.getByRole('textbox', { name: /Parolingiz/ }).fill('short');
     await page.getByRole('button', { name: 'Hisob yaratish', exact: true }).click();
