@@ -18,6 +18,7 @@ class Environment {
   @IsOptional() @IsString() R2_BUCKET_NAME?: string;
   @IsOptional() @IsString() GEMINI_API_KEY?: string;
   @IsString() @Matches(/^[a-zA-Z0-9._-]+$/) GEMINI_MODEL = 'gemini-2.5-flash-lite';
+  @IsString() @Matches(/^[a-zA-Z0-9._-]+$/) GEMINI_EMBEDDING_MODEL = 'gemini-embedding-2';
   @IsInt() @Min(0) @Max(10000) MEMORY_AI_DAILY_LIMIT = 100;
   @IsInt() @Min(0) @Max(10000) AI_QUESTION_DAILY_LIMIT = 20;
   @IsIn(['development', 'test', 'production']) NODE_ENV = 'development';
@@ -41,6 +42,7 @@ const input = {
   R2_BUCKET_NAME: process.env.R2_BUCKET_NAME || undefined,
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || undefined,
   GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite',
+  GEMINI_EMBEDDING_MODEL: process.env.GEMINI_EMBEDDING_MODEL || 'gemini-embedding-2',
   MEMORY_AI_DAILY_LIMIT: Number(process.env.MEMORY_AI_DAILY_LIMIT ?? 100),
   AI_QUESTION_DAILY_LIMIT: Number(process.env.AI_QUESTION_DAILY_LIMIT ?? 20),
   NODE_ENV: process.env.NODE_ENV || 'development',
