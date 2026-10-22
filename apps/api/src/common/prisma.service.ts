@@ -1,8 +1,6 @@
-import { Global, Injectable, Module, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Prisma, PrismaClient } from '../../generated/prisma/client';
-import { RedisService } from './redis.service';
-import { TokenService } from './token.service';
 import { config } from './config';
 
 @Injectable()
@@ -28,9 +26,3 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     );
   }
 }
-@Global()
-@Module({
-  providers: [PrismaService, RedisService, TokenService],
-  exports: [PrismaService, RedisService, TokenService],
-})
-export class InfrastructureModule {}

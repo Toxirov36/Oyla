@@ -8,20 +8,25 @@ import { AdminUsers } from './admin/users';
 import { AdminOverview } from './admin/overview';
 import { UserEditor } from './admin/user-editor';
 import { AdminPasswordReset } from './admin/password-reset';
-import { grades, criterions } from './admin/config';
+import {
+  classEditorSpec,
+  contentEditorSpec,
+  flattenContent,
+  gameEditorSpec,
+  type ContentEntity,
+  type ContentKind,
+} from './admin/editor-specs';
+import { ClassMembershipModal, DeleteModal } from './admin/modals';
 import { useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { z } from 'zod';
-import { Pencil, Plus, Search, Trash2 } from 'lucide-react';
-import { api, errorText } from '../lib/api';
+import { useQuery } from '@tanstack/react-query';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { api } from '../lib/api';
+import { brand } from '../lib/brand';
 import type {
   AdminClass,
-  AdminCourse,
-  AdminLesson,
   AdminQuestion,
   AdminSubject,
-  AdminTopic,
   Analytics,
   Badge,
   GameConfig,
@@ -29,66 +34,12 @@ import type {
   User,
 } from '../lib/types';
 import { Button, ErrorState, Loading, Modal, PageHeader, StatusPill } from '../components/ui';
-import { EntityEditor, type EditorField, type EditorSpec } from '../components/entity-editor';
+import { EntityEditor, type EditorSpec } from '../components/entity-editor';
 
-const statuses = [
-  {
-    value: 'DRAFT',
-    get label() {
-      return tx('common.draft');
-    },
-  },
-  {
-    value: 'PUBLISHED',
-    get label() {
-      return tx('common.published');
-    },
-  },
-  {
-    value: 'ARCHIVED',
-    get label() {
-      return tx('common.archived');
-    },
-  },
-];
-const statusField: EditorField = {
-  key: 'status',
-  get label() {
-    return tx('pages.admin.users.status');
-  },
-  kind: 'select',
-  options: statuses,
-};
-const titleField: EditorField = {
-  key: 'title',
-  get label() {
-    return tx('pages.admin.avatars.name');
-  },
-  min: 2,
-  max: 100,
-};
-const positionField: EditorField = {
-  key: 'position',
-  get label() {
-    return tx('pages.admin.avatars.displayOrder');
-  },
-  kind: 'number',
-  min: 0,
-  max: 10000,
-};
-type ContentKind = 'subjects' | 'courses' | 'topics' | 'lessons' | 'questions';
-type ContentEntity = AdminSubject | AdminCourse | AdminTopic | AdminLesson | AdminQuestion;
-const entityValues = (value?: object): Record<string, unknown> => (value ? { ...value } : {});
-const isEligibleClassStudent = (user: User, grade: number | undefined) =>
-  user.role === 'STUDENT' && user.active === true && user.student?.grade === grade;
+type AdminMode = 'overview' | 'users' | 'content' | 'gamification' | 'classes';
 
-export default function AdminPage({
-  mode = 'overview',
-}: {
-  mode?: 'overview' | 'users' | 'content' | 'gamification' | 'classes';
-}) {
+export default function AdminPage({ mode = 'overview' }: { mode?: AdminMode }) {
   usePageLocale();
-  const cache = useQueryClient();
   const [params] = useSearchParams();
   const [userEditor, setUserEditor] = useState<{ user?: User } | null>(null);
   const [resetUser, setResetUser] = useState<User | null>(null);
@@ -99,14 +50,10 @@ export default function AdminPage({
   } | null>(null);
   const [editor, setEditor] = useState<EditorSpec | null>(null);
   const [deletion, setDeletion] = useState<{ endpoint: string; title: string } | null>(null);
-  const [deleteBusy, setDeleteBusy] = useState(false);
-  const [error, setError] = useState('');
   const [search, setSearch] = useState(params.get('search')?.slice(0, 100) || '');
   const [page, setPage] = useState(1);
   const [gradeFilter, setGradeFilter] = useState('6');
   const [membership, setMembership] = useState<AdminClass | null>(null);
-  const [memberIds, setMemberIds] = useState<string[]>([]);
-  const [memberSearch, setMemberSearch] = useState('');
   const analytics = useQuery({
     queryKey: ['admin', 'analytics'],
     queryFn: () => api<Analytics>('/admin/analytics'),
@@ -125,14 +72,6 @@ export default function AdminPage({
     const lastPage = Math.max(1, Math.ceil(users.data.total / users.data.limit));
     if (page > lastPage) setPage(lastPage);
   }, [mode, page, users.data]);
-  const allUsers = useQuery({
-    queryKey: ['admin', 'class-users', memberSearch, membership?.grade],
-    queryFn: () =>
-      api<{ items: User[]; total: number }>(
-        `/admin/users?limit=100&role=STUDENT${membership ? `&grade=${membership.grade}` : ''}&search=${encodeURIComponent(memberSearch)}`,
-      ),
-    enabled: mode === 'classes',
-  });
   const staff = useQuery({
     queryKey: ['admin', 'staff'],
     queryFn: () => api<{ items: User[] }>('/admin/users?limit=100'),
@@ -167,184 +106,15 @@ export default function AdminPage({
   if (active.error) return <ErrorState error={active.error} retry={() => void active.refetch()} />;
   const createContent = (kind: ContentKind, item?: ContentEntity, parentId?: string) => {
     const tree = content.data || [];
-    const courses = tree.flatMap((s) =>
-      s.courses.map((c) => ({
-        ...c,
-        get label() {
-          return tx('pages.admin.grade', {
-            value1: localizeText(s.title),
-            value2: c.grade,
-            value3: localizeText(c.title),
-          });
-        },
-      })),
-    );
-    const topics = courses.flatMap((c) =>
-      c.topics.map((t) => ({ ...t, label: `${c.label} / ${localizeText(t.title)}` })),
-    );
-    const lessons = topics.flatMap((t) =>
-      t.lessons.map((l) => ({ ...l, label: `${t.label} / ${localizeText(l.title)}` })),
-    );
     if (kind === 'questions') {
       setQuestionEditor({
         question: item as AdminQuestion | undefined,
         lessonId: parentId,
-        lessons: lessons.map((l) => ({ id: l.id, title: l.label })),
+        lessons: flattenContent(tree).lessons.map((l) => ({ id: l.id, title: l.label })),
       });
       return;
     }
-    const select = (
-      key: string,
-      label: string,
-      values: { id: string; title?: string; label?: string }[],
-    ): EditorField => ({
-      key,
-      label,
-      kind: 'select',
-      options: values.map((v) => ({ value: v.id, label: v.label || localizeText(v.title) })),
-      schema: z.uuid(tx('pages.admin.chooseAnOption')),
-    });
-    let fields: EditorField[];
-    let values = entityValues(item);
-    const names = {
-      get subjects() {
-        return tx('pages.admin.videos.subject');
-      },
-      get courses() {
-        return tx('pages.admin.course');
-      },
-      get topics() {
-        return tx('pages.admin.content.topic');
-      },
-      get lessons() {
-        return tx('pages.admin.content.lesson');
-      },
-      get questions() {
-        return tx('pages.admin.question');
-      },
-    };
-    if (kind === 'subjects')
-      fields = [
-        titleField,
-        {
-          key: 'slug',
-          get label() {
-            return tx('pages.admin.shortNameLatinLetters');
-          },
-          schema: z
-            .string()
-            .regex(/^[a-z][a-z0-9-]{1,59}$/, tx('pages.admin.useLowercaseLatinLettersAndHyphens')),
-        },
-        {
-          key: 'description',
-          get label() {
-            return tx('pages.admin.videos.description');
-          },
-          kind: 'textarea',
-          max: 1000,
-        },
-        statusField,
-        positionField,
-      ];
-    else if (kind === 'courses') {
-      fields = [
-        select('subjectId', tx('pages.admin.videos.subject'), tree),
-        titleField,
-        {
-          key: 'grade',
-          get label() {
-            return tx('pages.admin.users.grade');
-          },
-          kind: 'select',
-          options: grades,
-        },
-        statusField,
-        positionField,
-      ];
-      values = {
-        subjectId: parentId,
-        grade: gradeFilter,
-        ...values,
-        ...(item && 'grade' in item ? { grade: String(item.grade) } : {}),
-      };
-    } else if (kind === 'topics') {
-      fields = [
-        select('courseId', tx('pages.admin.course'), courses),
-        titleField,
-        statusField,
-      ];
-      values = { courseId: parentId, ...values };
-    } else if (kind === 'lessons') {
-      const currentLesson = item as AdminLesson | undefined;
-      fields = [
-        select('topicId', tx('pages.admin.content.topic'), topics),
-        { ...titleField, max: 150 },
-        {
-          key: 'youtubeUrl',
-          get label() {
-            return tx('pages.admin.youtubeVideoLink');
-          },
-          max: 2048,
-          schema: currentLesson && !currentLesson.youtubeId
-            ? z.union([z.literal(''), z.url(tx('pages.admin.enterValidYoutubeLink'))])
-            : z.url(tx('pages.admin.enterValidYoutubeLink')),
-          get help() {
-            return tx('pages.admin.youtubeVideoLinkHelp');
-          },
-        },
-        {
-          key: 'prerequisiteId',
-          get label() {
-            return tx('pages.admin.prerequisiteLesson');
-          },
-          kind: 'select',
-          optional: true,
-          options: [
-            {
-              value: '',
-              get label() {
-                return tx('pages.admin.noPrerequisite');
-              },
-            },
-            ...lessons
-              .filter((l) => l.id !== item?.id)
-              .map((l) => ({ value: l.id, label: l.label })),
-          ],
-        },
-        ...(item ? [statusField] : []),
-      ];
-      values = {
-        topicId: parentId,
-        ...values,
-        prerequisiteId: values.prerequisiteId ?? '',
-        youtubeUrl: currentLesson?.youtubeId
-          ? `https://www.youtube.com/watch?v=${currentLesson.youtubeId}`
-          : '',
-      };
-    } else {
-      return;
-    }
-    setEditor({
-      get title() {
-        return tx(item ? 'pages.admin.editEntity' : 'pages.admin.createEntity', {
-          entity: names[kind],
-        });
-      },
-      endpoint: `/admin/${kind}`,
-      fields,
-      id: item?.id,
-      values,
-      serialize: (input) => {
-        const body = { ...input };
-        if (kind === 'courses') body.grade = Number(body.grade);
-        if (kind === 'lessons' && body.youtubeUrl === '') delete body.youtubeUrl;
-        return body;
-      },
-    });
-  };
-  const requestDeletion = (value: { endpoint: string; title: string }) => {
-    setError('');
-    setDeletion(value);
+    setEditor(contentEditorSpec(kind, tree, gradeFilter, item, parentId));
   };
   const contentActions = (kind: ContentKind, item: ContentEntity) => (
     <div className="content-actions">
@@ -361,124 +131,22 @@ export default function AdminPage({
       <Button
         variant="ghost"
         aria-label={tx('notifications.remove')}
-        onClick={() => {
-          setError('');
+        onClick={() =>
           setDeletion({
             endpoint: `/admin/${kind}/${item.id}`,
             title: 'title' in item ? item.title : item.text,
-          });
-        }}
+          })
+        }
       >
         <Trash2 size={16} />
       </Button>
     </div>
   );
-  const editGame = (kind: 'levels' | 'badges', item?: Level | Badge) => {
-    const fields: EditorField[] =
-      kind === 'levels'
-        ? [
-            {
-              key: 'number',
-              get label() {
-                return tx('pages.admin.levelNumber');
-              },
-              kind: 'number',
-              min: 1,
-              max: 1000,
-            },
-            titleField,
-            {
-              key: 'threshold',
-              get label() {
-                return tx('pages.admin.startingXpThreshold');
-              },
-              kind: 'number',
-              min: 0,
-            },
-          ]
-        : [
-            titleField,
-            {
-              key: 'slug',
-              get label() {
-                return tx('pages.admin.shortName');
-              },
-              schema: z.string().regex(/^[a-z][a-z0-9-]{1,59}$/),
-            },
-            {
-              key: 'description',
-              get label() {
-                return tx('pages.admin.howToEarnIt');
-              },
-              kind: 'textarea',
-              min: 3,
-              max: 500,
-            },
-            {
-              key: 'criterion',
-              get label() {
-                return tx('pages.admin.criterion');
-              },
-              kind: 'select',
-              options: criterions,
-            },
-            {
-              key: 'threshold',
-              get label() {
-                return tx('pages.admin.requiredNumberOfResults');
-              },
-              kind: 'number',
-              min: 1,
-              max: 100000,
-            },
-          ];
-    setEditor({
-      title:
-        kind === 'levels' ? tx('pages.admin.configureLevel') : tx('pages.admin.configureBadge'),
-      endpoint: `/admin/${kind}`,
-      fields,
-      id: item?.id,
-      values: entityValues(item),
-    });
-  };
+  const editGame = (kind: 'levels' | 'badges', item?: Level | Badge) =>
+    setEditor(gameEditorSpec(kind, item));
   const editUser = (user?: User) => setUserEditor({ user });
   const editClass = (group?: AdminClass) =>
-    setEditor({
-      title: group ? tx('pages.admin.classes.editClass') : tx('pages.admin.newClass'),
-      endpoint: '/admin/classes',
-      id: group?.id,
-      values: { ...entityValues(group), grade: String(group?.grade || 6) },
-      fields: [
-        {
-          key: 'name',
-          get label() {
-            return tx('pages.admin.className');
-          },
-          min: 2,
-          max: 80,
-        },
-        {
-          key: 'grade',
-          get label() {
-            return tx('pages.admin.gradeLevel');
-          },
-          kind: 'select',
-          options: grades,
-        },
-        {
-          key: 'teacherId',
-          get label() {
-            return tx('role.TEACHER');
-          },
-          kind: 'select',
-          schema: z.uuid(),
-          options: (staff.data?.items || [])
-            .filter((u) => (u.role === 'TEACHER' || u.teacherAccess) && u.active)
-            .map((u) => ({ value: u.id, label: u.name })),
-        },
-      ],
-      serialize: (values) => ({ ...values, grade: Number(values.grade) }),
-    });
+    setEditor(classEditorSpec(group, staff.data?.items || []));
   return (
     <>
       <PageHeader
@@ -549,7 +217,7 @@ export default function AdminPage({
           onSearch={setSearch}
           onPage={setPage}
           onEdit={editUser}
-          onDelete={requestDeletion}
+          onDelete={setDeletion}
           onReset={setResetUser}
         />
       )}{' '}
@@ -567,24 +235,15 @@ export default function AdminPage({
           data={game.data}
           onEdit={editGame}
           onEditor={setEditor}
-          onDelete={requestDeletion}
+          onDelete={setDeletion}
         />
       )}{' '}
       {mode === 'classes' && classes.data && (
         <AdminClasses
           data={classes.data}
           onEdit={editClass}
-          onMembership={(group) => {
-            setError('');
-            setMemberSearch('');
-            setMembership(group);
-            setMemberIds(
-              group.students
-                .filter(({ student }) => isEligibleClassStudent(student, group.grade))
-                .map(({ studentId }) => studentId),
-            );
-          }}
-          onDelete={requestDeletion}
+          onMembership={setMembership}
+          onDelete={setDeletion}
         />
       )}{' '}
       <Modal
@@ -637,119 +296,8 @@ export default function AdminPage({
           />
         )}
       </Modal>
-      <Modal
-        open={!!deletion}
-        onOpenChange={(open) => {
-          if (!open) setDeletion(null);
-        }}
-        title={tx('pages.admin.confirmAction')}
-        description={deletion?.title || ''}
-      >
-        <p className="delete-notice">
-          {tx('pages.admin.linkedContentMayPreventDeletionArchiveTheContent')}
-        </p>
-        {error && (
-          <div className="form-error" role="alert">
-            {localizeText(error)}
-          </div>
-        )}
-        <div className="modal-actions">
-          <Button variant="secondary" onClick={() => setDeletion(null)}>
-            {tx('common.cancel')}
-          </Button>
-          <Button
-            variant="danger"
-            busy={deleteBusy}
-            onClick={async () => {
-              setDeleteBusy(true);
-              try {
-                await api(deletion!.endpoint, { method: 'DELETE' });
-                await cache.invalidateQueries();
-                setDeletion(null);
-              } catch (e) {
-                setError(errorText(e));
-              } finally {
-                setDeleteBusy(false);
-              }
-            }}
-          >
-            {tx('pages.admin.confirm')}
-          </Button>
-        </div>
-      </Modal>
-      <Modal
-        open={!!membership}
-        onOpenChange={(open) => {
-          if (!open) setMembership(null);
-        }}
-        title={tx('pages.admin.studentsIn', { value1: membership?.name || '' })}
-        description={tx('pages.admin.selectStudentsInTheMatchingGrade')}
-      >
-        <label className="search-input">
-          <Search size={17} />
-          <input
-            aria-label={tx('pages.admin.searchStudents')}
-            placeholder={tx('pages.admin.nameOrEmail')}
-            value={memberSearch}
-            onChange={(e) => setMemberSearch(e.target.value)}
-          />
-        </label>
-        <p className="subtle">{tx('pages.admin.selected', { value1: memberIds.length })}</p>
-        <div className="membership-list">
-          {allUsers.data?.items
-            .filter((user) => isEligibleClassStudent(user, membership?.grade))
-            .map((user) => (
-              <label key={user.id}>
-                <input
-                  type="checkbox"
-                  checked={memberIds.includes(user.id)}
-                  onChange={(e) =>
-                    setMemberIds(
-                      e.target.checked
-                        ? [...memberIds, user.id]
-                        : memberIds.filter((id) => id !== user.id),
-                    )
-                  }
-                />
-                <span>
-                  <strong>{user.name}</strong>
-                  <small>{user.email}</small>
-                </span>
-              </label>
-            ))}
-        </div>
-        {error && (
-          <div className="form-error" role="alert">
-            {localizeText(error)}
-          </div>
-        )}
-        <div className="modal-actions">
-          <Button variant="secondary" onClick={() => setMembership(null)}>
-            {tx('common.cancel')}
-          </Button>
-          <Button
-            busy={deleteBusy}
-            onClick={async () => {
-              setDeleteBusy(true);
-              try {
-                await api(`/admin/classes/${membership!.id}/students`, {
-                  method: 'PUT',
-                  body: { studentIds: memberIds },
-                });
-                await cache.invalidateQueries();
-                setMembership(null);
-              } catch (e) {
-                setError(errorText(e));
-              } finally {
-                setDeleteBusy(false);
-              }
-            }}
-          >
-            {tx('pages.admin.avatars.save')}
-          </Button>
-        </div>
-      </Modal>
+      <DeleteModal deletion={deletion} onClose={() => setDeletion(null)} />
+      <ClassMembershipModal group={membership} onClose={() => setMembership(null)} />
     </>
   );
 }
-import { brand } from '../lib/brand';

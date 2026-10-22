@@ -4,17 +4,10 @@ import { Link } from 'react-router-dom';
 import { isStructured } from '../../lib/exercises';
 import type { ReactNode } from 'react';
 import { Layers, BookOpen, CirclePlus, Plus } from 'lucide-react';
-import type {
-  AdminSubject,
-  AdminCourse,
-  AdminTopic,
-  AdminLesson,
-  AdminQuestion,
-} from '../../lib/types';
+import type { AdminSubject } from '../../lib/types';
 import { Button, Card, EmptyState } from '../../components/ui';
 import { grades, typeOptions } from './config';
-type ContentKind = 'subjects' | 'courses' | 'topics' | 'lessons' | 'questions';
-type ContentEntity = AdminSubject | AdminCourse | AdminTopic | AdminLesson | AdminQuestion;
+import type { ContentEntity, ContentKind } from './editor-specs';
 export function AdminContent({
   data,
   gradeFilter,

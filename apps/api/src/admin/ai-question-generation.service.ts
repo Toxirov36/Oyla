@@ -9,7 +9,7 @@ import {
 import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
 import { config } from '../common/config';
 import { PrismaService } from '../common/prisma.service';
-import { RedisService } from '../common/redis.service';
+import { AiQuotaService } from '../common/ai-quota.service';
 import { GenerateLessonQuestionsDto } from './admin.dto';
 import { checkedGeneratedQuestions } from './ai-question-content';
 
@@ -23,7 +23,7 @@ export class AiQuestionGenerationService {
 
   constructor(
     private readonly db: PrismaService,
-    private readonly redis: RedisService,
+    private readonly quota: AiQuotaService,
   ) {}
 
   async generate(dto: GenerateLessonQuestionsDto, actorId: string) {
@@ -54,8 +54,7 @@ export class AiQuestionGenerationService {
     });
     if (!lesson) throw new NotFoundException('Tanlangan dars topilmadi.');
 
-    const used = await this.redis.incrementWindow(`ai-questions:${actorId}:daily`, 86400);
-    if (used > config.AI_QUESTION_DAILY_LIMIT)
+    if (!(await this.quota.reserve(`questions:${actorId}`, config.AI_QUESTION_DAILY_LIMIT)))
       throw new HttpException('Bugun AI savol yaratish limiti tugadi.', HttpStatus.TOO_MANY_REQUESTS);
 
     const grade = lesson.topic.course.grade;

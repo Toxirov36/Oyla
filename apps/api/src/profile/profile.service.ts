@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
 import { Actor } from '../common/security';
+import { ObjectStorageService } from '../common/object-storage.service';
 import { visibleLesson } from '../content/content.service';
 import { localDay } from '../learning/rules';
 import { UpdateProfileDto } from './profile.dto';
@@ -9,7 +10,10 @@ import { photoSelect, publicMedia } from './public-media';
 
 @Injectable()
 export class ProfileService {
-  constructor(private readonly db: PrismaService) {}
+  constructor(
+    private readonly db: PrismaService,
+    private readonly storage: ObjectStorageService,
+  ) {}
 
   async get(actor: Actor) {
     const stored = await this.db.user.findUniqueOrThrow({
@@ -104,14 +108,19 @@ export class ProfileService {
     // Identity comes only from the authenticated session; role/grade/email are not editable here.
     if (dto.name === undefined && dto.avatarId === undefined && dto.preferredLocale === undefined)
       throw new BadRequestException('Ism, avatar yoki til tanlang.');
+    let orphan: string | null = null;
     await this.db.withUserLock(actor.id, async (tx) => {
       if (dto.avatarId) {
         if (!(await tx.avatar.findFirst({ where: { id: dto.avatarId, active: true } })))
           throw new BadRequestException('Bu avatar tanlash uchun mavjud emas.');
+        orphan =
+          (await tx.profilePhoto.findUnique({ where: { userId: actor.id } }))?.storageKey ?? null;
         await tx.profilePhoto.deleteMany({ where: { userId: actor.id } });
       }
       await tx.user.update({ where: { id: actor.id }, data: dto });
     });
+    // Best effort: an unreferenced object is harmless, a missing one would not be.
+    if (orphan) await this.storage.remove(orphan).catch(() => undefined);
     return this.get(actor);
   }
 }

@@ -1,0 +1,15 @@
+name: Set up OYLA workspace
+description: Install Node.js and the locked npm dependencies, then generate the Prisma client.
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+      with:
+        node-version: '24'
+        cache: npm
+    - run: npm ci
+      shell: bash
+    - run: npm run db:generate
+      shell: bash
+      env:
+        DATABASE_URL: postgresql://oyla:ci_database_only@127.0.0.1:5432/oyla_test?schema=public

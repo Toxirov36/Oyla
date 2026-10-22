@@ -17,7 +17,7 @@ import {
   PreviewExerciseDto,
   GenerateLessonQuestionsDto,
 } from './admin.dto';
-import { AdminService } from './admin.service';
+import { AdminContentService } from './content.service';
 import { AiQuestionGenerationService } from './ai-question-generation.service';
 @ApiTags('Admin')
 @ApiBearerAuth()
@@ -25,7 +25,7 @@ import { AiQuestionGenerationService } from './ai-question-generation.service';
 @Controller('admin')
 export class AdminContentController {
   constructor(
-    private readonly admin: AdminService,
+    private readonly admin: AdminContentService,
     private readonly aiQuestions: AiQuestionGenerationService,
   ) {}
   @Get('content') content() {

@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
 import { PrismaService } from '../common/prisma.service';
-import { RedisService } from '../common/redis.service';
+import { AiQuotaService } from '../common/ai-quota.service';
 import { config } from '../common/config';
 import {
   checkedGeneratedMemoryPairs,
@@ -23,7 +23,7 @@ export class MemoryGenerationService implements OnModuleInit, OnModuleDestroy {
   private readonly ai = config.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: config.GEMINI_API_KEY }) : null;
   private timer?: ReturnType<typeof setInterval>;
   private working = false;
-  constructor(private readonly db: PrismaService, private readonly redis: RedisService) {}
+  constructor(private readonly db: PrismaService, private readonly quota: AiQuotaService) {}
 
   onModuleInit() {
     if (!this.ai || config.MEMORY_AI_DAILY_LIMIT === 0) return;
@@ -175,7 +175,7 @@ export class MemoryGenerationService implements OnModuleInit, OnModuleDestroy {
     return setting?.aiEnabled ?? true;
   }
   private async reserveCall() {
-    const used = await this.redis.incrementWindow('memory-ai:requests:24h', 86400);
-    if (used > config.MEMORY_AI_DAILY_LIMIT) throw new Error('Daily Gemini request limit reached');
+    if (!(await this.quota.reserve('memory', config.MEMORY_AI_DAILY_LIMIT)))
+      throw new Error('Daily Gemini request limit reached');
   }
 }

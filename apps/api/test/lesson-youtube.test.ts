@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { AdminService } from '../src/admin/admin.service';
+import { AdminContentService } from '../src/admin/content.service';
 import { youtubeVideoId } from '../src/admin/youtube';
 import type { PrismaService } from '../src/common/prisma.service';
 
@@ -36,7 +36,7 @@ test('new video lessons get their order and internal defaults from the server', 
     },
   } as unknown as PrismaService;
 
-  await new AdminService(db).createLesson({
+  await new AdminContentService(db).createLesson({
     topicId: 'topic-id',
     title: 'Video lesson',
     youtubeUrl: 'https://youtu.be/dQw4w9WgXcQ',

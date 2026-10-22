@@ -21,6 +21,8 @@ Reviewed on 7 October 2026. The local application uses real PostgreSQL 18 and Re
 
 ## Verification
 
+> Counts in the dated sections below are snapshots from the day they were written. The current totals are in the latest update at the end of this file; CI is the source of truth.
+
 - Lint and strict TypeScript checks pass for both workspaces.
 - 33 backend unit tests cover all question graders, score/mastery calculations, date/week/streak boundaries, JWT verification, validation, nested errors, safe optional fields, normalization, curriculum integrity, preservation rules, and PATCH behavior.
 - 16 live E2E groups cover registration/login, RBAC, CSRF origin checks, UUID/body validation, publishing, hidden keys, teacher/class ownership, assignments, all four question types, parallel completion, repeat reward prevention, mastery, badges, seven-day streak bonus, daily rewards, refresh replay, and logout.
@@ -76,3 +78,18 @@ Validation: 33 backend and 11 frontend unit tests, 25 browser tests, 16 PostgreS
 ## Student class page
 
 Added a student-only Mening sinfim sidebar route with assigned-class information, private active classmates, friendship requests/acceptance, own assignment status/results and an exact class-ranking link. Multiple classes and profile navigation are supported. Class requests verify active shared membership and current matching grades, reuse existing friend consent/caps and expose no invite code. Backend integration and desktop/mobile browser tests verify privacy, membership/grade boundaries, multi-class switching, assignment isolation, request states and ranking navigation. No schema migration or learning-history rewrite is required.
+
+## Maintainability, localization and test coverage update — 22 October 2026
+
+- **Localized API errors.** Plain Uzbek exception messages are now translated for Russian and English clients from `apps/api/src/common/locale-text.json`, keyed by the Uzbek text; errors that carry a stable `code` still resolve through `locale-messages.json` first. A unit test scans the API source and fails when a hard-coded message has no translation or a dictionary entry is unused, so new messages cannot silently stay Uzbek-only. Moving individual messages to explicit error codes remains optional follow-up work.
+- **Smaller modules.** The admin service is split into users/analytics, content, classes and gamification services; the admin page, teacher page, question editor and date-time picker now delegate pure logic (editor specs, question model, calendar helpers) and self-contained dialogs to separate modules. Behaviour is unchanged; the only visible difference is that the class-membership dialog loads its candidate list when it opens.
+- **New tests.** API: `AuthService` (generic login failure, hashed refresh tokens, rotation and replay, expiry/revocation), `SecurityGuard` (cross-site rejection, bearer/session/role checks, admin teacher access), `RateGuard`, notifications ownership and friends constraints, and error localization. Web: calendar/question/editor-spec modules and rendered dashboard, teacher, admin (overview, delete, class membership), lesson result and brain-ring pages.
+- **Current totals** (22 October 2026): 85 backend unit tests, 63 frontend unit tests; lint, strict type checks and both production builds pass. Browser (Playwright) and live API integration suites were not re-run for this change; CI runs them.
+- **Environment note.** The development `docker-compose.yml` defaults to `NODE_ENV=development`, which keeps Swagger enabled at `/api/docs`. `deploy/compose.production.yaml` pins `NODE_ENV=production`, which disables it and enforces the HTTPS/secret checks.
+
+## Quotas, storage and CI update — 22 October 2026
+
+- **AI spend limits in PostgreSQL.** Memory-deck generation and per-administrator question generation now reserve each Gemini request through `AiQuotaService`: one `AiUsage` row per request, counted over a true sliding 24-hour window under a per-scope advisory lock. Flushing or restarting Redis no longer resets the limit. Migration `20261022090000_ai_usage_photo_storage`.
+- **Profile photos in object storage.** With R2 configured, new photos are uploaded as `profile-photos/<uuid>` and only the key is stored; replacing or removing a photo, or choosing an avatar, deletes the old object (best effort). Without R2, photos stay inline in PostgreSQL as before, and existing inline photos keep being served either way — no data migration is required. R2 variables are now passed through both Compose files; production needs them set to enable object storage and assignment attachments.
+- **CI.** The single sequential job is now five parallel jobs (lint and type check, unit tests, backup tooling, dependency audit, and PostgreSQL/Redis-backed build, browser and API tests) behind a shared setup action; image publishing waits for all of them. The root dependency audit no longer runs after the browser suite.
+- **Vitest** uses the `vmThreads` pool, which reuses one jsdom per worker (full frontend run ~10.5 s → ~8.3 s locally).

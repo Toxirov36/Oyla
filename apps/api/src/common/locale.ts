@@ -1,4 +1,5 @@
 import messages from './locale-messages.json';
+import texts from './locale-text.json';
 
 export type Locale = 'uz' | 'ru' | 'en';
 export function resolveLocale(header?: string): Locale {
@@ -17,6 +18,12 @@ export function resolveLocale(header?: string): Locale {
 export function localizedMessage(code: string, locale: Locale): string | undefined {
   const dictionary: Record<string, string> = messages[locale];
   return dictionary[code];
+}
+/** Translates a plain Uzbek exception message that has no stable error `code`. */
+export function localizedText(text: string, locale: Locale): string {
+  if (locale === 'uz') return text;
+  const entry = (texts as Record<string, { ru: string; en: string }>)[text];
+  return entry?.[locale] ?? text;
 }
 export function localizedValidation(code: string, locale: Locale): string {
   const messages = {

@@ -9,5 +9,7 @@ export default defineConfig({
     include: ['test/**/*.test.{ts,tsx}'],
     setupFiles: ['./test/setup.ts'],
     clearMocks: true,
+    // Reuse one jsdom per worker instead of creating a new one per test file.
+    pool: 'vmThreads',
   },
 });

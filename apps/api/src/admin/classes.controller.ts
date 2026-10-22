@@ -4,13 +4,13 @@ import { Roles } from '../common/security';
 import { IdDto } from '../common/dto';
 
 import { ClassDto, UpdateClassDto, MembershipDto } from './admin.dto';
-import { AdminService } from './admin.service';
+import { AdminClassesService } from './classes.service';
 @ApiTags('Admin')
 @ApiBearerAuth()
 @Roles('ADMIN')
 @Controller('admin/classes')
 export class AdminClassesController {
-  constructor(private readonly admin: AdminService) {}
+  constructor(private readonly admin: AdminClassesService) {}
   @Get() list() {
     return this.admin.classes();
   }

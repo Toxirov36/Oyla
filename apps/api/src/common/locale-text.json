@@ -1,0 +1,558 @@
+{
+  "5 MB gacha JPG, PNG yoki WebP rasm tanlang.": {
+    "ru": "Выберите изображение JPG, PNG или WebP до 5 МБ.",
+    "en": "Choose a JPG, PNG or WebP image up to 5 MB."
+  },
+  "AI kutilgan miqdordagi savollarni yaratolmadi. Qayta urinib ko‘ring.": {
+    "ru": "ИИ не смог создать нужное количество вопросов. Попробуйте ещё раз.",
+    "en": "The AI could not create the expected number of questions. Try again."
+  },
+  "AI savol yaratish hozircha o‘chirilgan.": {
+    "ru": "Создание вопросов с помощью ИИ сейчас отключено.",
+    "en": "AI question generation is currently turned off."
+  },
+  "AI savol yaratish uchun Gemini API kaliti sozlanmagan.": {
+    "ru": "Для создания вопросов с помощью ИИ не настроен ключ Gemini API.",
+    "en": "The Gemini API key for AI question generation is not configured."
+  },
+  "AI savollarini yaratib bo‘lmadi. Birozdan keyin qayta urinib ko‘ring.": {
+    "ru": "Не удалось создать вопросы с помощью ИИ. Попробуйте позже.",
+    "en": "AI questions could not be created. Try again shortly."
+  },
+  "AI takroriy savollar yaratdi. Qayta urinib ko‘ring.": {
+    "ru": "ИИ создал повторяющиеся вопросы. Попробуйте ещё раз.",
+    "en": "The AI created duplicate questions. Try again."
+  },
+  "AI yaratgan savol formati noto‘g‘ri.": {
+    "ru": "Неверный формат вопроса, созданного ИИ.",
+    "en": "The question created by the AI has an invalid format."
+  },
+  "AI yaratgan savolda to‘rtta noyob variant va bitta to‘g‘ri javob bo‘lishi kerak.": {
+    "ru": "В вопросе, созданном ИИ, должно быть четыре уникальных варианта и один правильный ответ.",
+    "en": "An AI-created question must have four unique options and one correct answer."
+  },
+  "Avatar topilmadi.": {
+    "ru": "Аватар не найден.",
+    "en": "Avatar not found."
+  },
+  "Avval barcha savollarga javob bering.": {
+    "ru": "Сначала ответьте на все вопросы.",
+    "en": "Answer all questions first."
+  },
+  "Avval bu foydalanuvchining sinflarini boshqa o‘qituvchiga biriktiring.": {
+    "ru": "Сначала передайте классы этого пользователя другому учителю.",
+    "en": "First reassign this user's classes to another teacher."
+  },
+  "Avval darsni qoralama sifatida yarating va savol qo‘shing.": {
+    "ru": "Сначала создайте урок как черновик и добавьте вопросы.",
+    "en": "First create the lesson as a draft and add questions."
+  },
+  "Avval do‘stlik so‘rovi qabul qilinishi kerak.": {
+    "ru": "Сначала нужно принять запрос в друзья.",
+    "en": "The friend request must be accepted first."
+  },
+  "Avval shu savolga javob bering.": {
+    "ru": "Сначала ответьте на этот вопрос.",
+    "en": "Answer this question first."
+  },
+  "Avval yuborilgan so‘rovlar javobini kuting yoki ularni bekor qiling.": {
+    "ru": "Дождитесь ответа на отправленные запросы или отмените их.",
+    "en": "Wait for replies to the sent requests or cancel them."
+  },
+  "Avval yuborilgan takliflarni yakunlang.": {
+    "ru": "Сначала завершите отправленные приглашения.",
+    "en": "Finish the sent invitations first."
+  },
+  "Bellashish uchun do‘stingizni tanlang.": {
+    "ru": "Выберите друга для соревнования.",
+    "en": "Choose a friend to compete with."
+  },
+  "Bellashuv topilmadi.": {
+    "ru": "Соревнование не найдено.",
+    "en": "Match not found."
+  },
+  "Bildirishnoma topilmadi.": {
+    "ru": "Уведомление не найдено.",
+    "en": "Notification not found."
+  },
+  "Bir soatda 20 ta so‘rovdan ortiq yuborib bo‘lmaydi.": {
+    "ru": "Нельзя отправлять больше 20 запросов в час.",
+    "en": "You cannot send more than 20 requests per hour."
+  },
+  "Birinchi daraja 0 XP dan boshlanadi.": {
+    "ru": "Первый уровень начинается с 0 XP.",
+    "en": "The first level starts at 0 XP."
+  },
+  "Birinchi daraja raqami va 0 XP chegarasi saqlanishi kerak.": {
+    "ru": "Номер первого уровня и порог 0 XP должны сохраняться.",
+    "en": "The first level number and its 0 XP threshold must be kept."
+  },
+  "Birinchi daraja zarur.": {
+    "ru": "Первый уровень обязателен.",
+    "en": "The first level is required."
+  },
+  "Boshqa bellashuv hali yakunlanmagan.": {
+    "ru": "Другое соревнование ещё не завершено.",
+    "en": "Another match has not finished yet."
+  },
+  "Bu amal sizga tegishli emas.": {
+    "ru": "Это действие вам недоступно.",
+    "en": "This action is not available to you."
+  },
+  "Bu avatar tanlash uchun mavjud emas.": {
+    "ru": "Этот аватар недоступен для выбора.",
+    "en": "This avatar is not available to choose."
+  },
+  "Bu bosqich hali ochilmagan.": {
+    "ru": "Этот этап ещё не открыт.",
+    "en": "This stage is not unlocked yet."
+  },
+  "Bu darsga bog‘liq darslar bor. Avval bog‘lanishlarni yangilang.": {
+    "ru": "У этого урока есть зависимые уроки. Сначала обновите связи.",
+    "en": "Other lessons depend on this lesson. Update the links first."
+  },
+  "Bu email bilan foydalanuvchi mavjud.": {
+    "ru": "Пользователь с таким email уже существует.",
+    "en": "A user with this email already exists."
+  },
+  "Bu email boshqa Google hisobi bilan bog‘langan.": {
+    "ru": "Этот email привязан к другому аккаунту Google.",
+    "en": "This email is linked to a different Google account."
+  },
+  "Bu fan uchun kamida 5 ta variantli savol kerak. Boshqa fan yoki aralash savollarni tanlang.": {
+    "ru": "Для этого предмета нужно минимум 5 вопросов с вариантами. Выберите другой предмет или смешанные вопросы.",
+    "en": "This subject needs at least 5 multiple-choice questions. Choose another subject or mixed questions."
+  },
+  "Bu foydalanuvchi bellashuvda qatnasha olmaydi.": {
+    "ru": "Этот пользователь не может участвовать в соревновании.",
+    "en": "This user cannot take part in the match."
+  },
+  "Bu mashq kontenti hozir mavjud emas. Boshqa darsni tanlang.": {
+    "ru": "Это упражнение сейчас недоступно. Выберите другой урок.",
+    "en": "This exercise is not available right now. Choose another lesson."
+  },
+  "Bu o‘quvchining so‘rovlar ro‘yxati to‘lgan. Keyinroq urinib ko‘ring.": {
+    "ru": "У этого ученика список запросов заполнен. Попробуйте позже.",
+    "en": "This student's request list is full. Try again later."
+  },
+  "Bu sahifaga kirish huquqingiz yo‘q.": {
+    "ru": "У вас нет доступа к этой странице.",
+    "en": "You do not have access to this page."
+  },
+  "Bu savol hozir javob qabul qilmaydi.": {
+    "ru": "Этот вопрос сейчас не принимает ответы.",
+    "en": "This question is not accepting answers right now."
+  },
+  "Bu taklif allaqachon yakunlangan.": {
+    "ru": "Это приглашение уже завершено.",
+    "en": "This invitation is already finished."
+  },
+  "Bugun AI savol yaratish limiti tugadi.": {
+    "ru": "Лимит создания вопросов с помощью ИИ на сегодня исчерпан.",
+    "en": "Today's limit for AI question generation has been reached."
+  },
+  "Challenge uchun kamida 5 ta chop etilgan savol zarur.": {
+    "ru": "Для испытания нужно минимум 5 опубликованных вопросов.",
+    "en": "The challenge needs at least 5 published questions."
+  },
+  "Cloudflare R2 kalitlari sozlanmagan.": {
+    "ru": "Ключи Cloudflare R2 не настроены.",
+    "en": "Cloudflare R2 keys are not configured."
+  },
+  "Daraja chegaralari o‘sib borishi kerak.": {
+    "ru": "Пороги уровней должны возрастать.",
+    "en": "Level thresholds must increase."
+  },
+  "Dars topilmadi.": {
+    "ru": "Урок не найден.",
+    "en": "Lesson not found."
+  },
+  "Dars yangilandi. Mashqni qayta boshlang.": {
+    "ru": "Урок обновлён. Начните упражнение заново.",
+    "en": "The lesson was updated. Restart the exercise."
+  },
+  "Darsda chop etilgan savollar yo‘q.": {
+    "ru": "В уроке нет опубликованных вопросов.",
+    "en": "The lesson has no published questions."
+  },
+  "Darslar bog‘lanishida yopiq aylana bo‘lmasligi kerak.": {
+    "ru": "В связях уроков не должно быть замкнутого цикла.",
+    "en": "Lesson links must not form a cycle."
+  },
+  "Darsni chop etish uchun kamida bitta chop etilgan savol kerak.": {
+    "ru": "Для публикации урока нужен хотя бы один опубликованный вопрос.",
+    "en": "Publishing a lesson needs at least one published question."
+  },
+  "Do‘stingizning takliflar ro‘yxati to‘lgan. Keyinroq urinib ko‘ring.": {
+    "ru": "Список приглашений вашего друга заполнен. Попробуйте позже.",
+    "en": "Your friend's invitation list is full. Try again later."
+  },
+  "Do‘stlar bo‘limi faqat faol o‘quvchilar uchun.": {
+    "ru": "Раздел друзей доступен только активным ученикам.",
+    "en": "The friends section is only for active students."
+  },
+  "Do‘stlar reytingi faqat o‘quvchilar uchun.": {
+    "ru": "Рейтинг друзей доступен только ученикам.",
+    "en": "The friends leaderboard is only for students."
+  },
+  "Do‘stlar soni chegarasiga yetilgan.": {
+    "ru": "Достигнут предел числа друзей.",
+    "en": "The friend limit has been reached."
+  },
+  "Do‘stlik endi mavjud emas.": {
+    "ru": "Дружбы больше нет.",
+    "en": "The friendship no longer exists."
+  },
+  "Do‘stlik so‘rovi topilmadi.": {
+    "ru": "Запрос в друзья не найден.",
+    "en": "Friend request not found."
+  },
+  "Email yoki parol noto‘g‘ri.": {
+    "ru": "Неверный email или пароль.",
+    "en": "Incorrect email or password."
+  },
+  "Faol o‘qituvchini tanlang.": {
+    "ru": "Выберите активного учителя.",
+    "en": "Choose an active teacher."
+  },
+  "Faol o‘quvchi topilmadi.": {
+    "ru": "Активный ученик не найден.",
+    "en": "Active student not found."
+  },
+  "Faolsiz hisob uchun tiklash havolasi yaratib bo‘lmaydi.": {
+    "ru": "Нельзя создать ссылку восстановления для неактивного аккаунта.",
+    "en": "A recovery link cannot be created for an inactive account."
+  },
+  "Faqat PDF, DOCX, JPG, PNG yoki WebP fayllarini biriktirish mumkin.": {
+    "ru": "Можно прикрепить только файлы PDF, DOCX, JPG, PNG или WebP.",
+    "en": "Only PDF, DOCX, JPG, PNG or WebP files can be attached."
+  },
+  "Faqat so‘rov olgan o‘quvchi uni qabul qila oladi.": {
+    "ru": "Принять запрос может только получивший его ученик.",
+    "en": "Only the student who received the request can accept it."
+  },
+  "Fayl nomi noto‘g‘ri.": {
+    "ru": "Недопустимое имя файла.",
+    "en": "Invalid file name."
+  },
+  "Fayl omboridan javob olinmadi.": {
+    "ru": "Хранилище файлов не ответило.",
+    "en": "The file storage did not respond."
+  },
+  "Foydalanuvchi endi qatnasha olmaydi.": {
+    "ru": "Пользователь больше не может участвовать.",
+    "en": "The user can no longer take part."
+  },
+  "Google hisobi tasdiqlanmadi.": {
+    "ru": "Каждый файл должен быть меньше 15 МБ.",
+    "en": "Each file must be smaller than 15 MB."
+  },
+  "Google orqali kirish hozircha sozlanmagan.": {
+    "ru": "Google-аккаунт не подтверждён.",
+    "en": "The Google account could not be verified."
+  },
+  "Har bir fayl 15 MB dan kichik bo‘lishi kerak.": {
+    "ru": "Вход через Google пока не настроен.",
+    "en": "Google sign-in is not configured yet."
+  },
+  "Hisob faol emas.": {
+    "ru": "Аккаунт неактивен.",
+    "en": "The account is not active."
+  },
+  "Hisob o‘zgargan. Tizimga qayta kiring.": {
+    "ru": "Аккаунт изменён. Войдите снова.",
+    "en": "The account has changed. Sign in again."
+  },
+  "Hisobingiz holati o‘zgargan.": {
+    "ru": "Состояние вашего аккаунта изменилось.",
+    "en": "Your account status has changed."
+  },
+  "Hozirgi parol noto‘g‘ri.": {
+    "ru": "Текущий пароль неверен.",
+    "en": "The current password is incorrect."
+  },
+  "Ikkita turli kartani tanlang.": {
+    "ru": "Выберите две разные карточки.",
+    "en": "Choose two different cards."
+  },
+  "Ism, avatar yoki til tanlang.": {
+    "ru": "Выберите имя, аватар или язык.",
+    "en": "Choose a name, avatar or language."
+  },
+  "JPG, PNG yoki WebP fayl tanlang.": {
+    "ru": "Выберите файл JPG, PNG или WebP.",
+    "en": "Choose a JPG, PNG or WebP file."
+  },
+  "Javob formati savolga mos emas.": {
+    "ru": "Формат ответа не подходит для вопроса.",
+    "en": "The answer format does not match the question."
+  },
+  "Javob izohi maydonlarini tekshiring.": {
+    "ru": "Проверьте поля объяснения ответа.",
+    "en": "Check the answer explanation fields."
+  },
+  "Javob izohi obyekt bo‘lishi kerak.": {
+    "ru": "Объяснение ответа должно быть объектом.",
+    "en": "The answer explanation must be an object."
+  },
+  "Javob true yoki false bo‘lishi kerak.": {
+    "ru": "Ответ должен быть true или false.",
+    "en": "The answer must be true or false."
+  },
+  "Juda ko‘p so‘rov. Birozdan so‘ng urinib ko‘ring.": {
+    "ru": "Слишком много запросов. Попробуйте чуть позже.",
+    "en": "Too many requests. Try again shortly."
+  },
+  "Kamida 2 ta noyob variant va ulardan to‘g‘ri javobni kiriting.": {
+    "ru": "Укажите минимум 2 уникальных варианта и правильный ответ среди них.",
+    "en": "Enter at least 2 unique options and a correct answer among them."
+  },
+  "Karta tanlovi noto‘g‘ri.": {
+    "ru": "Неверный выбор карточек.",
+    "en": "Invalid card selection."
+  },
+  "Karta to‘plami topilmadi.": {
+    "ru": "Набор карточек не найден.",
+    "en": "Card set not found."
+  },
+  "Kiritilgan ma’lumotlarni tekshiring.": {
+    "ru": "Проверьте введённые данные.",
+    "en": "Check the entered data."
+  },
+  "Ko‘pi bilan 5 ta fayl biriktiring.": {
+    "ru": "Прикрепите не более 5 файлов.",
+    "en": "Attach no more than 5 files."
+  },
+  "Kurs topilmadi.": {
+    "ru": "Курс не найден.",
+    "en": "Course not found."
+  },
+  "Kutilmagan xatolik yuz berdi.": {
+    "ru": "Произошла непредвиденная ошибка.",
+    "en": "An unexpected error occurred."
+  },
+  "Mashq maydonlari yoki qiymatlari noto‘g‘ri.": {
+    "ru": "Поля или значения упражнения недопустимы.",
+    "en": "The exercise fields or values are invalid."
+  },
+  "Mashq ma’lumotlari obyekt bo‘lishi kerak.": {
+    "ru": "Данные упражнения должны быть объектом.",
+    "en": "The exercise data must be an object."
+  },
+  "Mashq turi qo‘llab-quvvatlanmaydi.": {
+    "ru": "Тип упражнения не поддерживается.",
+    "en": "The exercise type is not supported."
+  },
+  "Matnli javob variantlari bo‘sh bo‘lmasin.": {
+    "ru": "Варианты текстового ответа не должны быть пустыми.",
+    "en": "Text answer options must not be empty."
+  },
+  "Mavjud variantni tanlang.": {
+    "ru": "Выберите существующий вариант.",
+    "en": "Choose an existing option."
+  },
+  "Mavzu topilmadi.": {
+    "ru": "Тема не найдена.",
+    "en": "Topic not found."
+  },
+  "Media manzili noto‘g‘ri.": {
+    "ru": "Адрес медиафайла недействителен.",
+    "en": "The media address is invalid."
+  },
+  "Oldingi dars shu kursda, tartib bo‘yicha avval joylashgan bo‘lishi kerak.": {
+    "ru": "Предыдущий урок должен быть в этом же курсе и идти раньше по порядку.",
+    "en": "The previous lesson must be in the same course and come earlier in order."
+  },
+  "Oxirgi adminni o‘chira olmaysiz.": {
+    "ru": "Нельзя удалить последнего администратора.",
+    "en": "You cannot remove the last administrator."
+  },
+  "O‘quvchi sinfini tanlang.": {
+    "ru": "Выберите класс ученика.",
+    "en": "Choose the student's class."
+  },
+  "O‘quvchiga aylantirish uchun sinfni tanlang.": {
+    "ru": "Выберите класс для превращения в ученика.",
+    "en": "Choose a class to convert to a student."
+  },
+  "O‘quvchiga o‘qituvchi paneli berib bo‘lmaydi.": {
+    "ru": "Ученику нельзя дать панель учителя.",
+    "en": "A student cannot be given the teacher panel."
+  },
+  "O‘yin raundi topilmadi.": {
+    "ru": "Игровой раунд не найден.",
+    "en": "Game round not found."
+  },
+  "O‘z administrator rolingizni o‘zgartira olmaysiz.": {
+    "ru": "Вы не можете изменить свою роль администратора.",
+    "en": "You cannot change your own administrator role."
+  },
+  "O‘z hisobingizni o‘chira olmaysiz.": {
+    "ru": "Вы не можете удалить свой аккаунт.",
+    "en": "You cannot remove your own account."
+  },
+  "O‘zingizga so‘rov yubora olmaysiz.": {
+    "ru": "Нельзя отправить запрос самому себе.",
+    "en": "You cannot send a request to yourself."
+  },
+  "Rasm JPG, PNG yoki WebP formatida bo‘lishi kerak.": {
+    "ru": "Изображение должно быть в формате JPG, PNG или WebP.",
+    "en": "The image must be JPG, PNG or WebP."
+  },
+  "Rasm ochilmadi. JPG, PNG yoki WebP fayl tanlang.": {
+    "ru": "Не удалось открыть изображение. Выберите файл JPG, PNG или WebP.",
+    "en": "The image could not be opened. Choose a JPG, PNG or WebP file."
+  },
+  "Rasm topilmadi.": {
+    "ru": "Фото не найдено.",
+    "en": "Photo not found."
+  },
+  "Raund yakunlangan.": {
+    "ru": "Раунд завершён.",
+    "en": "The round is finished."
+  },
+  "Savol bu urinishga tegishli emas.": {
+    "ru": "Вопрос не относится к этой попытке.",
+    "en": "The question does not belong to this attempt."
+  },
+  "Savol urinishlarda ishlatilgan. Uni arxivlang.": {
+    "ru": "Вопрос использовался в попытках. Архивируйте его.",
+    "en": "The question was used in attempts. Archive it."
+  },
+  "Sessiya mavjud emas.": {
+    "ru": "Сеанс отсутствует.",
+    "en": "No session found."
+  },
+  "Sessiya yakunlangan.": {
+    "ru": "Сеанс завершён.",
+    "en": "The session has ended."
+  },
+  "Sessiya yangilangan.": {
+    "ru": "Сеанс обновлён.",
+    "en": "The session was renewed."
+  },
+  "Sinf aniqlanmadi.": {
+    "ru": "Класс не определён.",
+    "en": "The class could not be determined."
+  },
+  "Sinf faqat o‘quvchiga tegishli.": {
+    "ru": "Класс может принадлежать только ученику.",
+    "en": "A class can belong only to a student."
+  },
+  "Sinf topilmadi.": {
+    "ru": "Класс не найден.",
+    "en": "Class not found."
+  },
+  "Sinfdagi o‘quvchilar bosqichi mos emas.": {
+    "ru": "Этап учеников в классе не подходит.",
+    "en": "The students' stage in the class does not fit."
+  },
+  "Sinfdosh topilmadi.": {
+    "ru": "Одноклассник не найден.",
+    "en": "Classmate not found."
+  },
+  "Sinfga mos chop etilgan darsni tanlang.": {
+    "ru": "Выберите опубликованный урок, подходящий классу.",
+    "en": "Choose a published lesson that fits the class."
+  },
+  "Sinfga mos faol o‘quvchilarni tanlang.": {
+    "ru": "Выберите активных учеников, подходящих классу.",
+    "en": "Choose active students that fit the class."
+  },
+  "Sinfingizni tanlang va qayta urinib ko‘ring.": {
+    "ru": "Выберите свой класс и повторите попытку.",
+    "en": "Choose your grade and try again."
+  },
+  "Siz yoki do‘stingiz boshqa bellashuvda qatnashyapti.": {
+    "ru": "Вы или ваш друг участвуете в другом соревновании.",
+    "en": "You or your friend is in another match."
+  },
+  "Sonli javobni kiriting.": {
+    "ru": "Введите числовой ответ.",
+    "en": "Enter a numeric answer."
+  },
+  "So‘rov manbasi ruxsat etilmagan.": {
+    "ru": "Источник запроса не разрешён.",
+    "en": "The request origin is not allowed."
+  },
+  "Taklif kodi topilmadi.": {
+    "ru": "Код приглашения не найден.",
+    "en": "Invitation code not found."
+  },
+  "Tanlangan dars topilmadi.": {
+    "ru": "Выбранный урок не найден.",
+    "en": "The selected lesson was not found."
+  },
+  "Tiklash havolasi yaroqsiz yoki muddati tugagan. Administratordan yangi havola oling.": {
+    "ru": "Ссылка восстановления недействительна или истекла. Получите новую у администратора.",
+    "en": "The recovery link is invalid or expired. Get a new one from an administrator."
+  },
+  "Tizimga kiring.": {
+    "ru": "Войдите в систему.",
+    "en": "Sign in."
+  },
+  "Topshiriq fayli topilmadi.": {
+    "ru": "Файл задания не найден.",
+    "en": "Assignment file not found."
+  },
+  "Topshiriq topilmadi.": {
+    "ru": "Задание не найдено.",
+    "en": "Assignment not found."
+  },
+  "To‘g‘ri YouTube video havolasini kiriting.": {
+    "ru": "Введите корректную ссылку на видео YouTube.",
+    "en": "Enter a valid YouTube video link."
+  },
+  "Tuzilmali javob noto‘g‘ri.": {
+    "ru": "Структурированный ответ неверен.",
+    "en": "The structured answer is incorrect."
+  },
+  "Urinish muddati tugagan. Yangi mashqni boshlang.": {
+    "ru": "Время попытки истекло. Начните новое упражнение.",
+    "en": "The attempt has expired. Start a new exercise."
+  },
+  "Urinish topilmadi.": {
+    "ru": "Попытка не найдена.",
+    "en": "Attempt not found."
+  },
+  "Urinish yakunlangan.": {
+    "ru": "Попытка завершена.",
+    "en": "The attempt is finished."
+  },
+  "Variantlar faqat variantli savol uchun.": {
+    "ru": "Варианты допустимы только для вопроса с вариантами.",
+    "en": "Options are allowed only for a multiple-choice question."
+  },
+  "Video manbasi, fan va sinfni mos tanlang.": {
+    "ru": "Выберите подходящие источник видео, предмет и класс.",
+    "en": "Choose a matching video source, subject and grade."
+  },
+  "Videodars topilmadi.": {
+    "ru": "Видеоурок не найден.",
+    "en": "Video lesson not found."
+  },
+  "Xabar topilmadi.": {
+    "ru": "Сообщение не найдено.",
+    "en": "Message not found."
+  },
+  "Xato izohini faqat mavjud noto‘g‘ri variantga bir marta kiriting.": {
+    "ru": "Укажите пояснение к ошибке только для существующего неверного варианта, один раз.",
+    "en": "Enter the mistake explanation once, only for an existing wrong option."
+  },
+  "Xizmat vaqtincha mavjud emas.": {
+    "ru": "Сервис временно недоступен.",
+    "en": "The service is temporarily unavailable."
+  },
+  "Yangi parol hozirgi paroldan farq qilsin.": {
+    "ru": "Новый пароль должен отличаться от текущего.",
+    "en": "The new password must differ from the current one."
+  },
+  "Zaxira to‘plamni olib tashlab bo‘lmaydi.": {
+    "ru": "Резервный набор нельзя удалить.",
+    "en": "The fallback set cannot be removed."
+  },
+  "Rasm vaqtincha mavjud emas.": {
+    "ru": "Фото временно недоступно.",
+    "en": "The photo is temporarily unavailable."
+  }
+}

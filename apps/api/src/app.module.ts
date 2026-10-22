@@ -1,6 +1,7 @@
 import { Controller, Get, Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
-import { InfrastructureModule, PrismaService } from './common/prisma.service';
+import { InfrastructureModule } from './common/infrastructure.module';
+import { PrismaService } from './common/prisma.service';
 import { RedisService } from './common/redis.service';
 import { Public, RateGuard, SecurityGuard } from './common/security';
 import { AuthModule } from './auth/auth.module';
